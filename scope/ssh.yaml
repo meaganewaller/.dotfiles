@@ -1,0 +1,19 @@
+apiVersion: scope.github.com/v1alpha
+kind: ScopeDoctorGroup
+metadata:
+  name: ssh
+  description: Ensure SSH directory, configs, and keys are in place
+spec:
+  include: by-default
+  needs:
+    - os-base
+  actions:
+    - name: ssh-setup
+      description: ~/.ssh exists, has config, and keys appropriate to profile
+      check:
+        commands:
+          - ssh-check
+      fix:
+        commands:
+          - ssh-fix
+
