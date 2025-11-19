@@ -6,6 +6,7 @@ set -euo pipefail
 ###############################################################################
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export DOTFILES_ROOT="$ROOT"
 
 PROFILE="work"
 RUN_DOCTOR=1
@@ -233,9 +234,9 @@ fi
 if [ "$RUN_DOCTOR" -eq 1 ]; then
   if [ "$DOTFILES_DRY_RUN" = "1" ]; then
     log "DOTFILES_DRY_RUN=1 -> running 'scope doctor' in check-only mode"
-    scope doctor run --extra-config "${SCOPE_CONFIG_DIR}" --fix=false
+    scope doctor run --extra-config "${SCOPE_CONFIG_DIR}" --fix=false --progress=plain
   else
     log "Running 'scope doctor run' to converge dev environment"
-    scope doctor run --extra-config "${SCOPE_CONFIG_DIR}"
+    scope doctor run --extra-config "${SCOPE_CONFIG_DIR}" --progress=plain
   fi
 fi

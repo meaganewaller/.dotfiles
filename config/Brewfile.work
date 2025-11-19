@@ -1,0 +1,75 @@
+# Brewfile.work
+# -------------------------------------------------------------------------
+# Cloud / Infra CLIs
+# -------------------------------------------------------------------------
+brew "awscli"
+brew "aws-vault"
+brew "gcloud"              # Google Cloud SDK
+brew "kubernetes-cli"      # kubectl
+brew "helm"
+
+# -------------------------------------------------------------------------
+# Databases & Local Dev Infra
+# -------------------------------------------------------------------------
+brew "postgresql@14"       # full server for local dev
+brew "redis"
+brew "mysql"               # optional if projects need it
+brew "elasticsearch"       # if your projects use ES
+
+# -------------------------------------------------------------------------
+# Containerization
+# -------------------------------------------------------------------------
+cask "docker"
+brew "colima"              # lighter-weight local container runtime (optional)
+
+# -------------------------------------------------------------------------
+# Rails / Ruby Dev Tools
+# -------------------------------------------------------------------------
+brew "libyaml"
+brew "readline"
+brew "pkg-config"
+brew "openssl@3"
+brew "gmp"
+
+# -------------------------------------------------------------------------
+# DX / Local Dev Tools
+# -------------------------------------------------------------------------
+brew "entr"                # run commands when files change
+brew "watchman"            # fs watch
+brew "ngrok"               # tunneling
+brew "mitmproxy"           # debug http
+brew "grpcurl"             # grpc introspection
+
+# -------------------------------------------------------------------------
+# Networking
+# -------------------------------------------------------------------------
+brew "nmap"
+brew "iperf3"
+brew "netcat"
+
+# -------------------------------------------------------------------------
+# Security / Crypto
+# -------------------------------------------------------------------------
+brew "gpg"
+brew "age"
+brew "sops"
+
+# -------------------------------------------------------------------------
+# Observability / Logs
+# -------------------------------------------------------------------------
+brew "stern"               # k8s log tailing
+brew "k9s"                 # k8s management TUI
+brew "jq"
+brew "yq"
+
+# -------------------------------------------------------------------------
+# Browsers (work testing)
+# -------------------------------------------------------------------------
+cask "firefox"
+cask "google-chrome"
+
+# -------------------------------------------------------------------------
+# Mac Dev UX
+# -------------------------------------------------------------------------
+cask "rectangle"
+cask "alt-tab"

@@ -1,0 +1,84 @@
+# Brewfile.common
+
+# -------------------------------------------------------------------------
+# Core package manager config
+# -------------------------------------------------------------------------
+tap "homebrew/bundle"
+
+# -------------------------------------------------------------------------
+# CLI Essentials
+# -------------------------------------------------------------------------
+brew "git"
+brew "gh"                  # GitHub CLI
+brew "git-delta"           # gorgeous git diffs
+brew "fzf"                 # fuzzy search for everything
+brew "ripgrep"             # fast project searching
+brew "fd"                  # better 'find'
+brew "bat"                 # pretty 'cat'
+brew "htop"                # process viewer
+brew "tmux"
+brew "wget"
+brew "curl"
+brew "jq"
+
+# -------------------------------------------------------------------------
+# Shell / Environment
+# -------------------------------------------------------------------------
+brew "zsh"
+brew "zoxide"              # smarter cd
+brew "direnv"              # per-project env
+brew "starship"            # fast, pretty shell prompt
+
+# -------------------------------------------------------------------------
+# Programming Languages / Runtimes
+# (your ruby + node doctor groups will handle installation,
+#  but having these helpers around is useful)
+# -------------------------------------------------------------------------
+brew "mise"                # runtime manager for ruby/node/python/etc.
+brew "coreutils"           # GNU utils on macOS
+brew "openssl@3"
+
+# -------------------------------------------------------------------------
+# Editor / IDE
+# -------------------------------------------------------------------------
+brew "neovim"
+
+# -------------------------------------------------------------------------
+# Database Tools
+# (not full DBs — those go in work profile usually)
+# -------------------------------------------------------------------------
+brew "postgresql@14"       # client libs only, not server necessarily
+brew "sqlite"
+
+# -------------------------------------------------------------------------
+# HTTP / API Tools
+# -------------------------------------------------------------------------
+brew "httpie"
+brew "curlie"
+
+# -------------------------------------------------------------------------
+# Utility Tools
+# -------------------------------------------------------------------------
+brew "tree"
+brew "watch"
+brew "tldr"
+brew "imagemagick"
+
+# -------------------------------------------------------------------------
+# Fonts
+# -------------------------------------------------------------------------
+cask "font-jetbrains-mono"
+cask "font-fira-code"
+cask "font-sf-mono-for-powerline"
+
+# -------------------------------------------------------------------------
+# GUI Apps — minimal common set
+# -------------------------------------------------------------------------
+cask "iterm2"
+cask "raycast"
+cask "visual-studio-code"
+
+# -------------------------------------------------------------------------
+# AI / CLI tools (optional, but common baseline)
+# -------------------------------------------------------------------------
+brew "uv"                  # python-free build tool, needed for modern AI tooling
