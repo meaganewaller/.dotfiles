@@ -1,0 +1,9 @@
+[tools]
+node = "lts"
+python = "3.12"
+ruby = "3.4.6"
+java = "21"
+terraform = "latest"
+
+[env]
+MISE_ENV="global"

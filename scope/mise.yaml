@@ -1,0 +1,18 @@
+apiVersion: scope.github.com/v1alpha
+kind: ScopeDoctorGroup
+metadata:
+  name: dev-tools-mise
+  description: Ensure mise is installed and global dev tools are converged
+spec:
+  include: by-default
+  needs:
+    - os-base
+  actions:
+    - name: mise-dev-tools
+      description: mise CLI present and tools from config.toml installed
+      check:
+        commands:
+          - mise-check
+      fix:
+        commands:
+          - mise-fix
