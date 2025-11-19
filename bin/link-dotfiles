@@ -2,48 +2,95 @@
 set -euo pipefail
 
 PROFILE="${1:-work}"
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-log() { printf '[dotfiles] %s\n' "$*"; }
-backup_if_exists() {
-  local target="$1"
-  if [ -e "$target" ] && [ ! -L "$target" ]; then
-    local backup="${target}.backup.$(date +%s)"
-    log "Backing up existing ${target} -> ${backup}"
-    mv "$target" "$backup"
-  fi
+# Resolve dotfiles root (repo root)
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export DOTFILES_ROOT="${DOTFILES_ROOT:-$ROOT}"
+
+log() {
+  printf '[dotfiles] %s\n' "$*"
 }
 
+make_symlink() {
+    local rel="$1"          # e.g. ".zshrc" or ".ssh/config" or ".config/wezterm"
+    local src="${DOTFILES_ROOT}/home/${rel}"
+    local dest="${HOME}/${rel}"
+
+    # If the source doesn't exist in the repo, skip quietly
+    if [ ! -e "$src" ] && [ ! -L "$src" ]; then
+        log "Skipping ${rel} (no source at ${src})"
+        return 0
+    fi
+
+    # Ensure parent directory exists (for things like .ssh/config, .config/wezterm, etc.)
+    local dest_dir
+    dest_dir="$(dirname "$dest")"
+    mkdir -p "$dest_dir"
+
+    # If dest already exists, decide what to do
+    if [ -L "$dest" ]; then
+        # It's a symlink already
+        local current
+        current="$(readlink "$dest" || true)"
+        if [ "$current" = "$src" ]; then
+            log "Symlink already correct for ${dest}"
+            return 0
+        else
+            log "Removing existing symlink ${dest} -> ${current}"
+            rm "$dest"
+        fi
+    elif [ -e "$dest" ]; then
+        # Real file/dir, not a symlink → back it up
+        local backup="${dest}.backup.$(date +%s)"
+        log "Backing up existing ${dest} -> ${backup}"
+        mv "$dest" "$backup"
+    fi
+
+
+    log "Linking ${dest} -> ${src}"
+    ln -s "$src" "$dest"
+}
+
+
 log "Linking dotfiles for profile '${PROFILE}'"
+log "DOTFILES_ROOT=${DOTFILES_ROOT}"
 
-# Shell rc
-if [ -f "${ROOT}/home/.zshrc" ]; then
-  backup_if_exists "${HOME}/.zshrc"
-  ln -sf "${ROOT}/home/.zshrc" "${HOME}/.zshrc"
-fi
+###############################################################################
+# Shell config
+###############################################################################
 
-# Git core + profile includes
-if [ -f "${ROOT}/home/.gitconfig" ]; then
-  backup_if_exists "${HOME}/.gitconfig"
-  ln -sf "${ROOT}/home/.gitconfig" "${HOME}/.gitconfig"
-fi
-if [ -f "${ROOT}/home/.gitconfig.work" ]; then
-  ln -sf "${ROOT}/home/.gitconfig.work" "${HOME}/.gitconfig.work"
-fi
-if [ -f "${ROOT}/home/.gitconfig.personal" ]; then
-  ln -sf "${ROOT}/home/.gitconfig.personal" "${HOME}/.gitconfig.personal"
-fi
+make_symlink ".zshrc"
+make_symlink ".zshenv"
+make_symlink ".bashrc"
 
-# SSH
-mkdir -p "${HOME}/.ssh"
-if [ -f "${ROOT}/home/.ssh/config" ]; then
-  backup_if_exists "${HOME}/.ssh/config"
-  ln -sf "${ROOT}/home/.ssh/config" "${HOME}/.ssh/config"
-fi
-if [ "$PROFILE" = "work" ] && [ -f "${ROOT}/home/.ssh/config.work" ]; then
-  ln -sf "${ROOT}/home/.ssh/config.work" "${HOME}/.ssh/config.work"
-fi
-if [ "$PROFILE" = "personal" ] && [ -f "${ROOT}/home/.ssh/config.personal" ]; then
-  ln -sf "${ROOT}/home/.ssh/config.personal" "${HOME}/.ssh/config.personal"
-fi
+###############################################################################
+# Git config
+###############################################################################
 
+make_symlink ".gitconfig"
+make_symlink ".gitconfig.work"
+make_symlink ".gitconfig.personal"
+
+###############################################################################
+# SSH config
+###############################################################################
+
+make_symlink ".ssh/config"
+make_symlink ".ssh/config.work"
+make_symlink ".ssh/config.personal"
+
+
+###############################################################################
+# Editor / tooling config
+###############################################################################
+
+make_symlink ".editorconfig"
+make_symlink ".config/starship.toml"
+make_symlink ".config/wezterm"
+make_symlink ".config/nvim"
+make_symlink ".config/zsh"
+
+# Optional: profile-specific shell overlays
+# make_symlink ".zshrc.${PROFILE}" || true
+
+log "Dotfile linking complete."
