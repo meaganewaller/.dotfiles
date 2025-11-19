@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/.dotfiles}"
+PROFILE="${DOTFILES_PROFILE:-work}"
+
+echo "[os-base-fix] DOTFILES_ROOT=${DOTFILES_ROOT}"
+echo "[os-base-fix] DOTFILES_PROFILE=${PROFILE}"
+
+# --- Apply Brewfile.common on macOS ---
+if [ "$(uname -s)" = "Darwin" ]; then
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "[os-base-fix] Homebrew is missing; homebrew doctor group should have installed it." >&2
+  else
+    BREWFILE_COMMON="${DOTFILES_ROOT}/config/Brewfile.common"
+    if [ -f "$BREWFILE_COMMON" ]; then
+      echo "[os-base-fix] Running brew bundle for Brewfile.common"
+      brew bundle --file="$BREWFILE_COMMON"
+    else
+      echo "[os-base-fix] No Brewfile.common at ${BREWFILE_COMMON}, skipping brew base packages."
+    fi
+  fi
+fi
+
+# --- Link dotfiles ---
+if [ -x "${DOTFILES_ROOT}/bin/link-dotfiles" ]; then
+  echo "[os-base-fix] Linking dotfiles via link-dotfiles (${PROFILE})"
+  "${DOTFILES_ROOT}/bin/link-dotfiles" "$PROFILE"
+else
+  echo "[os-base-fix] WARNING: ${DOTFILES_ROOT}/bin/link-dotfiles not found or not executable." >&2
+  echo "[os-base-fix] You should create that script to manage your symlinks."
+fi
+

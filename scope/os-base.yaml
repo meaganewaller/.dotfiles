@@ -1,0 +1,21 @@
+apiVersion: scope.github.com/v1alpha
+kind: ScopeDoctorGroup
+metadata:
+  name: os-base
+  description: Base OS tooling and dotfile symlinks
+spec:
+  include: by-default
+  needs:
+    - homebrew
+  actions:
+    - name: os-base
+      description: Ensure base packages and dotfiles are set up
+      check:
+        commands:
+          - os-base-check
+      fix:
+        prompt:
+          text: "Missing brew packages, install them now?"
+        commands:
+          - os-base-fix
+

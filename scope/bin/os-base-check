@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# This script checks:
+#  - If we're on macOS with brew + Brewfile.common -> brew bundle check passes
+#  - Basic dotfile symlinks exist (~/.zshrc or ~/.gitconfig)
+
+DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/.dotfiles}"
+
+status=0
+
+
+###############################################################################
+# Brewfile.common check (macOS only)
+###############################################################################
+if [ "$(uname -s)" = "Darwin" ]; then
+  if command -v brew >/dev/null 2>&1; then
+    BREWFILE_COMMON="${DOTFILES_ROOT}/config/Brewfile.common"
+    if [ -f "$BREWFILE_COMMON" ]; then
+      # If any packages are missing, this exits non-zero
+      if ! brew bundle check --file="$BREWFILE_COMMON" >/dev/null 2>&1; then
+        status=1
+      fi
+    fi
+  else
+    # homebrew group should have installed this; if it's missing, that's a failure
+    status=1
+  fi
+fi
+
+###############################################################################
+# Dotfiles sanity
+# We don't care if they're symlinks vs regular files here, just that
+# you actually *have* something wired up.
+###############################################################################
+if [ ! -e "$HOME/.zshrc" ] && \
+   [ ! -e "$HOME/.bashrc" ] && \
+   [ ! -e "$HOME/.gitconfig" ]; then
+  status=1
+fi
+
+exit "$status"
