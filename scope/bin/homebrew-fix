@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$(uname -s)" != "Darwin" ]; then
+  echo "[homebrew-fix] Not macOS; nothing to do." >&2
+  exit 0
+fi
+
+if command -v brew >/dev/null 2>&1; then
+  echo "[homebrew-fix] Homebrew already installed."
+  exit 0
+fi
+
+echo "[homebrew-fix] Installing Homebrew..."
+
+# Official Homebrew installer
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Try to wire it into the current shell env so subsequent steps can use brew
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+if ! command -v brew >/dev/null 2>&1; then
+  echo "[homebrew-fix] Brew install appears to have failed or brew not on PATH." >&2
+  exit 1
+fi
+
+echo "[homebrew-fix] Homebrew installed at $(command -v brew)"
+

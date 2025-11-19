@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROFILE="${1:-work}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+log() { printf '[dotfiles] %s\n' "$*"; }
+backup_if_exists() {
+  local target="$1"
+  if [ -e "$target" ] && [ ! -L "$target" ]; then
+    local backup="${target}.backup.$(date +%s)"
+    log "Backing up existing ${target} -> ${backup}"
+    mv "$target" "$backup"
+  fi
+}
+
+log "Linking dotfiles for profile '${PROFILE}'"
+
+# Shell rc
+if [ -f "${ROOT}/home/.zshrc" ]; then
+  backup_if_exists "${HOME}/.zshrc"
+  ln -sf "${ROOT}/home/.zshrc" "${HOME}/.zshrc"
+fi
+
+# Git core + profile includes
+if [ -f "${ROOT}/home/.gitconfig" ]; then
+  backup_if_exists "${HOME}/.gitconfig"
+  ln -sf "${ROOT}/home/.gitconfig" "${HOME}/.gitconfig"
+fi
+if [ -f "${ROOT}/home/.gitconfig.work" ]; then
+  ln -sf "${ROOT}/home/.gitconfig.work" "${HOME}/.gitconfig.work"
+fi
+if [ -f "${ROOT}/home/.gitconfig.personal" ]; then
+  ln -sf "${ROOT}/home/.gitconfig.personal" "${HOME}/.gitconfig.personal"
+fi
+
+# SSH
+mkdir -p "${HOME}/.ssh"
+if [ -f "${ROOT}/home/.ssh/config" ]; then
+  backup_if_exists "${HOME}/.ssh/config"
+  ln -sf "${ROOT}/home/.ssh/config" "${HOME}/.ssh/config"
+fi
+if [ "$PROFILE" = "work" ] && [ -f "${ROOT}/home/.ssh/config.work" ]; then
+  ln -sf "${ROOT}/home/.ssh/config.work" "${HOME}/.ssh/config.work"
+fi
+if [ "$PROFILE" = "personal" ] && [ -f "${ROOT}/home/.ssh/config.personal" ]; then
+  ln -sf "${ROOT}/home/.ssh/config.personal" "${HOME}/.ssh/config.personal"
+fi
+

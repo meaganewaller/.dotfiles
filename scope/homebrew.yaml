@@ -1,0 +1,19 @@
+# scope/doctor-brew.yaml
+apiVersion: scope.github.com/v1alpha
+kind: ScopeDoctorGroup
+metadata:
+  name: homebrew
+  description: Ensure Homebrew is installed on macOS
+spec:
+  include: by-default
+  actions:
+    - name: homebrew-present
+      description: Homebrew exists (or we install it)
+      check:
+        commands:
+          - homebrew-check
+      fix:
+        prompt:
+          text: "Homebrew is missing on this macOS host. Install Homebrew?"
+        commands:
+          - homebrew-fix
