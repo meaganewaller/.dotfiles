@@ -7,57 +7,11 @@ PROFILE="${1:-work}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export DOTFILES_ROOT="${DOTFILES_ROOT:-$ROOT}"
 
+source "$ROOT/bin/make-symlink"
+
 log() {
-  printf '[dotfiles] %s\n' "$*"
+  printf '[link-dotfiles] %s\n' "$*"
 }
-
-make_symlink() {
-  local rel="$1"          # e.g. ".zshrc" or ".ssh/config" or ".config/nvim"
-  local src="${DOTFILES_ROOT}/home/${rel}"
-  local dest="${HOME}/${rel}"
-
-  # If the source doesn't exist in the repo, skip quietly
-  if [ ! -e "$src" ] && [ ! -L "$src" ]; then
-    log "Skipping ${rel} (no source at ${src})"
-    return 0
-  fi
-
-  # Ensure parent directory exists (for things like .ssh/config, .config/nvim, etc.)
-  local dest_dir
-  dest_dir="$(dirname "$dest")"
-  mkdir -p "$dest_dir"
-
-  # If dest already exists, decide what to do
-  if [ -L "$dest" ]; then
-    # It's a symlink already
-    local current
-    current="$(readlink "$dest" || true)"
-    if [ "$current" = "$src" ]; then
-      log "Symlink already correct for ${dest}"
-      return 0
-    else
-      log "Removing existing symlink ${dest} -> ${current}"
-      rm "$dest"
-    fi
-  elif [ -e "$dest" ]; then
-    # Real file/dir, not a symlink → back it up
-    local backup="${dest}.backup.$(date +%s)"
-    log "Backing up existing ${dest} -> ${backup}"
-    mv "$dest" "$backup"
-  fi
-
-  # At this point, dest does not exist. Symlink file or directory.
-  if [ -d "$src" ]; then
-    log "Linking directory ${dest} -> ${src}"
-  else
-    log "Linking file ${dest} -> ${src}"
-  fi
-
-  ln -s "$src" "$dest"
-}
-
-log "Linking dotfiles for profile '${PROFILE}'"
-log "DOTFILES_ROOT=${DOTFILES_ROOT}"
 
 ###############################################################################
 # Shell config
@@ -95,5 +49,10 @@ make_symlink ".config/zsh"
 
 # Optional: profile-specific shell overlays
 # make_symlink ".zshrc.${PROFILE}" || true
+
+if [ "$PROFILE" = "work" ]; then
+  log "Linking work-specific dotfiles"
+  make_symlink ".hammerspoon"
+fi
 
 log "Dotfile linking complete."

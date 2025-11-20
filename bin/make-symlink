@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROFILE="${1:-work}"
+
+# Resolve dotfiles root (repo root)
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export DOTFILES_ROOT="${DOTFILES_ROOT:-$ROOT}"
+
+make_symlink() {
+  local src dest rel=""
+
+  case "$#" in
+    1)
+      rel="$1"                      # e.g. ".zshrc" or ".ssh/config" or ".config/nvim"
+      src="${DOTFILES_ROOT}/home/${rel}"
+      dest="${HOME}/${rel}"
+      ;;
+    2)
+      src="$1"                      # explicit source
+      dest="$2"                     # explicit destination
+      ;;
+    *)
+      log "make_symlink usage: make_symlink <rel> OR make_symlink <src> <dest>"
+      return 1
+      ;;
+  esac
+
+  # If the source doesn't exist in the repo, skip quietly
+  if [ ! -e "$src" ] && [ ! -L "$src" ]; then
+    log "Skipping ${dest} (no source at ${src})"
+    return 0
+  fi
+
+  # Ensure parent directory exists (for things like .ssh/config, .config/nvim, etc.)
+  local dest_dir
+  dest_dir="$(dirname "$dest")"
+  mkdir -p "$dest_dir"
+
+  # If dest already exists, decide what to do
+  if [ -L "$dest" ]; then
+    # It's a symlink already
+    local current
+    current="$(readlink "$dest" || true)"
+    if [ "$current" = "$src" ]; then
+      log "Symlink already correct for ${dest}"
+      return 0
+    else
+      log "Removing existing symlink ${dest} -> ${current}"
+      rm "$dest"
+    fi
+  elif [ -e "$dest" ]; then
+    # Real file/dir, not a symlink → back it up
+    local backup="${dest}.backup.$(date +%s)"
+    log "Backing up existing ${dest} -> ${backup}"
+    mv "$dest" "$backup"
+  fi
+
+  # At this point, dest does not exist. Symlink file or directory.
+  if [ -d "$src" ]; then
+    log "Linking directory ${dest} -> ${src}"
+  else
+    log "Linking file ${dest} -> ${src}"
+  fi
+
+  ln -s "$src" "$dest"
+}
