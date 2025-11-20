@@ -238,5 +238,10 @@ if [ "$RUN_DOCTOR" -eq 1 ]; then
   else
     log "Running 'scope doctor run' to converge dev environment"
     scope doctor run --extra-config "${SCOPE_CONFIG_DIR}" --progress=plain
+
+    if [ "$DOTFILES_PROFILE" = "work" ]; then
+      log "Running 'scope doctor run work' for work-specific fixes"
+      scope doctor run --only=work --extra-config "${SCOPE_CONFIG_DIR}" --progress=plain
+    fi
   fi
 fi
