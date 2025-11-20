@@ -20,6 +20,7 @@ mw.plugins = {
   "https://github.com/nmac427/guess-indent.nvim",
   "https://github.com/lukas-reineke/virt-column.nvim",
   "https://github.com/MeanderingProgrammer/render-markdown.nvim",
+  "https://github.com/olimorris/persisted.nvim",
 
   -- LSP
   "https://github.com/mason-org/mason.nvim",
@@ -34,6 +35,10 @@ mw.plugins = {
   "https://github.com/stevearc/overseer.nvim",
   "https://github.com/kylechui/nvim-surround",
 
+  -- AI Stuff
+  -- "https://github.com/olimorris/codecompanion.nvim",
+  -- "https://github.com/zbirenbaum/copilot.lua",
+
   -- Completion
   "https://github.com/rafamadriz/friendly-snippets",
   { src = "https://github.com/saghen/blink.cmp", version = vim.version.range("^1") },
@@ -45,7 +50,6 @@ mw.plugins = {
   { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
 }
 
-vim.opt.packpath:append(vim.fs.joinpath(vim.fn.stdpath("data"), "site"))
 vim.pack.add(mw.plugins)
 
 require("config")
