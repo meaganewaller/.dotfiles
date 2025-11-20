@@ -11,9 +11,9 @@ spec:
       description: Homebrew exists (or we install it)
       check:
         commands:
-          - homebrew-check
+          - "doctor-homebrew check"
       fix:
         prompt:
           text: "Homebrew is missing on this macOS host. Install Homebrew?"
         commands:
-          - homebrew-fix
+          - "doctor-homebrew fix"

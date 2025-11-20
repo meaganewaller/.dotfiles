@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_NAME="doctor-hammerspoon"
+
+usage() {
+  echo "Usage: ${SCRIPT_NAME} {check|fix}" >&2
+}
+
+check_hammerspoon() {
+  if [ "$(uname -s)" != "Darwin" ]; then
+    return 0
+  fi
+
+  if command -v hs >/dev/null 2>&1; then
+    return 0
+  fi
+
+  return 1
+}
+
+fix_hammerspoon() {
+  if [ "$(uname -s)" != "Darwin" ]; then
+    echo "[${SCRIPT_NAME}] Not macOS; nothing to do." >&2
+    return 0
+  fi
+
+  if command -v hs >/dev/null 2>&1; then
+    echo "[${SCRIPT_NAME}] Hammerspoon already installed."
+    return 0
+  fi
+
+  echo "[${SCRIPT_NAME}] Installing Hammerspoon..."
+  brew install --cask hammerspoon
+}
+
+main() {
+  local cmd="${1:-}"
+
+  if [ $# -gt 0 ]; then
+    shift
+  fi
+
+  case "$cmd" in
+    check)
+      check_hammerspoon "$@"
+      ;;
+    fix)
+      fix_hammerspoon "$@"
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"

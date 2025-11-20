@@ -12,8 +12,7 @@ spec:
       description: ~/.ssh exists, has config, and keys appropriate to profile
       check:
         commands:
-          - ssh-check
+          - "doctor-ssh check"
       fix:
         commands:
-          - ssh-fix
-
+          - "doctor-ssh fix"

@@ -12,8 +12,7 @@ spec:
       description: git present + correct global user.email per DOTFILES_PROFILE
       check:
         commands:
-          - git-check
+          - "doctor-git check"
       fix:
         commands:
-          - git-fix
-
+          - "doctor-git fix"

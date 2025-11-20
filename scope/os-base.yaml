@@ -12,10 +12,9 @@ spec:
       description: Ensure base packages and dotfiles are set up
       check:
         commands:
-          - os-base-check
+          - "doctor-os-base check"
       fix:
         prompt:
           text: "Missing brew packages, install them now?"
         commands:
-          - os-base-fix
-
+          - "doctor-os-base fix"

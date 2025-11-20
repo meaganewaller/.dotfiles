@@ -1,0 +1,20 @@
+apiVersion: scope.github.com/v1alpha
+kind: ScopeDoctorGroup
+metadata:
+  name: Work Profile
+  description: Work-specific configurations and tools
+spec:
+  include: when-required
+  needs:
+    - hammerspoon
+  actions:
+    - description: Ensure work-specific Hammerspoon extensions are installed
+      name: work-hammerspoon
+      check:
+        commands:
+          - work-hammerspoon-check
+      fix:
+        prompt:
+          text: "Work-specific Hammerspoon extensions are missing, install them now?"
+        commands:
+          - work-hammerspoon-fix

@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_NAME="doctor-os-base"
+
+usage() {
+  echo "Usage: ${SCRIPT_NAME} {check|fix}" >&2
+}
+
+check_os_base() {
+  local dotfiles_root="${DOTFILES_ROOT:-$HOME/.dotfiles}"
+  local status=0
+
+  if [ "$(uname -s)" = "Darwin" ]; then
+    if command -v brew >/dev/null 2>&1; then
+      local brewfile_common="${dotfiles_root}/config/Brewfile.common"
+
+      if [ -f "$brewfile_common" ]; then
+        if ! brew bundle check --file="$brewfile_common" >/dev/null 2>&1; then
+          status=1
+        fi
+      fi
+    else
+      status=1
+    fi
+  fi
+
+  if [ ! -e "$HOME/.zshrc" ] && \
+     [ ! -e "$HOME/.bashrc" ] && \
+     [ ! -e "$HOME/.gitconfig" ]; then
+    status=1
+  fi
+
+  return "$status"
+}
+
+fix_os_base() {
+  local dotfiles_root="${DOTFILES_ROOT:-$HOME/.dotfiles}"
+  local profile="${DOTFILES_PROFILE:-work}"
+
+  echo "[${SCRIPT_NAME}] DOTFILES_ROOT=${dotfiles_root}"
+  echo "[${SCRIPT_NAME}] DOTFILES_PROFILE=${profile}"
+
+  if [ "$(uname -s)" = "Darwin" ]; then
+    if ! command -v brew >/dev/null 2>&1; then
+      echo "[${SCRIPT_NAME}] Homebrew is missing; homebrew doctor group should have installed it." >&2
+    else
+      local brewfile_common="${dotfiles_root}/config/Brewfile.common"
+
+      if [ -f "$brewfile_common" ]; then
+        echo "[${SCRIPT_NAME}] Running brew bundle for Brewfile.common"
+        brew bundle --file="$brewfile_common"
+      else
+        echo "[${SCRIPT_NAME}] No Brewfile.common at ${brewfile_common}, skipping brew base packages."
+      fi
+    fi
+  fi
+
+  if [ -x "${dotfiles_root}/bin/link-dotfiles" ]; then
+    echo "[${SCRIPT_NAME}] Linking dotfiles via link-dotfiles (${profile})"
+    "${dotfiles_root}/bin/link-dotfiles" "$profile"
+  else
+    echo "[${SCRIPT_NAME}] WARNING: ${dotfiles_root}/bin/link-dotfiles not found or not executable." >&2
+    echo "[${SCRIPT_NAME}] You should create that script to manage your symlinks."
+  fi
+}
+
+main() {
+  local cmd="${1:-}"
+
+  if [ $# -gt 0 ]; then
+    shift
+  fi
+
+  case "$cmd" in
+    check)
+      check_os_base "$@"
+      ;;
+    fix)
+      fix_os_base "$@"
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"

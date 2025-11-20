@@ -1,0 +1,20 @@
+apiVersion: scope.github.com/v1alpha
+kind: ScopeDoctorGroup
+metadata:
+  name: hammerspoon
+  description: Hammerspoon configuration and extensions
+spec:
+  include: when-required
+  needs:
+    - os-base
+  actions:
+    - name: hammerspoon
+      description: Ensure Hammerspoon installed
+      check:
+        commands:
+          - "doctor-hammerspoon check"
+      fix:
+        prompt:
+          text: "Hammerspoon is missing, install it now?"
+        commands:
+          - "doctor-hammerspoon fix"

@@ -12,7 +12,7 @@ spec:
       description: mise CLI present and tools from config.toml installed
       check:
         commands:
-          - mise-check
+          - "doctor-mise check"
       fix:
         commands:
-          - mise-fix
+          - "doctor-mise fix"
