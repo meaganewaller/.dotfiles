@@ -44,7 +44,7 @@ export PATH="$LOCAL_BIN:$PATH"
 ###############################################################################
 
 log() {
-  printf '[dotfiles] %s\n' "$*"
+  printf '[install] %s\n' "$*"
 }
 
 backup_if_exists() {
@@ -238,10 +238,10 @@ if [ "$RUN_DOCTOR" -eq 1 ]; then
   else
     log "Running 'scope doctor run' to converge dev environment"
     scope doctor run --extra-config "${SCOPE_CONFIG_DIR}" --progress=plain
-
-    if [ "$DOTFILES_PROFILE" = "work" ]; then
-      log "Running 'scope doctor run work' for work-specific fixes"
-      scope doctor run --only=work --extra-config "${SCOPE_CONFIG_DIR}" --progress=plain
-    fi
   fi
+fi
+
+if [ "$DOTFILES_PROFILE" = "work" ]; then
+  log "Installing work-hammerspoon scope doctor group"
+  scope doctor run --only hammerspoon --extra-config "${SCOPE_CONFIG_DIR}" --progress=plain
 fi
