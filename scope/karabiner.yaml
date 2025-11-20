@@ -1,0 +1,20 @@
+apiVersion: scope.github.com/v1alpha
+kind: ScopeDoctorGroup
+metadata:
+  name: karabiner
+  description: Karabiner-Elements configuration and extensions
+spec:
+  include: when-required
+  needs:
+    - homebrew
+  actions:
+    - name: karabiner
+      description: Ensure Karabiner-Elements installed
+      check:
+        commands:
+          - "doctor-karabiner check"
+      fix:
+        prompt:
+          text: "Karabiner-Elements is missing, install it now?"
+        commands:
+          - "doctor-karabiner fix"

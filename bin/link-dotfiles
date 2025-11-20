@@ -53,6 +53,7 @@ make_symlink ".config/zsh"
 if [ "$PROFILE" = "work" ]; then
   log "Linking work-specific dotfiles"
   make_symlink ".hammerspoon"
+  make_symlink ".config/karabiner"
 fi
 
 log "Dotfile linking complete."

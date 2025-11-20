@@ -6,7 +6,8 @@ metadata:
 spec:
   include: when-required
   needs:
-    - os-base
+    - homebrew
+    - karabiner
   actions:
     - name: hammerspoon
       description: Ensure Hammerspoon installed
