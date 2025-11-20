@@ -91,7 +91,7 @@ make_symlink ".ssh/config.personal"
 make_symlink ".editorconfig"
 make_symlink ".config/starship.toml"
 make_symlink ".config/wezterm"
-# make_symlink ".config/nvim"
+make_symlink ".config/nvim"
 make_symlink ".config/zsh"
 
 # Optional: profile-specific shell overlays
