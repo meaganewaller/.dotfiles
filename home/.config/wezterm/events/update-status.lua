@@ -1,7 +1,7 @@
 local wez = require("wezterm")
-local colors = require("colors")
+local colors = require("config.colors")
 
-local theme = colors["lavi"]
+local theme = colors.color_schemes["lavi"]
 
 local M = {}
 

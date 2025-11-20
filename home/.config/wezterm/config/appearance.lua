@@ -1,7 +1,8 @@
 ---@class WezTerm
 local wez = require("wezterm")
-local colors = require("colors")
-local theme = colors["lavi"]
+local colors = require("config.colors")
+local ui = require("config.ui")
+local theme = colors.color_schemes[ui.color_scheme]
 
 ---@class config Appearance configuration options for WezTerm
 ---@field command_palette_bg_color string Specifies the background color used by
@@ -402,52 +403,7 @@ config.switch_to_last_active_tab_when_closing_tab = true
 ---the tab shows a one-based index.
 config.tab_and_split_indices_are_zero_based = true
 
----When `tab_bar_at_bottom = true`, the tab bar will be rendered at the bottom of the
----window rather than the top of the window.
----
----The default is `false`.
-config.tab_bar_at_bottom = true
-
----`new_tab_left`, `new_tab_right`, `new_tab_hover_left`, `new_tab_hover_right` have been
----removed and replaced by the more flexible `new_tab` and `new_tab_hover` elements.
-config.tab_bar_style = {}
-config.tab_bar_style = {
-	new_tab = wez.format({
-		{ Background = { Color = theme.background } },
-		{ Text = " " },
-		{ Background = { Color = theme.background } },
-		{ Foreground = { Color = theme.ansi[8] } },
-		{ Text = " + " },
-		{ Background = { Color = theme.background } },
-		{ Text = " " },
-	}),
-	new_tab_hover = wez.format({
-		{ Background = { Color = theme.background } },
-		{ Text = " " },
-		{ Background = { Color = theme.ansi[6] } },
-		{ Foreground = { Color = theme.brights[8] } },
-		{ Text = " + " },
-		{ Background = { Color = theme.background } },
-		{ Text = " " },
-	}),
-}
-
----Specifies the maximum width that a tab can have in the tab bar when using retro
----tab mode. It is ignored when using fancy tab mode.
----
----Defaults to 16 glyphs in width.
----
----```lua
----config.tab_max_width = 16
----```
-config.tab_max_width = 24
-
----When set to `true` (the default), the tab bar is rendered in a native style with
----proportional fonts.
----
----When set to `false`, the tab bar is rendered using a retro aesthetic using the
----main terminal font.
-config.use_fancy_tab_bar = false
+-- Tab bar configuration is handled in config/tab-bar.lua
 
 ---This option controls how wezterm behaves when a toast notification escape
 ---sequence is received.

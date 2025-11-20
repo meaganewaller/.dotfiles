@@ -3,8 +3,8 @@
 
 local wez = require("wezterm") ---@class WezTerm
 
-local colors = require("colors")
-local theme = colors["lavi"]
+local colors = require("config.colors")
+local theme = colors.color_schemes["lavi"]
 
 local M = {}
 
