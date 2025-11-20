@@ -62,6 +62,8 @@ function M.setup()
 			-- if pane.current_working_dir == wez.home_dir then
 			if cwd == "meaganwaller" then
 				cwd = "~"
+      elseif cwd == "meagan.waller" then
+        cwd = "~"
 			end
 
 			---instead of truncating the whole title, truncate to length the cwd to ensure
