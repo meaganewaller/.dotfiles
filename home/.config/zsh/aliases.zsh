@@ -1,7 +1,9 @@
+# eza aliases (modern ls replacement with better defaults)
 alias e='eza --group-directories-first'
 alias el='e -gl'
 alias ea='e -a'
 
+# ls aliases (fallback for systems without eza or when compatibility is needed)
 alias ls='ls -G'
 alias ll='ls -l'
 alias la='ls -A'
