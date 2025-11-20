@@ -1,0 +1,32 @@
+# ~/.config/starship.toml
+
+add_newline = true
+
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[➜](bold red)"
+
+[git_branch]
+format = "[$symbol$branch]($style) "
+symbol = " "
+
+[package]
+disabled = true
+
+[hostname]
+ssh_only = true
+format = "[$hostname]($style) "
+style = "bold dimmed green"
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration]($style) "
+
+[directory]
+truncate_to_repo = true
+truncation_length = 3
+fish_style_pwd_dir_length = 1
+
+[env_var.DOTFILES_PROFILE]
+format = "[$env_value](bold purple) "
+
