@@ -1,0 +1,60 @@
+[user]
+	name = Meagan Waller
+	email = meagan.waller@gusto.com
+
+[init]
+  defaultBranch = main
+
+[core]
+  excludesfile = ~/.gitignore_global
+  editor = $VISUAL
+  autocrlf = input
+  pager = delta
+
+[pager]
+  diff = delta
+  status = true
+
+[interactive]
+  diffFilter = delta --color-only
+
+[filter "lfs"]
+  process = git-lfs filter-process
+  required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+
+[color]
+  ui = auto
+
+[alias]
+  co = checkout
+  st = status -sb
+  ci = commit
+  br = branch
+  lg = log --oneline --graph --decorate --all
+
+[diff]
+  tool = delta
+
+[delta]
+  features = collared-trogon
+  navigate = true
+  side-by-side = true
+  line-numbers = true
+
+[help]
+  autocorrect = 1
+
+[gpg]
+  format = ssh
+
+[commit]
+  verbose = true
+  gpgsign = true
+
+[includeIf "gitdir:~/workspace/"]
+  path = ~/.gitconfig.work
+
+[includeIf "gitdir:~/github/meaganewaller/"]
+  path = ~/.gitconfig.personal

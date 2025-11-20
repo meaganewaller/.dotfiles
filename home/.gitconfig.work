@@ -1,0 +1,3 @@
+[user]
+  email = meagan.waller@gusto.com
+  signingkey = $HOME/.ssh/id_ed25519.pub
