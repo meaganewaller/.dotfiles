@@ -1,8 +1,7 @@
 ---@class WezTerm
 local wez = require("wezterm")
 local colors = require("config.colors")
-local ui = require("config.ui")
-local theme = colors.color_schemes[ui.color_scheme]
+local theme = colors.color_schemes["lavi"]
 
 ---@class config Appearance configuration options for WezTerm
 ---@field command_palette_bg_color string Specifies the background color used by

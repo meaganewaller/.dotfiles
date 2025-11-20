@@ -37,7 +37,7 @@ config.font_rules = {
   },
 }
 
-config.color_scheme = "lavi"
+config.color_scheme = "hardhacker"
 
 config.enable_scroll_bar = false
 
