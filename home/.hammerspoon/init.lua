@@ -1,8 +1,14 @@
 ---------------------------------------
 -- Hammerspoon init.lua
+-- Meagan's Hyper + Command Palette setup
 ---------------------------------------
 
--- Quick reload when files change in ~/.hammerspoon
+---------------------------------------
+-- Bootstrap / auto-reload
+---------------------------------------
+
+local hs_home = os.getenv("HOME") .. "/.hammerspoon"
+
 local function reloadConfig(files)
   for _, file in ipairs(files) do
     if file:sub(-4) == ".lua" then
@@ -12,8 +18,12 @@ local function reloadConfig(files)
   end
 end
 
-hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon", reloadConfig):start()
+hs.pathwatcher.new(hs_home, reloadConfig):start()
 hs.alert.show("Hammerspoon config loaded")
+
+---------------------------------------
+-- Window helpers
+---------------------------------------
 
 local function focusedWindow()
   local win = hs.window.focusedWindow()
@@ -38,81 +48,84 @@ local function centerMouseInFocusedWindow()
   hs.mouse.setAbsolutePosition(p)
 end
 
+---------------------------------------
+-- Hyper config + bindings
+---------------------------------------
+
 local config = {}
 
-config.hyperKey = "F18"  -- or "F19" if you prefer
+-- Karabiner should map some key (e.g. right_command alone) → F18
+config.hyperKey = "F18"
 
 config.applications = {
-  ['Things'] = {
-    bundleID      = 'com.culturedcode.ThingsMac',
-    hyper_key     = 't',          -- Hyper+t → focus/launch Things
-    local_bindings = { ',', '.' } -- Hyper+comma/dot → ⌘⌥⇧⌃+key (Quick Entry, etc.)
+  Chrome = {
+    bundleID = "com.google.Chrome",
+    hyper_key = "b",
   },
-
-  ['Obsidian'] = {
-    name      = 'Obsidian',
-    hyper_key = 'o',
+  Obsidian = {
+    name = "Obsidian",
+    hyper_key = "o",
   },
-
-  ['Arc'] = {
-    name      = 'Arc',
-    hyper_key = 'a',
+  Slack = {
+    name = "Slack",
+    hyper_key = "s",
   },
-
-  ['Slack'] = {
-    name      = 'Slack',
-    hyper_key = 's',
+  Cursor = {
+    name = "Cursor",
+    hyper_key = "c",
   },
-
-  ['VSCode'] = {
-    name      = 'Visual Studio Code',
-    hyper_key = 'v',
+  VSCode = {
+    name = "Visual Studio Code",
+    hyper_key = "v",
   },
-
-  ['iTerm'] = {
-    name      = 'iTerm',
-    hyper_key = 'i',
+  WezTerm = {
+    name = "WezTerm",
+    hyper_key = "t",
   },
 }
 
-hyper = require('hyper').start(config)
+hyper = require("hyper").start(config)
 
 -- HYPER+⇧+r → reload config
-hyper:bind({ 'shift' }, 'r', function()
+hyper:bind({ "shift" }, "r", function()
   hs.reload()
 end)
 
-hyper:bind({}, 'h', function()
+-- HYPER+h/j/k/l → window tiling (vim-style)
+hyper:bind({}, "h", function()
   moveWindow({ x = 0,   y = 0,   w = 0.5, h = 1 })
 end)
 
-hyper:bind({}, 'l', function()
+hyper:bind({}, "l", function()
   moveWindow({ x = 0.5, y = 0,   w = 0.5, h = 1 })
 end)
 
-hyper:bind({}, 'k', function()
+hyper:bind({}, "k", function()
   moveWindow({ x = 0,   y = 0,   w = 1,   h = 0.5 })
 end)
 
-hyper:bind({}, 'j', function()
+hyper:bind({}, "j", function()
   moveWindow({ x = 0,   y = 0.5, w = 1,   h = 0.5 })
 end)
 
 -- HYPER+m → “nice centered” window
-hyper:bind({}, 'm', function()
+hyper:bind({}, "m", function()
   moveWindow({ x = 0.15, y = 0.08, w = 0.7, h = 0.84 })
 end)
 
 -- HYPER+f → true fullscreen
-hyper:bind({}, 'f', function()
+hyper:bind({}, "f", function()
   local win = focusedWindow()
   if not win then return end
   win:maximize(0)
 end)
 
 -- HYPER+c → center mouse in focused window
-hyper:bind({}, 'c', centerMouseInFocusedWindow)
+hyper:bind({}, "c", centerMouseInFocusedWindow)
 
+---------------------------------------
+-- Screenshot renamer (Desktop)
+---------------------------------------
 
 local desktopPath = os.getenv("HOME") .. "/Desktop"
 
@@ -135,3 +148,94 @@ local function renameScreenshot(files)
 end
 
 hs.pathwatcher.new(desktopPath, renameScreenshot):start()
+---------------------------------------
+-- Command Palette Spoon
+---------------------------------------
+
+hs.loadSpoon("CommandPalette")
+
+local function appCommand(opts)
+  return {
+    id = opts.id,
+    title = opts.title or ("Open " .. opts.appName),
+    subtitle = opts.subtitle or "",
+    group = opts.group or "Apps",
+    fn = function()
+      if opts.bundleID then
+        hs.application.launchOrFocusByBundleID(opts.bundleID)
+      elseif opts.appName then
+        hs.application.launchOrFocus(opts.appName)
+      end
+    end,
+  }
+end
+
+-- start the palette with basic config (no commands yet)
+local palette = spoon.CommandPalette:start({
+  maxRows = 14,
+  width   = 45,
+})
+
+-- now register commands explicitly
+palette:registerCommands({
+  -- Apps
+  appCommand({
+    id      = "open-obsidian",
+    appName = "Obsidian",
+    group   = "Apps",
+  }),
+  appCommand({
+    id      = "open-chrome",
+    appName = "Google Chrome",
+    group   = "Apps",
+  }),
+
+  -- Modes
+  {
+    id       = "coding-mode",
+    title    = "Enter Coding Mode",
+    subtitle = "WezTerm + Cursor + Slack",
+    group    = "Modes",
+    fn       = function()
+      hs.alert.show("Coding Mode", 1)
+      hs.application.launchOrFocus("Cursor")
+      hs.application.launchOrFocus("WezTerm") -- note capital T
+      hs.application.launchOrFocus("Slack")
+    end,
+  },
+
+  -- System
+  {
+    id    = "reload-hs",
+    title = "Reload Hammerspoon config",
+    group = "System",
+    fn    = function()
+      hs.reload()
+    end,
+  },
+
+  {
+    id    = "toggle-dark-mode",
+    title = "Toggle Dark Mode",
+    group = "System",
+    fn    = function()
+      hs.osascript.applescript([[
+        tell application "System Events"
+          tell appearance preferences
+            set dark mode to not dark mode
+          end tell
+        end tell
+      ]])
+    end,
+  },
+})
+
+-- Hyper + Space → Command Palette
+hyper:bind({}, "space", function()
+  palette:show()
+end)
+
+-- Also Cmd+Shift+P (VSCode muscle memory)
+palette:bindHotkeys({
+  show = { modifiers = { "cmd", "shift" }, key = "p" },
+})
