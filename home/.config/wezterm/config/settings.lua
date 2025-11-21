@@ -1,4 +1,4 @@
 return {
-	default_prog = { "/opt/homebrew/bin/fish", "-l" },
+	default_prog = { "/opt/homebrew/bin/zsh" },
 	status_update_interval = 1000,
 }
