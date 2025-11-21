@@ -33,6 +33,7 @@ export EDITOR="cursor --wait"
 export DOTFILES_REPO_URL="https://github.com/meaganewaller/.dotfiles.git"
 export DOTFILES_TARGET_DIR="$HOME/github/meaganewaller/.dotfiles"
 export DOTFILES_PROFILE=work
+export GUSTO_SSH_SELF_MANAGED=1
 
 source "$ZDOTDIR/paths.zsh"
 
