@@ -4,21 +4,9 @@
 ---------------------------------------
 
 ---------------------------------------
--- Bootstrap / auto-reload
+-- Bootstrap
 ---------------------------------------
 
-local hs_home = os.getenv("HOME") .. "/.hammerspoon"
-
-local function reloadConfig(files)
-  for _, file in ipairs(files) do
-    if file:sub(-4) == ".lua" then
-      hs.reload()
-      return
-    end
-  end
-end
-
-hs.pathwatcher.new(hs_home, reloadConfig):start()
 hs.alert.show("Hammerspoon config loaded")
 
 ---------------------------------------
@@ -178,18 +166,6 @@ local palette = spoon.CommandPalette:start({
 
 -- now register commands explicitly
 palette:registerCommands({
-  -- Apps
-  appCommand({
-    id      = "open-obsidian",
-    appName = "Obsidian",
-    group   = "Apps",
-  }),
-  appCommand({
-    id      = "open-chrome",
-    appName = "Google Chrome",
-    group   = "Apps",
-  }),
-
   -- Modes
   {
     id       = "coding-mode",
