@@ -1,11 +1,6 @@
 # Brewfile.common
 
 # -------------------------------------------------------------------------
-# Core package manager config
-# -------------------------------------------------------------------------
-tap "homebrew/bundle"
-
-# -------------------------------------------------------------------------
 # CLI Essentials
 # -------------------------------------------------------------------------
 brew "git"
@@ -72,6 +67,7 @@ brew "imagemagick"
 cask "font-jetbrains-mono"
 cask "font-fira-code"
 cask "font-sf-mono-for-powerline"
+cask "font-victor-mono-nerd-font"
 
 # -------------------------------------------------------------------------
 # GUI Apps — minimal common set

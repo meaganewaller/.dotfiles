@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eou pipefail
 
-REPO_URL="${DOTFILES_REPO_URL:-https://github.com/meaganewaller/dotfiles.git}"
+REPO_URL="${DOTFILES_REPO_URL:-https://github.com/meaganewaller/.dotfiles.git}"
 
 if [ -n "${DOTFILES_TARGET_DIR:-}" ]; then
     TARGET_DIR="${DOTFILES_TARGET_DIR}"
