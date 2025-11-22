@@ -11,10 +11,10 @@ else
     #   https://github.com/owner/repo.git
     #   git@github.com:owner/repo.git
     #   ssh://git@github.com/owner/repo.git
-    URL_NO_SCHEME="${REPO_URL#*@}"       # drop leading 'git@' if present
-    URL_NO_SCHEME="${URL_NO_SCHEME#*://}"# drop scheme if present
-    URL_PATH="${URL_NO_SCHEME#*:}"       # drop host + ':' in ssh form
-    URL_PATH="${URL_PATH#*/}"            # drop host/ in https form (first segment is host)
+    URL_NO_SCHEME="${REPO_URL#*@}"        # drop leading 'git@' if present
+    URL_NO_SCHEME="${URL_NO_SCHEME#*://}" # drop scheme if present
+    URL_PATH="${URL_NO_SCHEME#*:}"        # drop host + ':' in ssh form
+    URL_PATH="${URL_PATH#*/}"             # drop host/ in https form (first segment is host)
 
     OWNER="${URL_PATH%%/*}"              # first segment = owner
     REPO_WITH_GIT="${URL_PATH#*/}"       # second segment = repo(.git)
