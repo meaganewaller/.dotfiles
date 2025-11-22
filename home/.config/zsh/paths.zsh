@@ -3,7 +3,7 @@ if [[ -d "$HOME/.docker/bin" ]]; then
 fi
 
 if [[ -v GOPATH ]]; then
-    export path=("$GOPATH/bin" $path)
+  export path=("$GOPATH/bin" $path)
 fi
 
 export path=("$HOME/.local/bin" $path)

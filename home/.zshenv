@@ -28,11 +28,12 @@ export XDG_STATE_HOME="$HOME/.local/state"
 
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
-export EDITOR="cursor --wait"
+export EDITOR="nvim"
+export VISUAL="code --wait"
 
 export DOTFILES_REPO_URL="https://github.com/meaganewaller/.dotfiles.git"
 export DOTFILES_TARGET_DIR="$HOME/github/meaganewaller/.dotfiles"
-export DOTFILES_PROFILE=work
+export DOTFILES_PROFILE=personal
 export GUSTO_SSH_SELF_MANAGED=1
 
 source "$ZDOTDIR/paths.zsh"
