@@ -46,7 +46,6 @@ make_symlink ".ssh/config.personal"
 make_symlink ".editorconfig"
 make_symlink ".config/wezterm"
 make_symlink ".config/nvim"
-make_symlink ".config/zsh"
 
 # Optional: profile-specific shell overlays
 # make_symlink ".zshrc.${PROFILE}" || true
@@ -54,7 +53,13 @@ make_symlink ".config/zsh"
 if [ "$PROFILE" = "work" ]; then
   log "Linking work-specific dotfiles"
   make_symlink ".hammerspoon"
+  make_symlink ".config/zsh"
   make_symlink ".config/karabiner"
+fi
+
+if [ "$PROFILE" = "personal" ]; then
+  log "Linking personal-specific dotfiles"
+  make_symlink ".config/fish"
 fi
 
 log "Dotfile linking complete."

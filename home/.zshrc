@@ -6,8 +6,8 @@ bashcompinit
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ -r "${${HOME}/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${${HOME}/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 source "$ZDOTDIR/aliases.zsh"
@@ -21,7 +21,7 @@ fi
 
 source "$ZDOTDIR/completion.zsh"
 
-export HISTFILE="$XDG_DATA_HOME/zsh/history"
+export HISTFILE="$HOME/.local/share/zsh/history"
 export SAVEHIST=100000
 export HISTSIZE=200000
 

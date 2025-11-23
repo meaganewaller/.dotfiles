@@ -17,9 +17,9 @@ local config = {}
 ---`default_prog` is implemented as an array where the 0th element is the command to
 ---run and the rest of the elements are passed as the positional arguments to that
 ---command.
-config.default_prog = { "/opt/homebrew/bin/zsh" }
+config.default_prog = { "/opt/homebrew/bin/fish", "-l" }
 config.launch_menu = {
-  { label = "zsh", args = { "/opt/homebrew/bin/zsh" } },
+  { label = "zsh", args = { "/opt/homebrew/bin/zsh", "-l" } },
   { label = "fish", args = { "/opt/homebrew/bin/fish", "-l" } },
 }
 
