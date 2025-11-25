@@ -1,42 +1,31 @@
 {
-    "description": "Right Command alone → F18 (Hyper for Hammerspoon)",
-    "manipulators": [
+  "global": { "show_in_menu_bar": false },
+  "profiles": [
+    {
+      "devices": [
         {
-            "from": {
-                "key_code": "right_command",
-                "modifiers": { "optional": ["any"] }
-            },
-            "to": [{ "key_code": "right_command" }],
-            "to_if_alone": [{ "key_code": "f18" }],
-            "type": "basic"
+          "identifiers": {
+            "is_keyboard": true,
+            "is_pointing_device": true,
+            "product_id": 9248,
+            "vendor_id": 9639
+          },
+          "ignore": false
         }
-    ],
-    "profiles": [
+      ],
+      "name": "NJ80 Keyboard",
+      "selected": true,
+      "simple_modifications": [
         {
-            "devices": [
-                {
-                    "identifiers": {
-                        "is_keyboard": true,
-                        "is_pointing_device": true,
-                        "product_id": 9248,
-                        "vendor_id": 9639
-                    },
-                    "ignore": false
-                }
-            ],
-            "name": "Default profile",
-            "selected": true,
-            "simple_modifications": [
-                {
-                    "from": { "key_code": "right_command" },
-                    "to": [{ "key_code": "f18" }]
-                },
-                {
-                    "from": { "key_code": "caps_lock" },
-                    "to": [{ "key_code": "left_control" }]
-                }
-            ],
-            "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
+          "from": { "key_code": "caps_lock" },
+          "to": [{ "key_code": "left_control" }]
+        },
+        {
+          "from": { "key_code": "right_command" },
+          "to": [{ "key_code": "f18" }]
         }
-    ]
+      ],
+      "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
+    }
+  ]
 }
