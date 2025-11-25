@@ -1,60 +1,59 @@
 [user]
 	name = Meagan Waller
-	email = meagan@meaganwaller.com
 
 [init]
-defaultBranch = main
+  defaultBranch = main
 
 [core]
-excludesfile = ~/.gitignore_global
-editor = cursor --wait
-autocrlf = input
-pager = delta
+  excludesfile = ~/.gitignore_global
+  editor = cursor --wait
+  autocrlf = input
+  pager = delta
 
 [pager]
-diff = delta
-status = true
+  diff = delta
+  status = true
 
 [interactive]
-diffFilter = delta --color-only
+  diffFilter = delta --color-only
 
 [filter "lfs"]
-process = git-lfs filter-process
-required = true
-clean = git-lfs clean -- %f
-smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
 
 [color]
-ui = auto
+  ui = auto
 
 [alias]
-co = checkout
-st = status -sb
-ci = commit
-br = branch
-lg = log --oneline --graph --decorate --all
+  co = checkout
+  st = status -sb
+  ci = commit
+  br = branch
+  lg = log --oneline --graph --decorate --all
 
 [diff]
-tool = delta
+  tool = delta
 
 [delta]
-features = collared-trogon
-navigate = true
-side-by-side = true
-line-numbers = true
+  features = collared-trogon
+  navigate = true
+  side-by-side = true
+  line-numbers = true
 
 [help]
-autocorrect = 1
+  autocorrect = 1
 
 [gpg]
-format = ssh
+  format = ssh
 
 [commit]
-verbose = true
-gpgsign = true
+  verbose = true
+  gpgsign = true
 
 [includeIf "gitdir:~/workspace/"]
-path = ~/.gitconfig.work
+  path = ~/.gitconfig.work
 
 [includeIf "gitdir:~/github/meaganewaller/"]
-path = ~/.gitconfig.personal
+  path = ~/.gitconfig.personal
