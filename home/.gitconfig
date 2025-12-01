@@ -57,3 +57,5 @@
 
 [includeIf "gitdir:~/github/meaganewaller/"]
   path = ~/.gitconfig.personal
+[includeIf "gitdir:~/github/garbagecollectorsdaughter/"]
+  path = ~/.gitconfig.personal
