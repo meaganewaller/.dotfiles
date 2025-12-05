@@ -1,53 +1,60 @@
-_G.mw = {}
-mw.home = os.getenv("HOME")
-mw.nvim_start_time = vim.uv.hrtime()
+vim.pack.add({ "https://github.com/nvim-mini/mini.nvim" })
 
--- Plugins & setup
-mw.plugins = {
-  -- Dependencies
-  "https://github.com/nvim-lua/plenary.nvim",
-  "https://github.com/nvim-tree/nvim-web-devicons",
+require("mini.deps").setup()
 
-  -- UI & Statusline
-  "https://github.com/folke/snacks.nvim",
-  "https://github.com/j-hui/fidget.nvim",
-  "https://github.com/lewis6991/gitsigns.nvim",
-  "https://github.com/mellow-theme/mellow.nvim",
-  "https://github.com/nvim-lualine/lualine.nvim",
-  "https://github.com/scottmckendry/cyberdream.nvim",
-  "https://github.com/smiteshp/nvim-navic",
-  "https://github.com/folke/todo-comments.nvim",
-  "https://github.com/MeanderingProgrammer/render-markdown.nvim",
-  "https://github.com/tpope/vim-sleuth",
-  "https://github.com/folke/edgy.nvim",
-
-  -- LSP
-  "https://github.com/mason-org/mason.nvim",
-  "https://github.com/stevearc/conform.nvim",
-  "https://github.com/ivanjermakov/troublesum.nvim",
-
-  -- Editor
-  "https://github.com/stevearc/oil.nvim",
-  "https://github.com/nvim-mini/mini.test",
-  "https://github.com/stevearc/aerial.nvim",
-  "https://github.com/stevearc/overseer.nvim",
-  "https://github.com/kylechui/nvim-surround",
-  "https://github.com/olimorris/persisted.nvim",
-
-  -- Completion
-  { src = "https://github.com/saghen/blink.cmp", build = "cargo build --release" },
-
-  -- Treesitter
-  "https://github.com/windwp/nvim-autopairs",
-  "https://github.com/RRethy/nvim-treesitter-endwise",
-  { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
-  { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
-}
-
-vim.pack.add(mw.plugins)
-
-require("config")
-require("keymaps")
-require("autocmds")
-require("commands")
-require("functions")
+_G.Config = {}
+-- _G.mw = {}
+-- mw.home = os.getenv("HOME")
+-- mw.nvim_start_time = vim.uv.hrtime()
+--
+-- -- Plugins & setup
+-- mw.plugins = {
+--   -- Dependencies
+--   "https://github.com/nvim-lua/plenary.nvim",
+--   "https://github.com/nvim-tree/nvim-web-devicons",
+--
+--   -- UI & Statusline
+--   "https://github.com/folke/snacks.nvim",
+--   "https://github.com/j-hui/fidget.nvim",
+--   "https://github.com/lewis6991/gitsigns.nvim",
+--   "https://github.com/mellow-theme/mellow.nvim",
+--   "https://github.com/nvim-lualine/lualine.nvim",
+--   "https://github.com/scottmckendry/cyberdream.nvim",
+--   "https://github.com/smiteshp/nvim-navic",
+--   "https://github.com/folke/todo-comments.nvim",
+--   "https://github.com/MeanderingProgrammer/render-markdown.nvim",
+--   "https://github.com/tpope/vim-sleuth",
+--   "https://github.com/folke/edgy.nvim",
+--
+--   -- LSP
+--   "https://github.com/mason-org/mason.nvim",
+--   "https://github.com/stevearc/conform.nvim",
+--   "https://github.com/ivanjermakov/troublesum.nvim",
+--   "https://github.com/copilotlsp-nvim/copilot-lsp",
+--   "https://github.com/zbirenbaum/copilot.lua",
+--
+--   -- Editor
+--   "https://github.com/stevearc/oil.nvim",
+--   "https://github.com/nvim-mini/mini.test",
+--   "https://github.com/stevearc/aerial.nvim",
+--   "https://github.com/stevearc/overseer.nvim",
+--   "https://github.com/kylechui/nvim-surround",
+--   "https://github.com/olimorris/persisted.nvim",
+--
+--   -- Completion
+--   { src = "https://github.com/saghen/blink.cmp", build = "cargo build --release" },
+--
+--   -- Treesitter
+--   "https://github.com/windwp/nvim-autopairs",
+--   "https://github.com/RRethy/nvim-treesitter-endwise",
+--   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
+--   { src = "https://github.com/nvim-treesitter/nvim-treesitter-textobjects", version = "main" },
+-- }
+--
+-- vim.pack.add(mw.plugins)
+--
+-- require("config")
+-- require("keymaps")
+-- require("autocmds")
+-- require("commands")
+-- require("functions")
