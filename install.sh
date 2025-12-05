@@ -149,49 +149,8 @@ ensure_scope_binary() {
 ###############################################################################
 
 link_dotfiles() {
-  if [ -x "${ROOT}/bin/link-dotfiles" ]; then
-    log "link-dotfiles script found, using it for profile '${DOTFILES_PROFILE}'"
-    "${ROOT}/bin/link-dotfiles" "${DOTFILES_PROFILE}"
-    return 0
-  fi
-
-  # Fallback: minimal linking if you haven't written link-dotfiles yet
-  log "No link-dotfiles script; performing minimal linking fallback"
-
-  # Shell rc files
-  if [ -f "${ROOT}/home/.zshrc" ]; then
-    backup_if_exists "${HOME}/.zshrc"
-    ln -sf "${ROOT}/home/.zshrc" "${HOME}/.zshrc"
-  fi
-  if [ -f "${ROOT}/home/.bashrc" ]; then
-    backup_if_exists "${HOME}/.bashrc"
-    ln -sf "${ROOT}/home/.bashrc" "${HOME}/.bashrc"
-  fi
-
-  # Git configs
-  if [ -f "${ROOT}/home/.gitconfig" ]; then
-    backup_if_exists "${HOME}/.gitconfig"
-    ln -sf "${ROOT}/home/.gitconfig" "${HOME}/.gitconfig"
-  fi
-  if [ -f "${ROOT}/home/.gitconfig.work" ]; then
-    ln -sf "${ROOT}/home/.gitconfig.work" "${HOME}/.gitconfig.work"
-  fi
-  if [ -f "${ROOT}/home/.gitconfig.personal" ]; then
-    ln -sf "${ROOT}/home/.gitconfig.personal" "${HOME}/.gitconfig.personal"
-  fi
-
-  # SSH config
-  mkdir -p "${HOME}/.ssh"
-  if [ -f "${ROOT}/home/.ssh/config" ]; then
-    backup_if_exists "${HOME}/.ssh/config"
-    ln -sf "${ROOT}/home/.ssh/config" "${HOME}/.ssh/config"
-  fi
-  if [ -f "${ROOT}/home/.ssh/config.work" ]; then
-    ln -sf "${ROOT}/home/.ssh/config.work" "${HOME}/.ssh/config.work"
-  fi
-  if [ -f "${ROOT}/home/.ssh/config.personal" ]; then
-    ln -sf "${ROOT}/home/.ssh/config.personal" "${HOME}/.ssh/config.personal"
-  fi
+  log "link-dotfiles script found, using it for profile '${DOTFILES_PROFILE}'"
+  "${ROOT}/bin/link-dotfiles" "${DOTFILES_PROFILE}"
 }
 
 ###############################################################################
