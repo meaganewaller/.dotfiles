@@ -169,7 +169,8 @@ sync_scope_configs() {
   log "Syncing scope configs from ${ROOT}/scope -> ${SCOPE_CONFIG_DIR}"
 
   # Copy the tree so configs + bin scripts travel together
-  rsync -a "${ROOT}/scope/" "${SCOPE_CONFIG_DIR}/"
+  # --delete removes files in destination that don't exist in source (important for removed doctor scripts)
+  rsync -a --delete "${ROOT}/scope/" "${SCOPE_CONFIG_DIR}/"
 }
 
 ###############################################################################
