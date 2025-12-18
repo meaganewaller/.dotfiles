@@ -12,79 +12,177 @@ ensure_dirs() {
   mkdir -p "${THEMES_DIR}" "${THEME_DIR}/apply"
 }
 
-list_themes() {
-  ls -1 "${THEMES_DIR}"/*.json 2>/dev/null | sed 's#.*/##' | sed 's/\.json$//'
-}
-
-theme_path_for() {
-  local name="$1"
-  echo "${THEMES_DIR}/${name}.json"
-}
-
-pick_random_by_mode() {
-  local mode="$1"
-  python3 - <<'PY' "${THEMES_DIR}" "${mode}"
-import json, os, sys, random, glob
-themes_dir, mode = sys.argv[1], sys.argv[2]
-paths = glob.glob(os.path.join(themes_dir, "*.json"))
-matches = []
-for p in paths:
-  try:
-    with open(p) as f:
-      data = json.load(f)
-    if data.get("mode") == mode:
-      matches.append(p)
-  except Exception:
-    pass
-if not matches:
-  print("")
-  sys.exit(0)
-print(random.choice(matches))
-PY
-}
-
-set_theme_file() {
-  local path="$1"
-  [ -f "$path" ] || die "theme file not found: $path"
-  cp "$path" "$CURRENT"
-}
-
 usage() {
   cat <<EOF
 theme list
 theme current
-theme set light|dark|<name>
+theme set light|dark|<name> [--seed today|YYYY-MM-DD|<string>]
+theme next [light|dark]
+theme prev [light|dark]
 theme apply
 EOF
 }
 
-cmd="${1:-}"
 ensure_dirs
+
+cmd="${1:-}"
+shift || true
+
+python_pick() {
+  python3 - "$@"
+}
 
 case "$cmd" in
   list)
-    list_themes
+    ls -1 "${THEMES_DIR}"/*.json 2>/dev/null | sed 's#.*/##' | sed 's/\.json$//'
     ;;
+
   current)
     if [ -f "$CURRENT" ]; then cat "$CURRENT"; else echo "{}"; fi
     ;;
+
   set)
-    arg="${2:-}"; [ -n "$arg" ] || die "missing argument (light|dark|<name>)"
-    if [ "$arg" = "light" ] || [ "$arg" = "dark" ]; then
-      picked="$(pick_random_by_mode "$arg")"
-      [ -n "$picked" ] || die "no themes found with mode=$arg"
-      set_theme_file "$picked"
-    else
-      path="$(theme_path_for "$arg")"
-      set_theme_file "$path"
+    target="${1:-}"; shift || true
+    [ -n "$target" ] || die "missing argument (light|dark|<name>)"
+
+    seed=""
+    if [ "${1:-}" = "--seed" ]; then
+      seed="${2:-}"; shift 2 || true
+      [ -n "$seed" ] || die "missing seed value"
+      if [ "$seed" = "today" ]; then
+        seed="$(date +%F)" # YYYY-MM-DD
+      fi
     fi
+
+    # set by mode (random or seeded)
+    if [ "$target" = "light" ] || [ "$target" = "dark" ]; then
+      picked="$(python_pick <<'PY' "${THEMES_DIR}" "${target}" "${seed}"
+import glob, json, os, sys, random, hashlib
+
+themes_dir, mode, seed = sys.argv[1], sys.argv[2], sys.argv[3]
+paths = sorted(glob.glob(os.path.join(themes_dir, "*.json")))
+
+candidates = []
+for p in paths:
+  try:
+    with open(p) as f:
+      d = json.load(f)
+    if d.get("mode") == mode:
+      candidates.append((d.get("name") or os.path.splitext(os.path.basename(p))[0], p, d))
+  except Exception:
+    pass
+
+if not candidates:
+  print("")
+  sys.exit(0)
+
+if seed:
+  # deterministic selection
+  h = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+  idx = int(h[:8], 16) % len(candidates)
+else:
+  idx = random.randrange(len(candidates))
+
+print(candidates[idx][1])
+PY
+)"
+      [ -n "$picked" ] || die "no themes found with mode=$target"
+      cp "$picked" "$CURRENT"
+
+    else
+      # set by name
+      path="${THEMES_DIR}/${target}.json"
+      [ -f "$path" ] || die "theme not found: $target"
+      cp "$path" "$CURRENT"
+    fi
+
+    # ensure current.json has name/mode + stable accent structure
+    python_pick <<'PY' "$CURRENT"
+import json, os, sys
+path = sys.argv[1]
+with open(path) as f:
+  d = json.load(f)
+
+# normalize name
+d["name"] = d.get("name") or os.path.splitext(os.path.basename(path))[0]
+
+# normalize accent
+accent = d.get("accent")
+if isinstance(accent, str):
+  # allow shorthand: "amber"
+  d["accent"] = {"name": accent, "hex": None}
+elif accent is None:
+  # if missing, set a default
+  d["accent"] = {"name": "amber", "hex": "#E5C07B"}
+
+with open(path, "w") as f:
+  json.dump(d, f, indent=2)
+  f.write("\n")
+PY
+
     "$APPLY"
     ;;
+
+  next|prev)
+    direction="$cmd"
+    mode_arg="${1:-}" # optional override
+    shift || true
+
+    picked="$(python_pick <<'PY' "${THEMES_DIR}" "${CURRENT}" "${direction}" "${mode_arg}"
+import glob, json, os, sys
+
+themes_dir, current_path, direction, mode_arg = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+
+cur = {}
+try:
+  with open(current_path) as f:
+    cur = json.load(f)
+except Exception:
+  pass
+
+cur_name = cur.get("name")
+cur_mode = mode_arg or cur.get("mode") or "dark"
+
+paths = sorted(glob.glob(os.path.join(themes_dir, "*.json")))
+themes = []
+for p in paths:
+  try:
+    with open(p) as f:
+      d = json.load(f)
+    name = d.get("name") or os.path.splitext(os.path.basename(p))[0]
+    if d.get("mode") == cur_mode:
+      themes.append((name, p))
+  except Exception:
+    pass
+
+if not themes:
+  print("")
+  sys.exit(0)
+
+names = [n for n,_ in themes]
+if cur_name in names:
+  i = names.index(cur_name)
+else:
+  i = 0
+
+step = 1 if direction == "next" else -1
+j = (i + step) % len(themes)
+print(themes[j][1])
+PY
+)"
+    [ -n "$picked" ] || die "no themes found for cycling"
+
+    cp "$picked" "$CURRENT"
+    "$APPLY"
+    ;;
+
   apply)
     "$APPLY"
     ;;
+
   *)
     usage
     exit 1
     ;;
 esac
+

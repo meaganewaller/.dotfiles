@@ -1,10 +1,25 @@
 {
   "name": "jubi",
   "mode": "dark",
-  "wezterm": { "scheme": "jubi" },
-  "nvim": { "background": "dark", "colorscheme": "jubi" },
-  "sketchybar": { "profile": "jubi" },
-  "vscode": { "theme": "Jubi" },
-  "cursor": { "theme": "Jubi" },
+  "accent": {
+    "name": "amber",
+    "hex": "#E5C07B"
+  },
+  "wezterm": {
+    "scheme": "jubi"
+  },
+  "nvim": {
+    "background": "dark",
+    "colorscheme": "jubi"
+  },
+  "sketchybar": {
+    "profile": "jubi"
+  },
+  "vscode": {
+    "theme": "Jubi"
+  },
+  "cursor": {
+    "theme": "Jubi"
+  },
   "wallpaper": "jubi-night.jpg"
 }
