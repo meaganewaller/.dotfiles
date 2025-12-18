@@ -28,6 +28,7 @@ make_symlink ".bashrc"
 make_symlink ".gitconfig"
 make_symlink ".gitconfig.work"
 make_symlink ".gitconfig.personal"
+make_symlink ".gitconfig.local" || true
 make_symlink ".gitignore_global"
 
 ###############################################################################

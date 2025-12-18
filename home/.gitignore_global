@@ -1,9 +1,9 @@
 *.log
 .DS_Store
-*.env
 .vscode
 vendor/bundle
 tmp/
 log/
 *.db*
 *.pem
+

@@ -52,10 +52,23 @@ format = ssh
 verbose = true
 gpgsign = true
 
-[includeIf "gitdir:~/workspace/"]
-path = ~/.gitconfig.work
+[gpg]
+format = ssh
 
+[gpg "ssh"]
+program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+
+[commit]
+gpgsign = true
+
+[include]
+  path = ~/.gitconfig.local
+
+[includeIf "hasconfig:remote.*.url:*gusto/*"]
+  path = ~/.gitconfig.work
+[includeIf "gitdir:~/workspace/"]
+  path = ~/.gitconfig.work
 [includeIf "gitdir:~/github/meaganewaller/"]
-path = ~/.gitconfig.personal
+  path = ~/.gitconfig.personal
 [includeIf "gitdir:~/github/garbagecollectorsdaughter/"]
-path = ~/.gitconfig.personal
+  path = ~/.gitconfig.personal
