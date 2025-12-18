@@ -225,4 +225,23 @@ function M.basename(s)
   return string.gsub(s, "(.*[/\\])(.*)", "%2")
 end
 
+function M.show_keymap(window, pane, title, lines)
+  local choices = {}
+  for i, line in ipairs(lines) do
+    table.insert(choices, { id = tostring(i), label = line })
+  end
+
+  window:perform_action(
+    act.InputSelector({
+      title = title,
+      choices = choices,
+      fuzzy = true,
+      action = wezterm.action_callback(function(_, _, _, _)
+        -- no-op: this is just a HUD
+      end),
+    }),
+    pane
+  )
+end
+
 return M
