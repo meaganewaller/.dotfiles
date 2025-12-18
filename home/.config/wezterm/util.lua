@@ -79,10 +79,9 @@ end
 -- ---------- shell / editor detection ----------
 
 function M.shell_path()
-  return M.find_exe("fish", {
+  local fish = M.find_exe("fish", {
     env_var = "WEZTERM_SHELL",
     candidates = {
-      os.getenv("SHELL"), -- often /bin/zsh, /bin/bash
       "/opt/homebrew/bin/fish",
       "/usr/local/bin/fish",
       "/usr/bin/fish",
@@ -90,7 +89,17 @@ function M.shell_path()
       "/bin/zsh",
       "/bin/bash",
     },
-  }) or "/bin/bash"
+  })
+  if fish then
+    return fish
+  end
+
+  local sh = os.getenv("SHELL")
+  if sh and #sh > 0 then
+    return sh
+  end
+
+  return "/bin/bash"
 end
 
 function M.shell_args(login)
