@@ -1,11 +1,13 @@
-local Config = require("config.init")
+---@type Wezterm
+local wezterm = require("wezterm")
 
--- local colors = require("config.colors")
-local ui = require("config.ui")
-local settings = require("config.settings")
-local keys = require("keys.tables")
-local mappings = require("keys.bindings")
-local tab_bar = require("config.tab-bar")
+local config = wezterm.config_builder()
 
-return Config.tbl_deep_extend("force", {}, ui, settings, keys, mappings, tab_bar)
+require("settings").apply(config)
+require("keys").apply(config)
+require("events").register(config)
 
+local util = require("util")
+config.default_prog = util.shell_args(true)
+
+return config
