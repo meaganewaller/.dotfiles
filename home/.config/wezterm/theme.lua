@@ -2,6 +2,25 @@ local wezterm = require("wezterm")
 
 local M = {}
 
+local function read_current()
+  local path = wezterm.home_dir .. "/.config/theme/current.json"
+  local ok, data = pcall(function()
+    local f = io.open(path, "r")
+    if not f then return nil end
+    local s = f:read("*a")
+    f:close()
+    return wezterm.json_parse(s)
+  end)
+  if ok then return data end
+  return nil
+end
+
+function M.wezterm_scheme()
+  local cur = read_current() or {}
+  local w = cur.wezterm or {}
+  return w.scheme or "Sakura"
+end
+
 function M.appearance()
   local ok, gui = pcall(function()
     return wezterm.gui

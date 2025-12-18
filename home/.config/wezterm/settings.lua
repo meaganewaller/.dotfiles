@@ -47,7 +47,7 @@ function M.apply(config)
 
   config.scrollback_lines = 100000
 
-  config.color_scheme = theme.scheme()
+  config.color_scheme = theme.wezterm_scheme()
 
   local p = theme.palette()
   config.colors = {

@@ -47,6 +47,8 @@ make_symlink ".ssh/config.personal"
 make_symlink ".editorconfig"
 make_symlink ".config/wezterm"
 make_symlink ".config/nvim"
+make_symlink ".config/theme"
+make_symlink ".local/bin"
 
 # Optional: profile-specific shell overlays
 # make_symlink ".zshrc.${PROFILE}" || true

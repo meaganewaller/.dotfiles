@@ -1,0 +1,10 @@
+{
+  "name": "jubi",
+  "mode": "dark",
+  "wezterm": { "scheme": "jubi" },
+  "nvim": { "background": "dark", "colorscheme": "jubi" },
+  "sketchybar": { "profile": "jubi" },
+  "vscode": { "theme": "Jubi" },
+  "cursor": { "theme": "Jubi" },
+  "wallpaper": "jubi-night.jpg"
+}

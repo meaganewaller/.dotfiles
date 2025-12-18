@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+THEME_DIR="${HOME}/.config/theme"
+THEMES_DIR="${THEME_DIR}/themes"
+CURRENT="${THEME_DIR}/current.json"
+APPLY="${THEME_DIR}/apply/apply.sh"
+
+die() { echo "theme: $*" >&2; exit 1; }
+
+ensure_dirs() {
+  mkdir -p "${THEMES_DIR}" "${THEME_DIR}/apply"
+}
+
+list_themes() {
+  ls -1 "${THEMES_DIR}"/*.json 2>/dev/null | sed 's#.*/##' | sed 's/\.json$//'
+}
+
+theme_path_for() {
+  local name="$1"
+  echo "${THEMES_DIR}/${name}.json"
+}
+
+pick_random_by_mode() {
+  local mode="$1"
+  python3 - <<'PY' "${THEMES_DIR}" "${mode}"
+import json, os, sys, random, glob
+themes_dir, mode = sys.argv[1], sys.argv[2]
+paths = glob.glob(os.path.join(themes_dir, "*.json"))
+matches = []
+for p in paths:
+  try:
+    with open(p) as f:
+      data = json.load(f)
+    if data.get("mode") == mode:
+      matches.append(p)
+  except Exception:
+    pass
+if not matches:
+  print("")
+  sys.exit(0)
+print(random.choice(matches))
+PY
+}
+
+set_theme_file() {
+  local path="$1"
+  [ -f "$path" ] || die "theme file not found: $path"
+  cp "$path" "$CURRENT"
+}
+
+usage() {
+  cat <<EOF
+theme list
+theme current
+theme set light|dark|<name>
+theme apply
+EOF
+}
+
+cmd="${1:-}"
+ensure_dirs
+
+case "$cmd" in
+  list)
+    list_themes
+    ;;
+  current)
+    if [ -f "$CURRENT" ]; then cat "$CURRENT"; else echo "{}"; fi
+    ;;
+  set)
+    arg="${2:-}"; [ -n "$arg" ] || die "missing argument (light|dark|<name>)"
+    if [ "$arg" = "light" ] || [ "$arg" = "dark" ]; then
+      picked="$(pick_random_by_mode "$arg")"
+      [ -n "$picked" ] || die "no themes found with mode=$arg"
+      set_theme_file "$picked"
+    else
+      path="$(theme_path_for "$arg")"
+      set_theme_file "$path"
+    fi
+    "$APPLY"
+    ;;
+  apply)
+    "$APPLY"
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac

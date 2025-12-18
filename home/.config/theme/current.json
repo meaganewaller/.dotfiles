@@ -1,0 +1,19 @@
+{
+  "name": "sakura",
+  "mode": "light",
+  "wezterm": { "scheme": "Sakura" },
+  "nvim": {
+    "background": "light",
+    "colorscheme": "sakura"
+  },
+  "sketchybar": {
+    "profile": "Sakura Light"
+  },
+  "vscode": {
+    "theme": "Cherry Blossom Warm"
+  },
+  "cursor": {
+    "theme": "Huacat Pink Theme"
+  },
+  "wallpaper": "sakura.jpg"
+}
