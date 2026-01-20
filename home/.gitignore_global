@@ -6,4 +6,4 @@ tmp/
 log/
 *.db*
 *.pem
-
+.cursor/plans
