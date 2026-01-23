@@ -29,7 +29,7 @@
 export ZDOTDIR="$HOME/.config/zsh"
 
 export EDITOR="nvim"
-export VISUAL="code --wait"
+export VISUAL="$EDITOR"
 
 export DOTFILES_REPO_URL="https://github.com/meaganewaller/.dotfiles.git"
 export DOTFILES_TARGET_DIR="$HOME/github/meaganewaller/.dotfiles"

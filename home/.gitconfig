@@ -6,7 +6,6 @@ defaultBranch = main
 
 [core]
 excludesfile = ~/.gitignore_global
-editor = cursor --wait
 autocrlf = input
 pager = delta
 
