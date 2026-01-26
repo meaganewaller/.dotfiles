@@ -4,7 +4,6 @@
 # -------------------------------------------------------------------------
 brew "awscli"
 brew "aws-vault"
-brew "gcloud"              # Google Cloud SDK
 brew "kubernetes-cli"      # kubectl
 brew "helm"
 
@@ -13,14 +12,13 @@ brew "helm"
 # -------------------------------------------------------------------------
 brew "postgresql@14"       # full server for local dev
 brew "redis"
-brew "mysql"               # optional if projects need it
-brew "elasticsearch"       # if your projects use ES
+brew "mysql"               
 
 # -------------------------------------------------------------------------
 # Containerization
 # -------------------------------------------------------------------------
 cask "docker"
-brew "colima"              # lighter-weight local container runtime (optional)
+brew "colima"              
 
 # -------------------------------------------------------------------------
 # Rails / Ruby Dev Tools
@@ -67,9 +65,3 @@ brew "yq"
 # -------------------------------------------------------------------------
 cask "firefox"
 cask "google-chrome"
-
-# -------------------------------------------------------------------------
-# Mac Dev UX
-# -------------------------------------------------------------------------
-cask "rectangle"
-cask "alt-tab"

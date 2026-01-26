@@ -43,7 +43,7 @@ brew "tree-sitter-cli"
 # Database Tools
 # (not full DBs — those go in work profile usually)
 # -------------------------------------------------------------------------
-brew "postgresql@14"       # client libs only, not server necessarily
+brew "libpq@18"       # client libs only, not server necessarily
 brew "sqlite"
 
 # -------------------------------------------------------------------------

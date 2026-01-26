@@ -16,6 +16,7 @@ check_os_base() {
       local brewfile_common="${dotfiles_root}/config/Brewfile.common"
 
       if [ -f "$brewfile_common" ]; then
+        echo "[${SCRIPT_NAME}] Checking Brewfile.common"
         if ! brew bundle check --file="$brewfile_common" >/dev/null 2>&1; then
           status=1
         fi

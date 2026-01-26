@@ -10,59 +10,92 @@ export DOTFILES_ROOT="${DOTFILES_ROOT:-$ROOT}"
 source "$ROOT/bin/make-symlink"
 
 log() {
-  printf '[link-dotfiles] %s\n' "$*"
+  if [ "$DOTFILES_DRY_RUN" -eq 1 ]; then
+    printf '[link-dotfiles (dry run)] %s\n' "$*"
+  else
+    printf '[link-dotfiles] %s\n' "$*"
+  fi
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --profile)
+      log "Setting PROFILE to $2"
+      PROFILE="$2"
+      shift 2
+      ;;
+    --dry-run)
+      log "Setting DOTFILES_DRY_RUN to $2"
+      DOTFILES_DRY_RUN="$2"
+      shift 2
+      ;;
+    *)
+      log "Unknown arg: $1 (valid args: --profile <profile>, --dry-run <0|1>)"
+      exit 1
+      ;;
+  esac
+done
+export PROFILE="$PROFILE"
+export DOTFILES_DRY_RUN="$DOTFILES_DRY_RUN"
+
+run_make_symlink() {
+  if [ "$DOTFILES_DRY_RUN" -eq 1 ]; then
+    log "Dry run: make_symlink $*"
+  else
+    make_symlink "$@"
+  fi
 }
 
 ###############################################################################
 # Shell config
 ###############################################################################
 
-make_symlink ".zshrc"
-make_symlink ".zshenv"
-make_symlink ".bashrc"
+run_make_symlink ".zshrc"
+run_make_symlink ".zshenv"
+run_make_symlink ".bashrc"
 
 ###############################################################################
 # Git config
 ###############################################################################
 
-make_symlink ".gitconfig"
-make_symlink ".gitconfig.work"
-make_symlink ".gitconfig.personal"
-make_symlink ".gitconfig.local" || true
-make_symlink ".gitignore_global"
+run_make_symlink ".gitconfig"
+run_make_symlink ".gitconfig.work"
+run_make_symlink ".gitconfig.personal"
+run_make_symlink ".gitconfig.local" || true
+run_make_symlink ".gitignore_global"
 
 ###############################################################################
 # SSH config
 ###############################################################################
 
-make_symlink ".ssh/config"
-make_symlink ".ssh/config.work"
-make_symlink ".ssh/config.personal"
+run_make_symlink ".ssh/config"
+run_make_symlink ".ssh/config.work"
+run_make_symlink ".ssh/config.personal"
 
 
 ###############################################################################
 # Editor / tooling config
 ###############################################################################
 
-make_symlink ".editorconfig"
-make_symlink ".config/wezterm"
-make_symlink ".config/nvim"
-make_symlink ".config/theme"
-make_symlink ".local/bin"
+run_make_symlink ".editorconfig"
+run_make_symlink ".config/wezterm"
+run_make_symlink ".config/nvim"
+run_make_symlink ".config/theme"
+run_make_symlink ".local/bin"
 
 # Optional: profile-specific shell overlays
-# make_symlink ".zshrc.${PROFILE}" || true
+# run_make_symlink ".zshrc.${PROFILE}" || true
 
 if [ "$PROFILE" = "work" ]; then
   log "Linking work-specific dotfiles"
-  make_symlink ".hammerspoon"
-  make_symlink ".config/zsh"
-  make_symlink ".config/karabiner"
+  run_make_symlink ".hammerspoon"
+  run_make_symlink ".config/zsh"
+  run_make_symlink ".config/karabiner"
 fi
 
 if [ "$PROFILE" = "personal" ]; then
   log "Linking personal-specific dotfiles"
-  make_symlink ".config/fish"
+  run_make_symlink ".config/fish"
 fi
 
 log "Dotfile linking complete."

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROFILE="${1:-work}"
+DOTFILES_PROFILE="${1:-work}"
+export DOTFILES_PROFILE
 
 # Resolve dotfiles root (repo root)
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
