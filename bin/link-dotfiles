@@ -1,101 +1,68 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROFILE="${1:-work}"
-
-# Resolve dotfiles root (repo root)
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export DOTFILES_ROOT="${DOTFILES_ROOT:-$ROOT}"
+export DOTFILES_ROOT="$ROOT"
+
+PROFILE="${DOTFILES_PROFILE:-work}"
+DOTFILES_DRY_RUN="${DOTFILES_DRY_RUN:-0}"
 
 source "$ROOT/bin/make-symlink"
 
 log() {
-  if [ "$DOTFILES_DRY_RUN" -eq 1 ]; then
-    printf '[link-dotfiles (dry run)] %s\n' "$*"
+  if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
+    printf '[link (dry)] %s\n' "$*"
   else
-    printf '[link-dotfiles] %s\n' "$*"
+    printf '[link] %s\n' "$*"
   fi
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --profile)
-      log "Setting PROFILE to $2"
-      PROFILE="$2"
-      shift 2
-      ;;
-    --dry-run)
-      log "Setting DOTFILES_DRY_RUN to $2"
-      DOTFILES_DRY_RUN="$2"
-      shift 2
-      ;;
-    *)
-      log "Unknown arg: $1 (valid args: --profile <profile>, --dry-run <0|1>)"
-      exit 1
-      ;;
+    --profile) PROFILE="$2"; shift 2 ;;
+    --dry-run) DOTFILES_DRY_RUN=1; shift ;;
+    *) log "Unknown arg: $1"; exit 1 ;;
   esac
 done
-export PROFILE="$PROFILE"
-export DOTFILES_DRY_RUN="$DOTFILES_DRY_RUN"
 
-run_make_symlink() {
-  if [ "$DOTFILES_DRY_RUN" -eq 1 ]; then
-    log "Dry run: make_symlink $*"
+export DOTFILES_PROFILE DOTFILES_DRY_RUN
+
+run() {
+  if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
+    log "Would link $*"
   else
     make_symlink "$@"
   fi
 }
 
-###############################################################################
-# Shell config
-###############################################################################
+run ".zshrc"
+run ".zshenv"
+run ".bashrc"
 
-run_make_symlink ".zshrc"
-run_make_symlink ".zshenv"
-run_make_symlink ".bashrc"
+run ".gitconfig"
+run ".gitconfig.work"
+run ".gitconfig.personal"
+run ".gitconfig.local" || true
+run ".gitignore_global"
 
-###############################################################################
-# Git config
-###############################################################################
+run ".ssh/config"
+run ".ssh/config.work"
+run ".ssh/config.personal"
 
-run_make_symlink ".gitconfig"
-run_make_symlink ".gitconfig.work"
-run_make_symlink ".gitconfig.personal"
-run_make_symlink ".gitconfig.local" || true
-run_make_symlink ".gitignore_global"
+run ".editorconfig"
+run ".config/wezterm"
+run ".config/nvim"
+run ".config/theme"
+run ".config/zsh"
+run ".config/fish"
+run ".local/bin"
 
-###############################################################################
-# SSH config
-###############################################################################
-
-run_make_symlink ".ssh/config"
-run_make_symlink ".ssh/config.work"
-run_make_symlink ".ssh/config.personal"
-
-
-###############################################################################
-# Editor / tooling config
-###############################################################################
-
-run_make_symlink ".editorconfig"
-run_make_symlink ".config/wezterm"
-run_make_symlink ".config/nvim"
-run_make_symlink ".config/theme"
-run_make_symlink ".local/bin"
-
-# Optional: profile-specific shell overlays
-# run_make_symlink ".zshrc.${PROFILE}" || true
-
-if [ "$PROFILE" = "work" ]; then
-  log "Linking work-specific dotfiles"
-  run_make_symlink ".hammerspoon"
-  run_make_symlink ".config/zsh"
-  run_make_symlink ".config/karabiner"
+if [[ "$PROFILE" == "work" ]]; then
+  run ".hammerspoon"
+  run ".config/karabiner"
 fi
 
-if [ "$PROFILE" = "personal" ]; then
-  log "Linking personal-specific dotfiles"
-  run_make_symlink ".config/fish"
+if [[ "$PROFILE" == "personal" ]]; then
 fi
 
-log "Dotfile linking complete."
+log "Done linking."

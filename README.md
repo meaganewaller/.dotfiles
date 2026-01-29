@@ -1,198 +1,202 @@
 # my dotfiles
 
-a fully declarative, profile-aware, self-healing development environment.
+a profile-aware, self-healing, one-command machine bootstrap for macOS (and eventually linux)
 
-- [scope doctor](https://oscope-dev.github.io/scope/) groups converge the machine into a known-good state
-- [mise](https://mise.jdx.dev/) manages all programming languages, runtimes, and dev tooling
-- profile-aware dotfile overlays (`work`, `personal`, `server`)
-- idempotent symlinks that are safe, reversible, and structured
+this repo treats your dev env like infra:
 
-everything in here works together so that a new mac can go from zero to fully configured in one command.
+- stage 0 bootstrap via `curl` - not even git required up front
+- github cli (`gh`) and 1password cli (`op`) for auth + identity
+- homebrew for system packages and gui apps
+- mise for all langauges, runtimes, and dev tooling
+- profile-aware dotfile overlays (`work`, `personal`, `container`, `server`)
+- idempotent, safe symlinks for everything in `$HOME`
 
-## quick install
+a brand new machine can go from zero to fully configured with these steps:
 
-on a fresh mac:
+## quick install (fresh machine)
+
+on a brand new mac:
 
 ```bash
-export DOTFILES_PROFILE=work # or personal / server
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/meaganewaller/.dotfiles/main/bootstrap.sh)"
+export DOTFILES_PROFILE=work   # or personal / server / container
+curl -fsSL https://raw.githubusercontent.com/meaganewaller/.dotfiles/main/bootstrap/remote-bootstrap.sh | bash
 ```
-
-this bootstrap includes:
-
-- homebrew
-- mise
-- karabiner
-- hammerspoon
-- ssh + keys
-- git + identity
-- dotfiles symlinked into `$HOME`
-- full scope doctor run
-
-you end up with a fully converged, reproducible dev machine.
 
 ## repo structure
 
-below is the actual repo layout, with annotations explaining what each piece does:
-
 ```bash
 dotfiles/
-├── .gitignore
+├── bin/                          # Low-level helpers
+│   ├── link-dotfiles             # Orchestrates symlinking for profiles
+│   └── make-symlink              # Safe, idempotent file/dir symlinker
 │
-├── bin/                           # User-level helpers
-│   ├── link-dotfiles              # Symlink $DOTFILES_ROOT/home → $HOME
-│   └── make-symlink               # Safe, idempotent file/dir symlinker
+├── bootstrap/                    # Stage 0 + system provisioning
+│   ├── remote-bootstrap.sh       # curl entrypoint (no git required)
+│   ├── Brewfile.common           # Shared system packages
+│   └── Brewfile.work             # Work-only packages
 │
-├── bootstrap.sh                   # Entry point (curl → clone → install)
-│
-├── config/                        # Declarative system package definitions
-│   ├── Brewfile.common            # Shared across all profiles
-│   └── Brewfile.work              # Additional packages for work machines
-│
-├── home/                          # Actual dotfiles to be symlinked
+├── home/                         # Actual dotfiles (symlinked into $HOME)
 │   ├── .bashrc
-│   ├── .config/                   # App configs that belong in ~/.config
-│   │   ├── karabiner/             # Karabiner-Elements config
-│   │   │   └── karabiner.json
-│   │   ├── nvim/                  # Full NeoVim config
-│   │   ├── wezterm/               # WezTerm config ecosystem
-│   │   └── zsh/                   # ZSH modules (aliases, paths, p10k, etc.)
+│   ├── .config/
+│   │   ├── karabiner/
+│   │   ├── nvim/
+│   │   ├── wezterm/
+│   │   └── zsh/
 │   ├── .editorconfig
-│   ├── .gitconfig                 # Base git config
-│   ├── .gitconfig.personal
+│   ├── .gitconfig
 │   ├── .gitconfig.work
-│   ├── .hammerspoon/              # Hammerspoon config + custom spoons
-│   ├── .ssh/                      # SSH configs (no keys)
-│   ├── .zshenv                    # Login env
-│   └── .zshrc                     # Shell config
+│   ├── .gitconfig.personal
+│   ├── .hammerspoon/
+│   ├── .ssh/
+│   ├── .zshenv
+│   └── .zshrc
 │
-├── install.sh                     # Main orchestrator (sync scope, mise, dotfiles)
-│
-├── mise/                          # mise global toolchain definitions
+├── mise/                         # mise toolchain + tasks
 │   └── config.toml
 │
-└── scope/                         # Scope Doctor groups + scripts
-    ├── bin/                       # Scripts for doctor groups
-    │   ├── doctor-git
-    │   ├── doctor-hammerspoon
-    │   ├── doctor-homebrew
-    │   ├── doctor-karabiner
-    │   ├── doctor-mise
-    │   ├── doctor-os-base
-    │   └── doctor-ssh
-    ├── git.yaml
-    ├── hammerspoon.yaml
-    ├── homebrew.yaml
-    ├── karabiner.yaml
-    ├── mise.yaml
-    ├── os-base.yaml
-    └── ssh.yaml
+├── install.sh                    # Stage 2 orchestrator
+├── bootstrap.sh                  # Thin wrapper → install.sh
+└── .env                          # Optional local overrides (not committed)
 ```
-
-this design makes every concern explicit and modular.
 
 ## how it works
 
-### 1. bootstrap.sh
+### stage 0 - `remote-bootstrap.sh` (runs via curl)
 
-- clones the repo
-- determines profile (or respects `$DOTFILES_PROFILE`)
-- installs scope (if needed)
-- runs `install.sh`
+this is the only thing you need on a fresh machine.
 
-### 2. install.sh
+it:
 
-- syncs `scope/` to `~/.config/scope`
-- adds `~/.config/scope/bin` to `$PATH`
-- runs all doctor groups in order
-- symlinks everything from `home/`
+- installs homebrew (macos)
+- installs `git`, `gh`, and `op`
+- authenticates:
+    - github via `gh auth login`
+    - 1password via `op signin`
+- reads git identity + signing keys from 1password items
+- generates machine-specific git config:
+    - `~/.gitconfig.work`
+    - `~/.gitconfig.personal`
+    - `~/.gitconfig.local` with `includeIf` rules
+- clones the dotfiles repo
+- hands off to `bootstrap.sh`
 
-### 3. make-symlink
+imperative and pragmatic, so we can reach the declarative parts safely.
 
-this ensures every file or directory symlink:
+### stage 1 - `boostrap.sh`
 
-- performs a backup of existing conflicting files
-- supports nested paths: `.ssh/config`, `.config/nvim`, `.config/wezterm`
-- is fully idempotent and repeatable
+a very thin wrapper:
 
-no more `rm -rf ~/.config/whatever`.
+- respects `$DOTFILES_PROFILE`
+- calls `install.sh`
 
-### 4. scope doctor
+all real logic lives elsewher
 
-each yaml in `scope/` declares a convergence group (homebrew, ssh, mise, etc)
+### stage 2 - `install.sh`
+
+this is the convergence engine
+
+it:
+
+1. links all dotfiles via `bin/link-dotfiles`
+2. loads homebrew shell environment
+3. runs `brew bundle`:
+    - `bootstrap/Brewfile.common`
+    - `bootstrap/Brewfile.$PROFILE`
+4. relies on mise to manage:
+    - languages
+    - runtimes
+    - global dev tools
+
+it is safe to re-run at any time.
+
+### stage 3 - `bin/link-dotfiles` + `bin/make-symlink`
+
+all symlinking goes through `make_symlink`, which guarantees:
+
+- existing files are backed up
+- incorrect symlinks are replaced
+- nested paths work (.ssh/config, .config/nvim, etc)
+- re-running is always safe
+
+profiles control what gets linked.
 
 ## profiles
 
-profiles define machine intent (work | personal | server)
+profiles represent machine intent, not just identity:
 
-profile-specific behavior includes:
+- `work`
+- `personal`
+- `server`
+- `container`
 
-- git identity
-- ssh identity
-- additional brew packages
-- dotfile overlays
-- app installs (e.g., work vs personal GUI apps)
+profile affects:
+- which Brewfiles are applied
+- which dotfiles are linked
+- git identity (via includeIf rulesS)
+- editor and shell configuration
 
-profiles will eventually move to declarative yaml in `profiles/`.
+right now, profiles are implemented procedurally in `bin/link-dotfiles` and `install.sh`.
+
+eventually this will probably move to a declarative manifest, so:
+
+> profiles describe intent, scripts enforce it.
+
+but we're not there yet, and this gets the job done in the meantime.
 
 ## daily workflow
 
-you rarely need to touch the internals:
+you almost never need to touch the bootstrap again.
 
-### full convergence:
-
-```bash
-scope doctor run --extra-config=$HOME/.config/scope
-```
-
-### validate without modifying:
+### relink dotfiles
 
 ```bash
-scope doctor run --extra-config=$HOME/.config/scope --fix=false
+bin/link-dotfiles --profile work
 ```
 
-### update plugins
+### install/update runtimes and tools
 
 ```bash
 mise install
-brew bundle --file=config/Brewfile.common
-brew bundle --file=config/Brewfile.work # if profile=work
 ```
 
-### re-link dotfiles
+### update system packages
 
 ```bash
-bin/link-dotfiles $DOTFILES_PROFILE
+brew bundle --file=boostrap/Brewfile.common
+brew bundle --file=bootstrap/Brewfile.work
 ```
+
+### re-run full convergence
+
+```bash
+./install.sh --profile work
+```
+
+everything is designed to be safely repeatable
 
 ## design principles
 
-### declarative > imperative
 
-everything is described in yaml or toml. scripts simply enforce it.
+### declarative where possible, imperative where necessary
 
-### self-healing
+bootstap is imperative because reality isn't neat. everything after that should be convergent and reproducible.
 
-a broken config is just another doctor run away from being fixed.
+### profiles are first-class
 
-### profiles as first-class citizens
-
-your environment adapts to who you are on this machine
+a machine isn't just "my laptop". it has an intent, constaints, and trust boundaries, profiles make that explicit.
 
 ### idempotence everywhere
 
-every run can be repeated safely
+every command should be safe to re-run
 
-### new machine in 10 minutes
+### boring is the goal
 
-that's the standard this repo is built for
+when this works, it should feel unremarkable.
 
 ## making changes
 
-- edit configs in `home/`
-- add new doctor groups in `scope/`
-- add new system packages in `config/Brewfile.*`
-- add new languages/tools in `mise/config.toml`
-- re-run doctor to confirm convergence
-
-everything should _just work_
+- edit dotfiles -> `home/`
+- add system packages -> `bootstrap/Brewfile.*`
+- add runtimes/tools -> `mise/config.toml`
+- update linking logic -> `bin/link-dotfiles`
+- re-run `install.sh` to converge
