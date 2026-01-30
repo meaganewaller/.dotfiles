@@ -16,28 +16,23 @@ sketchybar --remove '/.*/'
 
 # Bar
 sketchybar --bar \
-  position=top \
+  color=$BAR_BG \
+  blur_radius=50 \
   height=32 \
   margin=10 \
   corner_radius=6 \
   y_offset=6 \
-  color=$BAR_BG \
   padding_left=10 \
   padding_right=10 \
   border_width=0
 
 # Default styling
 sketchybar --default \
-  icon.color=$TEXT \
-  label.color=$TEXT \
+  background.padding_left=5 \
+  background.padding_right=5 \
+  icon.padding_right=5 \
   icon.font="$ICON_FONT" \
-  label.font="$REGULAR_FONT" \
-  background.height=24 \
-  icon.padding_right=4 \
-  icon.padding_left=4 \
-  background.corner_radius=6 \
-  background.padding_left=6 \
-  background.padding_right=6
+  label.font="$REGULAR_FONT"
 
 # ------------------------------------------------------------
 # LEFT: Front App
@@ -95,9 +90,6 @@ sketchybar --add item vpn.popup popup.vpn \
              label="VPN Status" \
              icon.drawing=off \
              background.color=$BAR_BG \
-             background.corner_radius=6 \
-             background.border_width=1 \
-             background.border_color=$ACCENT \
              background.height=24
 
 # Volume
