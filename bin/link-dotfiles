@@ -31,6 +31,7 @@ run() {
   if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
     log "Would link $*"
   else
+    log "Linking $*"
     make_symlink "$@"
   fi
 }
@@ -58,11 +59,14 @@ run ".config/fish"
 run ".local/bin"
 
 if [[ "$PROFILE" == "work" ]]; then
+  log "Linking work dotfiles"
   run ".hammerspoon"
   run ".config/karabiner"
+  run ".config/sketchybar"
 fi
 
 if [[ "$PROFILE" == "personal" ]]; then
+  log "Linking personal dotfiles"
 fi
 
 log "Done linking."

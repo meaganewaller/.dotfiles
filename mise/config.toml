@@ -7,3 +7,12 @@ terraform = "latest"
 
 [env]
 MISE_ENV="global"
+
+[tasks."sketchybar:reload"]
+description = "Reload sketchybar config"
+run = ["sketchybar --reload"]
+
+[tasks."sketchybar:setup"]
+description = "Ensure sketchybar is linked and running"
+run = ["bash scripts/sketchybar/setup.sh"]
+

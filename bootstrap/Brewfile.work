@@ -34,8 +34,7 @@ brew "gmp"
 # -------------------------------------------------------------------------
 brew "entr"                # run commands when files change
 brew "watchman"            # fs watch
-brew "ngrok"               # tunneling
-brew "mitmproxy"           # debug http
+cask "mitmproxy"           # debug http
 brew "grpcurl"             # grpc introspection
 
 # -------------------------------------------------------------------------
@@ -65,3 +64,12 @@ brew "yq"
 # -------------------------------------------------------------------------
 cask "firefox"
 cask "google-chrome"
+
+# -------------------------------------------------------------------------
+# Dev Environment
+# -------------------------------------------------------------------------
+
+tap "felixkratz/formulae"
+brew "felixkratz/formulae/sketchybar"
+cask "nikitabobko/tap/aerospace"
+

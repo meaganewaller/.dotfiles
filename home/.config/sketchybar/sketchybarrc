@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG_DIR="$HOME/.config/sketchybar"
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+
+source "$CONFIG_DIR/colors.sh"
+source "$CONFIG_DIR/icons.sh"
+
+ITALIC_FONT="VictorMono Nerd Font Mono:Italic:17.0"
+REGULAR_FONT="BigBlueTerm437 Nerd Font Mono:Regular:13.0"
+
+# Reset
+sketchybar --remove '/.*/'
+
+# Bar
+sketchybar --bar \
+  position=top \
+  height=32 \
+  margin=10 \
+  corner_radius=6 \
+  y_offset=6 \
+  color=$BAR_BG \
+  padding_left=10 \
+  padding_right=10 \
+  border_width=0
+
+# Default styling
+sketchybar --default \
+  icon.color=$TEXT \
+  label.color=$TEXT \
+  icon.font="sketchybar-app-font:Regular:17.0" \
+  label.font="$REGULAR_FONT" \
+  background.height=24 \
+  label.padding_left=4 \
+  label.padding_right=4 \
+  icon.padding_left=4 \
+  icon.padding_right=4 \
+  background.corner_radius=6 \
+  background.padding_left=6 \
+  background.padding_right=6
+
+# ------------------------------------------------------------
+# LEFT: Front App
+# ------------------------------------------------------------
+
+sketchybar --add item front_app left \
+           --set front_app \
+             icon="$ICON_APP" \
+             update_freq=2 \
+             script="$PLUGIN_DIR/front_app.sh"
+
+# ------------------------------------------------------------
+# CENTER: Current Media
+# ------------------------------------------------------------
+
+sketchybar --add item media center \
+           --set media \
+             drawing=off \
+             update_freq=3 \
+             script="$PLUGIN_DIR/media.sh" \
+             label.max_chars=60
+
+# ------------------------------------------------------------
+# RIGHT: The rest (ordered as you asked, grouped sanely)
+# ------------------------------------------------------------
+
+# Clock
+sketchybar --add item clock right \
+           --set clock \
+             icon="$ICON_CLOCK" \
+             update_freq=10 \
+             script="$PLUGIN_DIR/clock.sh"
+
+# Battery
+sketchybar --add item battery right \
+           --set battery \
+             icon="$ICON_BATTERY" \
+             update_freq=30 \
+             script="$PLUGIN_DIR/battery.sh"
+
+# Volume
+sketchybar --add item volume right \
+           --set volume \
+             icon="$ICON_VOLUME" \
+             update_freq=2 \
+             script="$PLUGIN_DIR/volume.sh"
+
+sketchybar --set battery icon.color=$C_BATTERY
+sketchybar --set clock icon.color=$C_CLOCK
+
+sketchybar --update
