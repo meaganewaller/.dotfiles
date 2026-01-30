@@ -7,6 +7,7 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
 
+ICON_FONT="VictorMono Nerd Font Mono:Bold:17.0"
 ITALIC_FONT="VictorMono Nerd Font Mono:Italic:17.0"
 REGULAR_FONT="BigBlueTerm437 Nerd Font Mono:Regular:13.0"
 
@@ -29,13 +30,11 @@ sketchybar --bar \
 sketchybar --default \
   icon.color=$TEXT \
   label.color=$TEXT \
-  icon.font="sketchybar-app-font:Regular:17.0" \
+  icon.font="$ICON_FONT" \
   label.font="$REGULAR_FONT" \
   background.height=24 \
-  label.padding_left=4 \
-  label.padding_right=4 \
-  icon.padding_left=4 \
   icon.padding_right=4 \
+  icon.padding_left=4 \
   background.corner_radius=6 \
   background.padding_left=6 \
   background.padding_right=6
@@ -47,6 +46,7 @@ sketchybar --default \
 sketchybar --add item front_app left \
            --set front_app \
              icon="$ICON_APP" \
+             icon.font="sketchybar-app-font:Regular:17.0" \
              update_freq=2 \
              script="$PLUGIN_DIR/front_app.sh"
 
@@ -79,6 +79,27 @@ sketchybar --add item battery right \
              update_freq=30 \
              script="$PLUGIN_DIR/battery.sh"
 
+# VPN
+sketchybar --add item vpn right \
+           --set vpn \
+             icon.font="$ICON_FONT" \
+             icon="$ICON_UNLOCK" \
+             update_freq=5 \
+             script="$PLUGIN_DIR/vpn.sh" \
+             popup.align=right \
+           --subscribe vpn mouse.entered mouse.exited
+
+# Popup content (hidden unless hovered)
+sketchybar --add item vpn.popup popup.vpn \
+           --set vpn.popup \
+             label="VPN Status" \
+             icon.drawing=off \
+             background.color=$BAR_BG \
+             background.corner_radius=6 \
+             background.border_width=1 \
+             background.border_color=$ACCENT \
+             background.height=24
+
 # Volume
 sketchybar --add item volume right \
            --set volume \
@@ -88,5 +109,7 @@ sketchybar --add item volume right \
 
 sketchybar --set battery icon.color=$C_BATTERY
 sketchybar --set clock icon.color=$C_CLOCK
+sketchybar --set vpn icon.color=$C_MEDIA
+sketchybar --set volume icon.color=$C_VOLUME
 
 sketchybar --update
