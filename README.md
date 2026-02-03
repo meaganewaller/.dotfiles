@@ -157,6 +157,24 @@ but we're not there yet, and this gets the job done in the meantime.
 
 you almost never need to touch the bootstrap again.
 
+### quick commands with `just`
+
+the easiest way to run common tasks:
+
+```bash
+just              # show all available commands
+just install      # full install (link + brew)
+just link         # re-link dotfiles
+just doctor       # health check
+just lint         # shellcheck all scripts
+just check        # run all pre-commit hooks
+just theme jubi   # set theme
+just dark         # random dark theme
+just light        # random light theme
+```
+
+see all recipes: `just --list`
+
 ### the `dotfiles` cli
 
 a unified command for common operations:
