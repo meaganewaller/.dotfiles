@@ -2,16 +2,33 @@
 set -euo pipefail
 CURRENT="${HOME}/.config/theme/current.json"
 
+# Check if sketchybar command exists
+if ! command -v sketchybar >/dev/null 2>&1; then
+  echo "theme: sketchybar not installed, skipping" >&2
+  exit 0
+fi
+
 # Check if sketchybar is running
 if ! pgrep -x sketchybar >/dev/null 2>&1; then
   echo "theme: sketchybar not running, skipping" >&2
   exit 0
 fi
 
+# Validate current.json
+if [[ ! -f "$CURRENT" ]]; then
+  echo "theme: current.json not found" >&2
+  exit 1
+fi
+
 python3 - <<'PY' "$CURRENT"
 import json, sys, subprocess
 path = sys.argv[1]
-d = json.load(open(path))
+try:
+  d = json.load(open(path))
+except Exception as e:
+  print(f"theme: failed to parse current.json: {e}", file=sys.stderr)
+  sys.exit(1)
+
 acc = d.get("accent") or {}
 env = {
   "THEME": d.get("name",""),
