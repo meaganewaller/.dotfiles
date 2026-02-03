@@ -33,20 +33,30 @@ dotfiles/
 ├── bootstrap/                    # Stage 0 + system provisioning
 │   ├── remote-bootstrap.sh       # curl entrypoint (no git required)
 │   ├── Brewfile.common           # Shared system packages
-│   └── Brewfile.work             # Work-only packages
+│   ├── Brewfile.work             # Work-only packages
+│   └── Brewfile.personal         # Personal-only packages
 │
 ├── home/                         # Actual dotfiles (symlinked into $HOME)
 │   ├── .bashrc
 │   ├── .config/
-│   │   ├── karabiner/
-│   │   ├── nvim/
-│   │   ├── wezterm/
-│   │   └── zsh/
+│   │   ├── fish/                 # Fish shell config + completions
+│   │   ├── karabiner/            # Keyboard remapping
+│   │   ├── nvim/                 # Neovim config (lua)
+│   │   ├── sketchybar/           # Status bar + theme integration
+│   │   ├── theme/                # Theme system
+│   │   │   ├── apply/            # Per-app apply scripts
+│   │   │   ├── themes/           # Theme JSON definitions
+│   │   │   └── wallpapers/       # Desktop wallpapers
+│   │   ├── wezterm/              # Terminal config
+│   │   └── zsh/                  # Zsh config
 │   ├── .editorconfig
 │   ├── .gitconfig
 │   ├── .gitconfig.work
 │   ├── .gitconfig.personal
-│   ├── .hammerspoon/
+│   ├── .hammerspoon/             # Window management + hotkeys
+│   ├── .local/bin/
+│   │   ├── dotfiles              # Dotfiles CLI (doctor, link, update)
+│   │   └── theme                 # Theme CLI
 │   ├── .ssh/
 │   ├── .zshenv
 │   └── .zshrc
@@ -147,9 +157,43 @@ but we're not there yet, and this gets the job done in the meantime.
 
 you almost never need to touch the bootstrap again.
 
+### the `dotfiles` cli
+
+a unified command for common operations:
+
+```bash
+dotfiles doctor    # health check - verify links, deps, themes
+dotfiles link      # re-link all dotfiles
+dotfiles update    # git pull + re-converge
+dotfiles help      # show usage
+```
+
+### check health
+
+```bash
+dotfiles doctor
+```
+
+this runs a comprehensive health check:
+
+| category | what it checks |
+|----------|----------------|
+| required commands | git, brew, python3, mise |
+| shell config | .zshrc, .zshenv, .bashrc symlinks |
+| git config | .gitconfig, .gitignore_global, .gitconfig.local |
+| ssh config | .ssh/config symlink |
+| app configs | nvim, wezterm, fish, zsh symlinks |
+| theme system | current.json validity, theme JSON, wallpapers |
+| profile-specific | hammerspoon, karabiner, sketchybar (work/personal) |
+| macos services | sketchybar, hammerspoon, karabiner running |
+
+use this to debug issues or verify a fresh install.
+
 ### relink dotfiles
 
 ```bash
+dotfiles link --profile work
+# or directly:
 bin/link-dotfiles --profile work
 ```
 
@@ -173,6 +217,57 @@ brew bundle --file=bootstrap/Brewfile.work
 ```
 
 everything is designed to be safely repeatable
+
+## theme system
+
+a unified theming system that synchronizes colors across all apps.
+
+### usage
+
+```bash
+theme list              # list available themes
+theme current           # show current theme JSON
+theme set <name>        # set theme by name
+theme set light         # pick a random light theme
+theme set dark          # pick a random dark theme
+theme next [light|dark] # cycle to next theme
+theme prev [light|dark] # cycle to previous theme
+theme apply             # re-apply current theme
+theme validate          # validate all theme JSON files
+```
+
+### what it controls
+
+- macos appearance (light/dark mode)
+- desktop wallpaper
+- wezterm color scheme
+- sketchybar colors
+- vscode/cursor theme
+- neovim colorscheme
+
+### adding a new theme
+
+1. create `home/.config/theme/themes/<name>.json`:
+
+```json
+{
+  "name": "mytheme",
+  "mode": "dark",
+  "accent": { "name": "purple", "hex": "#B48EAD" },
+  "wezterm": { "scheme": "MyTheme" },
+  "nvim": { "background": "dark", "colorscheme": "mytheme" },
+  "sketchybar": { "profile": "mytheme" },
+  "vscode": { "theme": "My Theme" },
+  "cursor": { "theme": "My Theme" },
+  "wallpaper": "mytheme.jpg"
+}
+```
+
+2. add wallpaper to `home/.config/theme/wallpapers/`
+
+3. validate: `theme validate mytheme`
+
+4. apply: `theme set mytheme`
 
 ## design principles
 
