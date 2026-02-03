@@ -13,15 +13,23 @@ function M.apply(config)
   config.line_height = 1.4
   config.allow_square_glyphs_to_overflow_width = "WhenFollowedBySpace"
 
+  -- Get current theme info
+  local current = theme.current()
+  local mode = current.mode or "dark"
+  local accent = (current.accent or {}).hex or "#E5C07B"
+
+  -- Background color based on mode
+  local bg_color = mode == "light" and "#FAFAF9" or "#1A1D24"
+
   config.background = {
     {
-      source = { Color = "#FAFAF9" },
+      source = { Color = bg_color },
       width = "100%",
       height = "100%",
       opacity = 1,
     },
     {
-      hsb = { brightness = 1 },
+      hsb = { brightness = mode == "light" and 1 or 0.3 },
       source = {
         File = wezterm.config_dir .. "/wallpapers/tamagotchi-rainbow-clouds-wallpaper-kawaii-hoshi.jpg",
       },
@@ -47,8 +55,10 @@ function M.apply(config)
 
   config.scrollback_lines = 100000
 
+  -- Color scheme from current theme
   config.color_scheme = theme.wezterm_scheme()
 
+  -- Dynamic palette based on mode
   local p = theme.palette()
   config.colors = {
     background = p.term_background,

@@ -15,8 +15,13 @@ local function read_current()
   return nil
 end
 
+-- Return full current theme data
+function M.current()
+  return read_current() or { mode = "dark", accent = { hex = "#E5C07B" } }
+end
+
 function M.wezterm_scheme()
-  local cur = read_current() or {}
+  local cur = M.current()
   local w = cur.wezterm or {}
   return w.scheme or "Sakura"
 end
@@ -32,7 +37,8 @@ function M.appearance()
 end
 
 function M.is_dark()
-  return M.appearance():find("Dark") ~= nil
+  local cur = M.current()
+  return cur.mode == "dark"
 end
 
 function M.pick(tbl)
@@ -47,22 +53,45 @@ function M.scheme()
 end
 
 function M.palette()
-  return {
-    term_background = "#E0E2EA",
-    edge_bg = "rgba(0 0 0 0)",
+  local cur = M.current()
+  local mode = cur.mode or "dark"
+  local accent = (cur.accent or {}).hex or "#E5C07B"
 
-    tab = {
-      inactive_bg = "#65737E",
-      inactive_fg = "#F0F2F5",
-      active_bg = "#E5C07B",
-      active_fg = "#282C34",
-    },
+  if mode == "light" then
+    return {
+      term_background = "#FAFAF9",
+      edge_bg = "rgba(0 0 0 0)",
 
-    status = {
-      bg = "#b4713d",
-      fg = "#f0f2f5",
-    },
-  }
+      tab = {
+        inactive_bg = "#D8DEE9",
+        inactive_fg = "#4C566A",
+        active_bg = accent,
+        active_fg = "#2E3440",
+      },
+
+      status = {
+        bg = accent,
+        fg = "#2E3440",
+      },
+    }
+  else
+    return {
+      term_background = "#1A1D24",
+      edge_bg = "rgba(0 0 0 0)",
+
+      tab = {
+        inactive_bg = "#65737E",
+        inactive_fg = "#F0F2F5",
+        active_bg = accent,
+        active_fg = "#282C34",
+      },
+
+      status = {
+        bg = accent,
+        fg = "#f0f2f5",
+      },
+    }
+  end
 end
 
 -- Powerline-ish segment builder
