@@ -39,7 +39,4 @@ else:
 open(path, "w", encoding="utf-8").write(s)
 PY
 
-# Reload VS Code if running and command available
-if command -v code >/dev/null 2>&1; then
-  code --command workbench.action.reloadWindow >/dev/null 2>&1 || true
-fi
+# VS Code will pick up settings.json changes automatically

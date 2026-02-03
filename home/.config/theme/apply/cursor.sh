@@ -35,7 +35,4 @@ else:
 open(path, "w", encoding="utf-8").write(s)
 PY
 
-# Reload Cursor if running and command available
-if command -v cursor >/dev/null 2>&1; then
-  cursor --command workbench.action.reloadWindow >/dev/null 2>&1 || true
-fi
+# Cursor will pick up settings.json changes automatically
