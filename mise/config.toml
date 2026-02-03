@@ -1,5 +1,11 @@
+[settings]
+experimental = true
+idiomatic_version_file_enable_tools = ["python", "node", "ruby"]
+
 [tools]
 node = "lts"
+go = "latest"
+rust = "latest"
 python = "3.12"
 ruby = "3.4.6"
 java = "21"
@@ -16,3 +22,6 @@ run = ["sketchybar --reload"]
 description = "Ensure sketchybar is linked and running"
 run = ["bash scripts/sketchybar/setup.sh"]
 
+[tasks.claude-install]
+description = "Install/upgrade Claude Code via native installer"
+run = "curl -fsSL https://claude.ai/install.sh | bash -s latest"
