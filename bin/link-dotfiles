@@ -57,6 +57,7 @@ run ".config/theme"
 run ".config/zsh"
 run ".config/fish"
 run ".local/bin/theme"
+run ".local/bin/dotfiles"
 
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"

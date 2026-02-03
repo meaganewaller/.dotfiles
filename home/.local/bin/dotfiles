@@ -1,0 +1,322 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Dotfiles CLI
+# Usage: dotfiles <command> [options]
+
+DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/github/meaganewaller/.dotfiles}"
+PROFILE="${DOTFILES_PROFILE:-work}"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+# Symbols
+CHECK="${GREEN}✓${NC}"
+CROSS="${RED}✗${NC}"
+WARN="${YELLOW}!${NC}"
+INFO="${BLUE}→${NC}"
+
+usage() {
+  cat <<EOF
+${BOLD}dotfiles${NC} - manage your dotfiles
+
+${BOLD}USAGE${NC}
+    dotfiles <command> [options]
+
+${BOLD}COMMANDS${NC}
+    doctor      Check health of dotfiles installation
+    link        Re-link dotfiles
+    update      Pull latest changes and re-converge
+    help        Show this help message
+
+${BOLD}OPTIONS${NC}
+    --profile <name>    Set profile (work, personal, server, container)
+    --dry-run           Show what would be done without doing it
+
+${BOLD}EXAMPLES${NC}
+    dotfiles doctor
+    dotfiles link --profile work
+    dotfiles update
+EOF
+}
+
+log_check() {
+  local status="$1"
+  local message="$2"
+  case "$status" in
+    ok)   echo -e "  ${CHECK} ${message}" ;;
+    fail) echo -e "  ${CROSS} ${message}" ;;
+    warn) echo -e "  ${WARN} ${message}" ;;
+    info) echo -e "  ${INFO} ${message}" ;;
+  esac
+}
+
+section() {
+  echo ""
+  echo -e "${BOLD}$1${NC}"
+}
+
+# Check if a command exists
+has_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# Check if a symlink points to expected target
+check_symlink() {
+  local link="$1"
+  local expected="$2"
+  local name="${3:-$link}"
+
+  if [[ -L "$link" ]]; then
+    local actual
+    actual="$(readlink "$link")"
+    if [[ "$actual" == "$expected" ]]; then
+      log_check ok "$name"
+      return 0
+    else
+      log_check fail "$name → $actual (expected $expected)"
+      return 1
+    fi
+  elif [[ -e "$link" ]]; then
+    log_check warn "$name exists but is not a symlink"
+    return 1
+  else
+    log_check fail "$name missing"
+    return 1
+  fi
+}
+
+# Check if a process is running
+check_process() {
+  local name="$1"
+  if pgrep -x "$name" >/dev/null 2>&1; then
+    log_check ok "$name running"
+    return 0
+  else
+    log_check warn "$name not running"
+    return 1
+  fi
+}
+
+doctor() {
+  local errors=0
+
+  echo -e "${BOLD}Dotfiles Health Check${NC}"
+  echo -e "Profile: ${BLUE}${PROFILE}${NC}"
+  echo -e "Root: ${BLUE}${DOTFILES_ROOT}${NC}"
+
+  # ─────────────────────────────────────────────────────────────
+  section "Required Commands"
+  # ─────────────────────────────────────────────────────────────
+  
+  for cmd in git brew python3 mise; do
+    if has_cmd "$cmd"; then
+      log_check ok "$cmd"
+    else
+      log_check fail "$cmd not found"
+      ((errors++)) || true
+    fi
+  done
+
+  # ─────────────────────────────────────────────────────────────
+  section "Shell Configuration"
+  # ─────────────────────────────────────────────────────────────
+
+  check_symlink "$HOME/.zshrc" "$DOTFILES_ROOT/home/.zshrc" ".zshrc" || ((errors++)) || true
+  check_symlink "$HOME/.zshenv" "$DOTFILES_ROOT/home/.zshenv" ".zshenv" || ((errors++)) || true
+  check_symlink "$HOME/.bashrc" "$DOTFILES_ROOT/home/.bashrc" ".bashrc" || ((errors++)) || true
+
+  # ─────────────────────────────────────────────────────────────
+  section "Git Configuration"
+  # ─────────────────────────────────────────────────────────────
+
+  check_symlink "$HOME/.gitconfig" "$DOTFILES_ROOT/home/.gitconfig" ".gitconfig" || ((errors++)) || true
+  check_symlink "$HOME/.gitignore_global" "$DOTFILES_ROOT/home/.gitignore_global" ".gitignore_global" || ((errors++)) || true
+
+  if [[ -f "$HOME/.gitconfig.local" ]]; then
+    log_check ok ".gitconfig.local exists"
+  else
+    log_check warn ".gitconfig.local missing (may need bootstrap)"
+  fi
+
+  # ─────────────────────────────────────────────────────────────
+  section "SSH Configuration"
+  # ─────────────────────────────────────────────────────────────
+
+  check_symlink "$HOME/.ssh/config" "$DOTFILES_ROOT/home/.ssh/config" ".ssh/config" || ((errors++)) || true
+
+  # ─────────────────────────────────────────────────────────────
+  section "Application Configs"
+  # ─────────────────────────────────────────────────────────────
+
+  check_symlink "$HOME/.config/nvim" "$DOTFILES_ROOT/home/.config/nvim" "nvim" || ((errors++)) || true
+  check_symlink "$HOME/.config/wezterm" "$DOTFILES_ROOT/home/.config/wezterm" "wezterm" || ((errors++)) || true
+  check_symlink "$HOME/.config/fish" "$DOTFILES_ROOT/home/.config/fish" "fish" || ((errors++)) || true
+  check_symlink "$HOME/.config/zsh" "$DOTFILES_ROOT/home/.config/zsh" "zsh" || ((errors++)) || true
+
+  # ─────────────────────────────────────────────────────────────
+  section "Theme System"
+  # ─────────────────────────────────────────────────────────────
+
+  check_symlink "$HOME/.config/theme" "$DOTFILES_ROOT/home/.config/theme" "theme config" || ((errors++)) || true
+  check_symlink "$HOME/.local/bin/theme" "$DOTFILES_ROOT/home/.local/bin/theme" "theme CLI" || ((errors++)) || true
+
+  if [[ -f "$HOME/.config/theme/current.json" ]]; then
+    if has_cmd python3; then
+      local theme_name mode
+      theme_name=$(python3 -c 'import json; print(json.load(open("'"$HOME/.config/theme/current.json"'")).get("name","unknown"))' 2>/dev/null || echo "unknown")
+      mode=$(python3 -c 'import json; print(json.load(open("'"$HOME/.config/theme/current.json"'")).get("mode","unknown"))' 2>/dev/null || echo "unknown")
+      log_check ok "current theme: $theme_name ($mode)"
+    else
+      log_check ok "current.json exists"
+    fi
+  else
+    log_check warn "current.json missing (run: theme set <name>)"
+  fi
+
+  # Validate theme files
+  if has_cmd python3; then
+    local theme_dir="$HOME/.config/theme/themes"
+    if [[ -d "$theme_dir" ]]; then
+      local theme_count=0
+      local theme_errors=0
+      for f in "$theme_dir"/*.json; do
+        [[ -f "$f" ]] || continue
+        ((theme_count++)) || true
+        if ! python3 -c "import json; json.load(open('$f'))" 2>/dev/null; then
+          log_check fail "$(basename "$f"): invalid JSON"
+          ((theme_errors++)) || true
+        fi
+      done
+      if [[ $theme_errors -eq 0 ]]; then
+        log_check ok "$theme_count theme(s) valid"
+      fi
+    fi
+  fi
+
+  # Check wallpapers
+  local wallpaper_dir="$HOME/.config/theme/wallpapers"
+  if [[ -d "$wallpaper_dir" ]]; then
+    local wp_count
+    wp_count=$(find "$wallpaper_dir" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" \) 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "$wp_count" -gt 0 ]]; then
+      log_check ok "$wp_count wallpaper(s) found"
+    else
+      log_check warn "no wallpapers in wallpapers/"
+    fi
+  fi
+
+  # ─────────────────────────────────────────────────────────────
+  section "Profile: $PROFILE"
+  # ─────────────────────────────────────────────────────────────
+
+  if [[ "$PROFILE" == "work" || "$PROFILE" == "personal" ]]; then
+    check_symlink "$HOME/.hammerspoon" "$DOTFILES_ROOT/home/.hammerspoon" "hammerspoon" || ((errors++)) || true
+    check_symlink "$HOME/.config/karabiner" "$DOTFILES_ROOT/home/.config/karabiner" "karabiner" || ((errors++)) || true
+    check_symlink "$HOME/.config/sketchybar" "$DOTFILES_ROOT/home/.config/sketchybar" "sketchybar" || ((errors++)) || true
+  fi
+
+  # ─────────────────────────────────────────────────────────────
+  section "macOS Services"
+  # ─────────────────────────────────────────────────────────────
+
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    check_process "sketchybar" || true
+    check_process "Hammerspoon" || true
+    
+    # Check if karabiner is loaded
+    if pgrep -x "karabiner_grabber" >/dev/null 2>&1; then
+      log_check ok "karabiner running"
+    else
+      log_check warn "karabiner not running"
+    fi
+  else
+    log_check info "not on macOS, skipping service checks"
+  fi
+
+  # ─────────────────────────────────────────────────────────────
+  section "Summary"
+  # ─────────────────────────────────────────────────────────────
+
+  echo ""
+  if [[ $errors -eq 0 ]]; then
+    echo -e "${GREEN}${BOLD}All checks passed!${NC}"
+  else
+    echo -e "${RED}${BOLD}$errors issue(s) found${NC}"
+    echo -e "Run ${BLUE}dotfiles link${NC} to fix symlink issues"
+  fi
+
+  return $errors
+}
+
+cmd_link() {
+  local dry_run=""
+  [[ "${DRY_RUN:-0}" -eq 1 ]] && dry_run="--dry-run"
+  
+  echo "Linking dotfiles (profile: $PROFILE)..."
+  "$DOTFILES_ROOT/bin/link-dotfiles" --profile "$PROFILE" $dry_run
+}
+
+cmd_update() {
+  echo "Updating dotfiles..."
+  
+  cd "$DOTFILES_ROOT"
+  
+  echo "Pulling latest changes..."
+  git pull --rebase
+  
+  echo "Re-linking dotfiles..."
+  cmd_link
+  
+  echo "Done!"
+}
+
+# Parse global options
+DRY_RUN=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --profile)
+      PROFILE="$2"
+      shift 2
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -*)
+      # Unknown option, might be for subcommand
+      break
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  doctor)
+    doctor
+    ;;
+  link)
+    cmd_link
+    ;;
+  update)
+    cmd_update
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $cmd"
+    usage
+    exit 1
+    ;;
+esac
