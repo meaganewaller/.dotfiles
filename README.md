@@ -82,7 +82,7 @@ it:
 
 imperative and pragmatic, so we can reach the declarative parts safely.
 
-### stage 1 - `boostrap.sh`
+### stage 1 - `bootstrap.sh`
 
 a very thin wrapper:
 
@@ -162,7 +162,7 @@ mise install
 ### update system packages
 
 ```bash
-brew bundle --file=boostrap/Brewfile.common
+brew bundle --file=bootstrap/Brewfile.common
 brew bundle --file=bootstrap/Brewfile.work
 ```
 

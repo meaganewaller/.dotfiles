@@ -67,6 +67,9 @@ fi
 
 if [[ "$PROFILE" == "personal" ]]; then
   log "Linking personal dotfiles"
+  run ".hammerspoon"
+  run ".config/karabiner"
+  run ".config/sketchybar"
 fi
 
 log "Done linking."
