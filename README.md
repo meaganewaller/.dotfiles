@@ -251,6 +251,7 @@ theme validate          # validate all theme JSON files
 
 ```json
 {
+  "$schema": "./schema.json",
   "name": "mytheme",
   "mode": "dark",
   "accent": { "name": "purple", "hex": "#B48EAD" },
@@ -268,6 +269,26 @@ theme validate          # validate all theme JSON files
 3. validate: `theme validate mytheme`
 
 4. apply: `theme set mytheme`
+
+### theme schema
+
+themes are validated against `home/.config/theme/themes/schema.json`:
+
+| field | required | description |
+|-------|----------|-------------|
+| `name` | yes | unique theme identifier |
+| `mode` | yes | `"light"` or `"dark"` |
+| `accent.name` | no | human-readable color name |
+| `accent.hex` | no | hex color code (e.g., `#E5C07B`) |
+| `wezterm.scheme` | no | wezterm color scheme name |
+| `nvim.colorscheme` | no | neovim colorscheme |
+| `nvim.background` | no | `"light"` or `"dark"` |
+| `sketchybar.profile` | no | sketchybar profile name |
+| `vscode.theme` | no | vs code theme name |
+| `cursor.theme` | no | cursor theme name |
+| `wallpaper` | no | filename in wallpapers/ or absolute path |
+
+the `$schema` reference enables autocomplete and validation in vs code/cursor.
 
 ## code quality
 

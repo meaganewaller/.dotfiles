@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/meaganewaller/.dotfiles/theme-schema.json",
+  "title": "Theme",
+  "description": "A theme configuration for the dotfiles theme system",
+  "type": "object",
+  "required": ["name", "mode"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for the theme",
+      "minLength": 1
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["light", "dark"],
+      "description": "Light or dark mode"
+    },
+    "accent": {
+      "type": "object",
+      "description": "Accent color for the theme",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable color name (e.g., 'amber', 'pink')"
+        },
+        "hex": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Hex color code (e.g., '#E5C07B')"
+        }
+      },
+      "required": ["name", "hex"]
+    },
+    "wezterm": {
+      "type": "object",
+      "description": "WezTerm terminal configuration",
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "description": "WezTerm color scheme name"
+        }
+      }
+    },
+    "nvim": {
+      "type": "object",
+      "description": "Neovim configuration",
+      "properties": {
+        "background": {
+          "type": "string",
+          "enum": ["light", "dark"],
+          "description": "Neovim background setting"
+        },
+        "colorscheme": {
+          "type": "string",
+          "description": "Neovim colorscheme name"
+        }
+      }
+    },
+    "sketchybar": {
+      "type": "object",
+      "description": "Sketchybar status bar configuration",
+      "properties": {
+        "profile": {
+          "type": "string",
+          "description": "Sketchybar profile name"
+        }
+      }
+    },
+    "vscode": {
+      "type": "object",
+      "description": "Visual Studio Code configuration",
+      "properties": {
+        "theme": {
+          "type": "string",
+          "description": "VS Code color theme name"
+        }
+      }
+    },
+    "cursor": {
+      "type": "object",
+      "description": "Cursor editor configuration",
+      "properties": {
+        "theme": {
+          "type": "string",
+          "description": "Cursor color theme name"
+        }
+      }
+    },
+    "wallpaper": {
+      "type": "string",
+      "description": "Wallpaper filename (relative to wallpapers/) or absolute path"
+    }
+  },
+  "additionalProperties": false
+}
