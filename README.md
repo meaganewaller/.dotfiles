@@ -1,5 +1,7 @@
 # my dotfiles
 
+[![CI](https://github.com/meaganewaller/.dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/meaganewaller/.dotfiles/actions/workflows/ci.yml)
+
 a profile-aware, self-healing, one-command machine bootstrap for macOS (and eventually linux)
 
 this repo treats your dev env like infra:
@@ -343,6 +345,34 @@ to run all hooks manually:
 ```bash
 pre-commit run --all-files
 ```
+
+## ci / testing
+
+### github actions
+
+every push and PR runs:
+
+| job | what it tests |
+|-----|---------------|
+| `lint` | shellcheck, JSON validation, theme validation |
+| `test-macos` | dry-run install on fresh macOS |
+| `test-linux` | dry-run install on ubuntu |
+| `test-container` | dry-run in ubuntu container |
+
+### devcontainer
+
+open this repo in a devcontainer to test the `container` profile:
+
+```bash
+# in vs code / cursor
+> Dev Containers: Open Folder in Container
+```
+
+the devcontainer:
+- uses ubuntu base image
+- installs python, node
+- runs `link-dotfiles --profile container` on startup
+- includes shellcheck extension
 
 ## design principles
 

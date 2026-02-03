@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck
+        run: |
+          find . -name "*.sh" -not -path "./.git/*" -print0 | xargs -0 shellcheck --severity=warning || true
+          shellcheck --severity=warning bin/* || true
+          shellcheck --severity=warning home/.local/bin/* || true
+
+      - name: Validate JSON
+        run: |
+          for f in home/.config/theme/themes/*.json; do
+            echo "Checking $f"
+            python3 -m json.tool "$f" > /dev/null
+          done
+
+      - name: Validate themes
+        run: python3 bin/validate-themes
+
+  test-macos:
+    name: Test (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Homebrew (if needed)
+        run: |
+          if ! command -v brew &> /dev/null; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+
+      - name: Dry-run link
+        run: |
+          export DOTFILES_ROOT="$PWD"
+          ./bin/link-dotfiles --profile work --dry-run
+
+      - name: Test install (dry-run)
+        run: |
+          export DOTFILES_ROOT="$PWD"
+          export DOTFILES_DRY_RUN=1
+          ./install.sh --profile work --dry-run
+
+      - name: Validate dotfiles CLI
+        run: |
+          chmod +x home/.local/bin/dotfiles
+          home/.local/bin/dotfiles help
+
+      - name: Validate theme CLI
+        run: |
+          chmod +x home/.local/bin/theme
+          home/.local/bin/theme list
+
+  test-linux:
+    name: Test (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dry-run link
+        run: |
+          export DOTFILES_ROOT="$PWD"
+          ./bin/link-dotfiles --profile server --dry-run
+
+      - name: Validate dotfiles CLI
+        run: |
+          chmod +x home/.local/bin/dotfiles
+          # Skip doctor on Linux as it checks for macOS-specific things
+          home/.local/bin/dotfiles help
+
+      - name: Validate theme CLI
+        run: |
+          chmod +x home/.local/bin/theme
+          home/.local/bin/theme list
+
+  test-container:
+    name: Test (Container)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3 git
+
+      - name: Dry-run link
+        run: |
+          export DOTFILES_ROOT="$PWD"
+          ./bin/link-dotfiles --profile container --dry-run
+
+      - name: Validate theme CLI
+        run: |
+          chmod +x home/.local/bin/theme
+          home/.local/bin/theme list

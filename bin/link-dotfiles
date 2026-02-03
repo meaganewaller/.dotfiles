@@ -73,4 +73,15 @@ if [[ "$PROFILE" == "personal" ]]; then
   run ".config/sketchybar"
 fi
 
+if [[ "$PROFILE" == "server" ]]; then
+  log "Linking server dotfiles"
+  # Server: minimal CLI-focused setup, no GUI apps
+fi
+
+if [[ "$PROFILE" == "container" ]]; then
+  log "Linking container dotfiles"
+  # Container: minimal setup for devcontainers
+  # Most links already done above (shell, git, editor configs)
+fi
+
 log "Done linking."

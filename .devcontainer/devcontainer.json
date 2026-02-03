@@ -1,0 +1,42 @@
+{
+  "name": "Dotfiles Dev",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "shellcheck.enable": true,
+        "shellcheck.run": "onSave"
+      }
+    }
+  },
+
+  "postCreateCommand": ".devcontainer/setup.sh",
+
+  "remoteUser": "vscode",
+
+  "containerEnv": {
+    "DOTFILES_PROFILE": "container",
+    "DOTFILES_ROOT": "/workspaces/dotfiles"
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspaces/dotfiles,type=bind"
+  ]
+}
