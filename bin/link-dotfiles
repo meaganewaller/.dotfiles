@@ -64,6 +64,21 @@ if [[ "$PROFILE" == "work" ]]; then
   run ".hammerspoon"
   run ".config/karabiner"
   run ".config/sketchybar"
+
+  if [[ "$DOTFILES_DRY_RUN" -eq 0 ]]; then
+    log "Linking $DOTFILES_ROOT/home/.claude/work-settings.json to $HOME/.claude/settings.json"
+    make_symlink "$DOTFILES_ROOT/home/.claude/work-settings.json" "$HOME/.claude/settings.json"
+
+    log "Linking $DOTFILES_ROOT/home/.claude/skills/ruby-code-documenter to $HOME/.claude/skills/ruby-code-documenter"
+    make_symlink "$DOTFILES_ROOT/home/.claude/skills/ruby-code-documenter" "$HOME/.claude/skills/ruby-code-documenter"
+
+    log "Linking $DOTFILES_ROOT/home/.claude/skills/changelog-generator to $HOME/.claude/skills/changelog-generator"
+    make_symlink "$DOTFILES_ROOT/home/.claude/skills/changelog-generator" "$HOME/.claude/skills/changelog-generator"
+  else
+    log "Dry-run: Would link $DOTFILES_ROOT/home/.claude/work-settings.json to $HOME/.claude/settings.json"
+    log "Dry-run: Would link $DOTFILES_ROOT/home/.claude/skills/ruby-code-documenter to $HOME/.claude/skills/ruby-code-documenter"
+    log "Dry-run: Would link $DOTFILES_ROOT/home/.claude/skills/changelog-generator to $HOME/.claude/skills/changelog-generator"
+  fi
 fi
 
 if [[ "$PROFILE" == "personal" ]]; then
