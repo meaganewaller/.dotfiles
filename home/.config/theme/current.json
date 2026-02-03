@@ -1,25 +1,25 @@
 {
-  "name": "sakura",
-  "mode": "light",
+  "name": "jubi",
+  "mode": "dark",
   "accent": {
-    "name": "pink",
-    "hex": "#F28AB2"
+    "name": "amber",
+    "hex": "#E5C07B"
   },
   "wezterm": {
-    "scheme": "Sakura"
+    "scheme": "jubi"
   },
   "nvim": {
-    "background": "light",
-    "colorscheme": "sakura"
+    "background": "dark",
+    "colorscheme": "jubi"
   },
   "sketchybar": {
-    "profile": "Sakura Light"
+    "profile": "jubi"
   },
   "vscode": {
-    "theme": "Cherry Blossom Warm"
+    "theme": "Jubi"
   },
   "cursor": {
-    "theme": "Huacat Pink Theme"
+    "theme": "Tinacious Design"
   },
-  "wallpaper": "sakura.jpg"
+  "wallpaper": "jubi-night.jpg"
 }

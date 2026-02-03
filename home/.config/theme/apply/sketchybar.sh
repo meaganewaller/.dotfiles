@@ -2,6 +2,12 @@
 set -euo pipefail
 CURRENT="${HOME}/.config/theme/current.json"
 
+# Check if sketchybar is running
+if ! pgrep -x sketchybar >/dev/null 2>&1; then
+  echo "theme: sketchybar not running, skipping" >&2
+  exit 0
+fi
+
 python3 - <<'PY' "$CURRENT"
 import json, sys, subprocess
 path = sys.argv[1]

@@ -24,6 +24,7 @@ theme set light|dark|<name> [--seed today|YYYY-MM-DD|<string>]
 theme next [light|dark]
 theme prev [light|dark]
 theme apply
+theme validate [<name>]
 EOF
 }
 
@@ -217,6 +218,102 @@ PY
 
   apply)
     "$APPLY"
+    ;;
+
+  validate)
+    target="${1:-}"
+    shift || true
+
+    WALLPAPERS_DIR="${THEME_DIR}/wallpapers"
+
+    validate_theme() {
+      local path="$1"
+      local name
+      name="$(basename "$path" .json)"
+
+      python_pick <<'PY' "$path" "$WALLPAPERS_DIR"
+import json, sys, os
+
+path, wallpapers_dir = sys.argv[1], sys.argv[2]
+name = os.path.splitext(os.path.basename(path))[0]
+errors = []
+warnings = []
+
+# Check JSON is valid
+try:
+  with open(path) as f:
+    d = json.load(f)
+except json.JSONDecodeError as e:
+  print(f"  ERROR: invalid JSON: {e}")
+  sys.exit(1)
+except Exception as e:
+  print(f"  ERROR: cannot read file: {e}")
+  sys.exit(1)
+
+# Check required fields
+if not d.get("name"):
+  errors.append("missing required field: name")
+if not d.get("mode"):
+  errors.append("missing required field: mode")
+elif d.get("mode") not in ("light", "dark"):
+  errors.append(f"invalid mode: {d.get('mode')} (must be 'light' or 'dark')")
+
+# Check wallpaper exists (warning only)
+wallpaper = d.get("wallpaper")
+if wallpaper:
+  if not wallpaper.startswith("/"):
+    wallpaper_path = os.path.join(wallpapers_dir, wallpaper)
+  else:
+    wallpaper_path = wallpaper
+  if not os.path.isfile(wallpaper_path):
+    warnings.append(f"wallpaper not found: {wallpaper_path}")
+
+# Report results
+for e in errors:
+  print(f"  ERROR: {e}")
+for w in warnings:
+  print(f"  WARNING: {w}")
+
+if errors:
+  sys.exit(1)
+elif warnings:
+  sys.exit(0)
+else:
+  print("  OK")
+  sys.exit(0)
+PY
+    }
+
+    if [[ -n "$target" ]]; then
+      # Validate single theme
+      path="${THEMES_DIR}/${target}.json"
+      [[ -f "$path" ]] || die "theme not found: $target"
+      echo "Validating theme: $target"
+      validate_theme "$path"
+    else
+      # Validate all themes
+      shopt -s nullglob
+      files=("${THEMES_DIR}"/*.json)
+      shopt -u nullglob
+
+      if [[ ${#files[@]} -eq 0 ]]; then
+        echo "No themes found in ${THEMES_DIR}"
+        exit 0
+      fi
+
+      has_errors=0
+      for f in "${files[@]}"; do
+        name="$(basename "$f" .json)"
+        echo "Validating theme: $name"
+        if ! validate_theme "$f"; then
+          has_errors=1
+        fi
+      done
+
+      if [[ $has_errors -eq 1 ]]; then
+        exit 1
+      fi
+    fi
     ;;
 
   ""|-h|--help|help)
