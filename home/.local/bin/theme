@@ -63,7 +63,8 @@ case "$cmd" in
     shopt -s nullglob
     files=("${THEMES_DIR}"/*.json)
     shopt -u nullglob
-    for f in "${files[@]}"; do
+    for f in "${files[@]+"${files[@]}"}"; do
+      [[ "$(basename "$f")" == "schema.json" ]] && continue
       basename "$f" .json
     done
     ;;
