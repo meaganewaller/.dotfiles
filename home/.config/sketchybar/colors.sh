@@ -23,68 +23,69 @@ hex_to_argb() {
 }
 
 ACCENT=$(hex_to_argb "$ACCENT_HEX")
+export ACCENT
 
 # -----------------------------
 # Pastel palette
 # -----------------------------
 if [[ "$MODE" == "light" ]]; then
   # Slightly darker pastels for light backgrounds
-  PASTEL_BLUE=0xff2196F3
-  PASTEL_LAVENDER=0xff9575CD
-  PASTEL_RED=0xffE91E63
-  PASTEL_ORANGE=0xffFF9800
-  PASTEL_GOLD=0xffFFC107
-  PASTEL_GREEN=0xff4CAF50
+  export PASTEL_BLUE=0xff2196F3
+  export PASTEL_LAVENDER=0xff9575CD
+  export PASTEL_RED=0xffE91E63
+  export PASTEL_ORANGE=0xffFF9800
+  export PASTEL_GOLD=0xffFFC107
+  export PASTEL_GREEN=0xff4CAF50
 else
   # Bright pastels for dark backgrounds
-  PASTEL_BLUE=0xff31BFF3
-  PASTEL_LAVENDER=0xffA484E9
-  PASTEL_RED=0xffF4889A
-  PASTEL_ORANGE=0xffFFAF68
-  PASTEL_GOLD=0xffF6E683
-  PASTEL_GREEN=0xff79D45E
+  export PASTEL_BLUE=0xff31BFF3
+  export PASTEL_LAVENDER=0xffA484E9
+  export PASTEL_RED=0xffF4889A
+  export PASTEL_ORANGE=0xffFFAF68
+  export PASTEL_GOLD=0xffF6E683
+  export PASTEL_GREEN=0xff79D45E
 fi
 
 # -----------------------------
 # Base UI colors
 # -----------------------------
 if [[ "$MODE" == "light" ]]; then
-  BAR_BG=0xffF7F8FD
-  ITEM_BG=0xffFFFFFF
-  TEXT=0xff1B1E28
-  SUBTEXT=0xff5B6071
-  BORDER=0xffE6E8F2
+  export BAR_BG=0xffF7F8FD
+  export ITEM_BG=0xffFFFFFF
+  export TEXT=0xff1B1E28
+  export SUBTEXT=0xff5B6071
+  export BORDER=0xffE6E8F2
 else
-  BAR_BG=0xff111318
-  ITEM_BG=0xff1A1D24
-  TEXT=0xffF6F7FB
-  SUBTEXT=0xffC7CAD6
-  BORDER=0xff2A2E39
+  export BAR_BG=0xff111318
+  export ITEM_BG=0xff1A1D24
+  export TEXT=0xffF6F7FB
+  export SUBTEXT=0xffC7CAD6
+  export BORDER=0xff2A2E39
 fi
 
 # -----------------------------
 # Semantic colors
 # -----------------------------
-INFO=$PASTEL_LAVENDER
-SUCCESS=$PASTEL_GREEN
-WARN=$PASTEL_ORANGE
-ALERT=$PASTEL_RED
-HIGHLIGHT=$PASTEL_GOLD
+export INFO=$PASTEL_LAVENDER
+export SUCCESS=$PASTEL_GREEN
+export WARN=$PASTEL_ORANGE
+export ALERT=$PASTEL_RED
+export HIGHLIGHT=$PASTEL_GOLD
 
 # -----------------------------
 # Per-module accent colors
 # -----------------------------
-C_APP=$ACCENT
-C_MEDIA=$PASTEL_LAVENDER
-C_CLOCK=$PASTEL_GOLD
-C_BATTERY=$PASTEL_GREEN
-C_CPU=$PASTEL_ORANGE
-C_RAM=$PASTEL_LAVENDER
-C_DISK=$PASTEL_BLUE
-C_VOLUME=$PASTEL_GOLD
-C_NETWORK=$PASTEL_BLUE
-C_INTERNET=$PASTEL_GREEN
-C_RSYNC=$PASTEL_LAVENDER
-C_PING=$PASTEL_ORANGE
-C_KEYBOARD=$PASTEL_RED
-C_VPN=$PASTEL_BLUE
+export C_APP=$ACCENT
+export C_MEDIA=$PASTEL_LAVENDER
+export C_CLOCK=$PASTEL_GOLD
+export C_BATTERY=$PASTEL_GREEN
+export C_CPU=$PASTEL_ORANGE
+export C_RAM=$PASTEL_LAVENDER
+export C_DISK=$PASTEL_BLUE
+export C_VOLUME=$PASTEL_GOLD
+export C_NETWORK=$PASTEL_BLUE
+export C_INTERNET=$PASTEL_GREEN
+export C_RSYNC=$PASTEL_LAVENDER
+export C_PING=$PASTEL_ORANGE
+export C_KEYBOARD=$PASTEL_RED
+export C_VPN=$PASTEL_BLUE

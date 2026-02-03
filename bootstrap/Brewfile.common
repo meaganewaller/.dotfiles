@@ -76,6 +76,12 @@ cask "raycast"
 cask "visual-studio-code"
 
 # -------------------------------------------------------------------------
+# Code Quality / Linting
+# -------------------------------------------------------------------------
+brew "shellcheck"          # shell script linter
+brew "pre-commit"          # git hooks manager
+
+# -------------------------------------------------------------------------
 # AI / CLI tools (optional, but common baseline)
 # -------------------------------------------------------------------------
 brew "uv"                  # python-free build tool, needed for modern AI tooling

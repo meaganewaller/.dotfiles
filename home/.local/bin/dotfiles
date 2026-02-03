@@ -32,6 +32,8 @@ ${BOLD}COMMANDS${NC}
     doctor      Check health of dotfiles installation
     link        Re-link dotfiles
     update      Pull latest changes and re-converge
+    lint        Run shellcheck on all scripts
+    hooks       Install pre-commit hooks
     help        Show this help message
 
 ${BOLD}OPTIONS${NC}
@@ -41,7 +43,8 @@ ${BOLD}OPTIONS${NC}
 ${BOLD}EXAMPLES${NC}
     dotfiles doctor
     dotfiles link --profile work
-    dotfiles update
+    dotfiles lint
+    dotfiles hooks
 EOF
 }
 
@@ -113,7 +116,7 @@ doctor() {
   # ─────────────────────────────────────────────────────────────
   section "Required Commands"
   # ─────────────────────────────────────────────────────────────
-  
+
   for cmd in git brew python3 mise; do
     if has_cmd "$cmd"; then
       log_check ok "$cmd"
@@ -228,7 +231,7 @@ doctor() {
   if [[ "$(uname -s)" == "Darwin" ]]; then
     check_process "sketchybar" || true
     check_process "Hammerspoon" || true
-    
+
     # Check if karabiner is loaded
     if pgrep -x "karabiner_grabber" >/dev/null 2>&1; then
       log_check ok "karabiner running"
@@ -257,23 +260,106 @@ doctor() {
 cmd_link() {
   local dry_run=""
   [[ "${DRY_RUN:-0}" -eq 1 ]] && dry_run="--dry-run"
-  
+
   echo "Linking dotfiles (profile: $PROFILE)..."
   "$DOTFILES_ROOT/bin/link-dotfiles" --profile "$PROFILE" $dry_run
 }
 
 cmd_update() {
   echo "Updating dotfiles..."
-  
+
   cd "$DOTFILES_ROOT"
-  
+
   echo "Pulling latest changes..."
   git pull --rebase
-  
+
   echo "Re-linking dotfiles..."
   cmd_link
-  
+
   echo "Done!"
+}
+
+cmd_lint() {
+  echo -e "${BOLD}Running shellcheck on all scripts...${NC}"
+  echo ""
+
+  if ! has_cmd shellcheck; then
+    echo -e "${RED}shellcheck not installed${NC}"
+    echo "Install with: brew install shellcheck"
+    exit 1
+  fi
+
+  cd "$DOTFILES_ROOT"
+
+  local files=()
+  local errors=0
+
+  # Find all shell scripts
+  while IFS= read -r -d '' file; do
+    files+=("$file")
+  done < <(find . -type f \( -name "*.sh" -o -name "*.bash" \) -not -path "./.git/*" -print0)
+
+  # Also check scripts in bin/
+  for file in bin/*; do
+    [[ -f "$file" ]] && files+=("$file")
+  done
+
+  # Check scripts in home/.local/bin/
+  for file in home/.local/bin/*; do
+    [[ -f "$file" ]] && files+=("$file")
+  done
+
+  # Add sketchybarrc
+  [[ -f "home/.config/sketchybar/sketchybarrc" ]] && files+=("home/.config/sketchybar/sketchybarrc")
+
+  for file in "${files[@]}"; do
+    # Skip if not a shell script
+    if ! head -1 "$file" 2>/dev/null | grep -q "^#!.*sh"; then
+      continue
+    fi
+
+    if shellcheck --severity=warning "$file" 2>/dev/null; then
+      echo -e "  ${CHECK} $file"
+    else
+      echo -e "  ${CROSS} $file"
+      ((errors++)) || true
+    fi
+  done
+
+  echo ""
+  if [[ $errors -eq 0 ]]; then
+    echo -e "${GREEN}${BOLD}All scripts passed!${NC}"
+  else
+    echo -e "${RED}${BOLD}$errors script(s) have issues${NC}"
+    echo "Run shellcheck directly to see details"
+    exit 1
+  fi
+}
+
+cmd_hooks() {
+  echo -e "${BOLD}Setting up pre-commit hooks...${NC}"
+
+  if ! has_cmd pre-commit; then
+    echo -e "${RED}pre-commit not installed${NC}"
+    echo "Install with: brew install pre-commit"
+    exit 1
+  fi
+
+  cd "$DOTFILES_ROOT"
+
+  if [[ ! -f ".pre-commit-config.yaml" ]]; then
+    echo -e "${RED}.pre-commit-config.yaml not found${NC}"
+    exit 1
+  fi
+
+  echo "Installing hooks..."
+  pre-commit install
+
+  echo ""
+  echo -e "${GREEN}${BOLD}Pre-commit hooks installed!${NC}"
+  echo ""
+  echo "Hooks will run automatically on git commit."
+  echo "To run manually: pre-commit run --all-files"
 }
 
 # Parse global options
@@ -310,6 +396,12 @@ case "$cmd" in
     ;;
   update)
     cmd_update
+    ;;
+  lint)
+    cmd_lint
+    ;;
+  hooks)
+    cmd_hooks
     ;;
   help|--help|-h)
     usage

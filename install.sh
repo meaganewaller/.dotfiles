@@ -30,9 +30,9 @@ command_available() { command -v "$1" >/dev/null 2>&1; }
 running_macos() { [[ "$(uname -s)" == "Darwin" ]]; }
 
 link_dotfiles() {
-  "$ROOT/bin/link-dotfiles" \
-    --profile "$DOTFILES_PROFILE" \
-    $([[ "$DOTFILES_DRY_RUN" -eq 1 ]] && echo "--dry-run")
+  local args=(--profile "$DOTFILES_PROFILE")
+  [[ "$DOTFILES_DRY_RUN" -eq 1 ]] && args+=(--dry-run)
+  "$ROOT/bin/link-dotfiles" "${args[@]}"
 }
 
 load_brew_shellenv() {

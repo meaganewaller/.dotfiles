@@ -8,7 +8,6 @@ source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/icons.sh"
 
 ICON_FONT="VictorMono Nerd Font Mono:Bold:17.0"
-ITALIC_FONT="VictorMono Nerd Font Mono:Italic:17.0"
 REGULAR_FONT="BigBlueTerm437 Nerd Font Mono:Regular:13.0"
 
 # Reset

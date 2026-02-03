@@ -37,7 +37,7 @@ if [[ "${SENDER:-}" == "mouse.entered" ]]; then
   fi
 
   # If you want the details, uncomment:
-  # [[ -n "$details" ]] && sketchybar --set vpn.popup label="VPN: $([[ $vpn_on -eq 1 ]] && echo On || echo Off) ($details)"
+  [[ -n "$details" ]] && sketchybar --set vpn.popup label="VPN: $([[ $vpn_on -eq 1 ]] && echo On || echo Off) ($details)"
 
   sketchybar --set vpn popup.drawing=on
 elif [[ "${SENDER:-}" == "mouse.exited" ]]; then

@@ -1,0 +1,10 @@
+{
+    "awsAuthRefresh": "aws sso login --profile $AWS_PROFILE",
+    "env": {
+        "AWS_REGIION": "us-west-2",
+        "AWS_PROFILE": "bedrock-users",
+        "CLAUDE_CODE_USER_BEDROCK": true,
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": "us.anthropic.claude-opus-4-5-20251101-v1:0",
+        "ANTHROPIC_MODEL": "us.anthropic.claude-opus-4-5-20251101-v1:0"
+    }
+}

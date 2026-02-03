@@ -5,7 +5,6 @@ log() { printf '[sketchybar] %s\n' "$*"; }
 
 # -------- paths --------
 DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/.dotfiles}"
-CONFIG_SRC="$DOTFILES_ROOT/home/.config/sketchybar"
 CONFIG_DEST="$HOME/.config/sketchybar"
 
 # -------- sanity --------

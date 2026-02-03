@@ -3,21 +3,19 @@
 # -----------------------------
 # Core UI
 # -----------------------------
-ICON_APP="󰣆"          # app window / front app
-ICON_MEDIA="󰎆"        # music
-ICON_CLOCK="󰥔"        # clock
-ICON_KEYBOARD="󰌌"     # keyboard
+export ICON_APP="󰣆"          # app window / front app
+export ICON_MEDIA="󰎆"        # music
+export ICON_CLOCK="󰥔"        # clock
+export ICON_KEYBOARD="󰌌"     # keyboard
 
 # -----------------------------
 # System
 # -----------------------------
-ICON_BATTERY="󰁹"      # battery
-ICON_VOLUME="󰕾"       # volume
+export ICON_BATTERY="󰁹"      # battery
+export ICON_VOLUME="󰕾"       # volume
 
 # -----------------------------
 # VPN
 # -----------------------------
-ICON_LOCK="󰌾"       # lock
-ICON_UNLOCK="󰌿"     # lock open
-
-
+export ICON_LOCK="󰌾"       # lock
+export ICON_UNLOCK="󰌿"     # lock open

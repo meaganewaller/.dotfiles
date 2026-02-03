@@ -269,6 +269,42 @@ theme validate          # validate all theme JSON files
 
 4. apply: `theme set mytheme`
 
+## code quality
+
+### linting
+
+run shellcheck on all shell scripts:
+
+```bash
+dotfiles lint
+```
+
+### pre-commit hooks
+
+install git hooks that run automatically on commit:
+
+```bash
+dotfiles hooks
+```
+
+this sets up pre-commit with:
+
+| hook | what it does |
+|------|--------------|
+| shellcheck | lint shell scripts for bugs and best practices |
+| trailing-whitespace | remove trailing whitespace |
+| end-of-file-fixer | ensure files end with newline |
+| check-json | validate JSON syntax |
+| check-yaml | validate YAML syntax |
+| detect-private-key | prevent committing secrets |
+| validate-themes | check theme JSON has required fields |
+
+to run all hooks manually:
+
+```bash
+pre-commit run --all-files
+```
+
 ## design principles
 
 

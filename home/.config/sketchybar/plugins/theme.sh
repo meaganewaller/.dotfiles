@@ -22,6 +22,9 @@ else
   ACCENT_HEX="${ACCENT_HEX:-#E5C07B}"
 fi
 
+export MODE
+export ACCENT_HEX
+
 # Convert hex (#RRGGBB) to sketchybar format (0xffRRGGBB)
 hex_to_argb() {
   local hex="${1#\#}"
@@ -35,43 +38,43 @@ ACCENT=$(hex_to_argb "$ACCENT_HEX")
 # -----------------------------
 if [[ "$MODE" == "light" ]]; then
   # Light mode colors
-  BAR_BG=0xffF7F8FD
-  ITEM_BG=0xffFFFFFF
-  TEXT=0xff1B1E28
-  SUBTEXT=0xff5B6071
-  BORDER=0xffE6E8F2
+  export BAR_BG=0xffF7F8FD
+  export ITEM_BG=0xffFFFFFF
+  export TEXT=0xff1B1E28
+  export SUBTEXT=0xff5B6071
+  export BORDER=0xffE6E8F2
 
   # Pastel colors (slightly darker for light bg)
-  PASTEL_BLUE=0xff2196F3
-  PASTEL_LAVENDER=0xff9575CD
-  PASTEL_RED=0xffE91E63
-  PASTEL_ORANGE=0xffFF9800
-  PASTEL_GOLD=0xffFFC107
-  PASTEL_GREEN=0xff4CAF50
+  export PASTEL_BLUE=0xff2196F3
+  export PASTEL_LAVENDER=0xff9575CD
+  export PASTEL_RED=0xffE91E63
+  export PASTEL_ORANGE=0xffFF9800
+  export PASTEL_GOLD=0xffFFC107
+  export PASTEL_GREEN=0xff4CAF50
 else
   # Dark mode colors
-  BAR_BG=0xff111318
-  ITEM_BG=0xff1A1D24
-  TEXT=0xffF6F7FB
-  SUBTEXT=0xffC7CAD6
-  BORDER=0xff2A2E39
+  export BAR_BG=0xff111318
+  export ITEM_BG=0xff1A1D24
+  export TEXT=0xffF6F7FB
+  export SUBTEXT=0xffC7CAD6
+  export BORDER=0xff2A2E39
 
   # Pastel colors (brighter for dark bg)
-  PASTEL_BLUE=0xff31BFF3
-  PASTEL_LAVENDER=0xffA484E9
-  PASTEL_RED=0xffF4889A
-  PASTEL_ORANGE=0xffFFAF68
-  PASTEL_GOLD=0xffF6E683
-  PASTEL_GREEN=0xff79D45E
+  export PASTEL_BLUE=0xff31BFF3
+  export PASTEL_LAVENDER=0xffA484E9
+  export PASTEL_RED=0xffF4889A
+  export PASTEL_ORANGE=0xffFFAF68
+  export PASTEL_GOLD=0xffF6E683
+  export PASTEL_GREEN=0xff79D45E
 fi
 
 # Module colors
-C_APP=$ACCENT
-C_MEDIA=$PASTEL_LAVENDER
-C_CLOCK=$PASTEL_GOLD
-C_BATTERY=$PASTEL_GREEN
-C_VOLUME=$PASTEL_GOLD
-C_VPN=$PASTEL_BLUE
+export C_APP=$ACCENT
+export C_MEDIA=$PASTEL_LAVENDER
+export C_CLOCK=$PASTEL_GOLD
+export C_BATTERY=$PASTEL_GREEN
+export C_VOLUME=$PASTEL_GOLD
+export C_VPN=$PASTEL_BLUE
 
 # -----------------------------
 # Update bar appearance
