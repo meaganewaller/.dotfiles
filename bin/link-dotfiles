@@ -56,7 +56,7 @@ run ".config/nvim"
 run ".config/theme"
 run ".config/zsh"
 run ".config/fish"
-run ".local/bin"
+run ".local/bin/theme"
 
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"

@@ -8,6 +8,10 @@ APPLY="${THEME_DIR}/apply/apply.sh"
 
 die() { echo "theme: $*" >&2; exit 1; }
 
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || die "missing dependency: $1"
+}
+
 ensure_dirs() {
   mkdir -p "${THEMES_DIR}" "${THEME_DIR}/apply"
 }
@@ -23,40 +27,79 @@ theme apply
 EOF
 }
 
-ensure_dirs
-
-cmd="${1:-}"
-shift || true
-
+# Run python with stdin script
 python_pick() {
   python3 - "$@"
 }
 
+# Write CURRENT atomically (avoid partial JSON if interrupted)
+write_current_from_file() {
+  local src="$1"
+  local tmp
+  tmp="$(mktemp "${CURRENT}.tmp.XXXXXX")"
+  cp -f "$src" "$tmp"
+  mv -f "$tmp" "$CURRENT"
+}
+
+ensure_dirs
+require_cmd python3
+
+# Validate apply script exists; allow non-executable but then fail with a nicer message
+if [[ ! -f "$APPLY" ]]; then
+  die "apply script not found: $APPLY"
+fi
+if [[ ! -x "$APPLY" ]]; then
+  die "apply script is not executable: $APPLY (run: chmod +x \"$APPLY\")"
+fi
+
+cmd="${1:-}"
+shift || true
+
 case "$cmd" in
   list)
-    ls -1 "${THEMES_DIR}"/*.json 2>/dev/null | sed 's#.*/##' | sed 's/\.json$//'
+    shopt -s nullglob
+    files=("${THEMES_DIR}"/*.json)
+    shopt -u nullglob
+    for f in "${files[@]}"; do
+      basename "$f" .json
+    done
     ;;
 
   current)
-    if [ -f "$CURRENT" ]; then cat "$CURRENT"; else echo "{}"; fi
+    if [[ -f "$CURRENT" ]]; then
+      cat "$CURRENT"
+    else
+      echo "{}"
+    fi
     ;;
 
   set)
-    target="${1:-}"; shift || true
-    [ -n "$target" ] || die "missing argument (light|dark|<name>)"
+    target="${1:-}"
+    shift || true
+    [[ -n "$target" ]] || die "missing argument (light|dark|<name>)"
 
+    # Parse flags (currently only --seed)
     seed=""
-    if [ "${1:-}" = "--seed" ]; then
-      seed="${2:-}"; shift 2 || true
-      [ -n "$seed" ] || die "missing seed value"
-      if [ "$seed" = "today" ]; then
-        seed="$(date +%F)" # YYYY-MM-DD
-      fi
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --seed)
+          seed="${2:-}"
+          [[ -n "$seed" ]] || die "missing seed value"
+          shift 2
+          ;;
+        *)
+          die "unknown argument: $1"
+          ;;
+      esac
+    done
+
+    if [[ "$seed" == "today" ]]; then
+      seed="$(date +%F)"
     fi
 
-    # set by mode (random or seeded)
-    if [ "$target" = "light" ] || [ "$target" = "dark" ]; then
-      picked="$(python_pick <<'PY' "${THEMES_DIR}" "${target}" "${seed}"
+    if [[ "$target" == "light" || "$target" == "dark" ]]; then
+      picked="$(
+        python_pick <<'PY' "${THEMES_DIR}" "${target}" "${seed}"
 import glob, json, os, sys, random, hashlib
 
 themes_dir, mode, seed = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -77,7 +120,6 @@ if not candidates:
   sys.exit(0)
 
 if seed:
-  # deterministic selection
   h = hashlib.sha256(seed.encode("utf-8")).hexdigest()
   idx = int(h[:8], 16) % len(candidates)
 else:
@@ -86,39 +128,38 @@ else:
 print(candidates[idx][1])
 PY
 )"
-      [ -n "$picked" ] || die "no themes found with mode=$target"
-      cp "$picked" "$CURRENT"
-
+      [[ -n "$picked" ]] || die "no themes found with mode=$target"
+      write_current_from_file "$picked"
     else
-      # set by name
       path="${THEMES_DIR}/${target}.json"
-      [ -f "$path" ] || die "theme not found: $target"
-      cp "$path" "$CURRENT"
+      [[ -f "$path" ]] || die "theme not found: $target"
+      write_current_from_file "$path"
     fi
 
-    # ensure current.json has name/mode + stable accent structure
-    python_pick <<'PY' "$CURRENT"
+    # Ensure current.json has name + stable accent structure (atomic rewrite)
+    tmp="$(mktemp "${CURRENT}.norm.XXXXXX")"
+    python_pick <<'PY' "$CURRENT" "$tmp"
 import json, os, sys
-path = sys.argv[1]
-with open(path) as f:
+src, dst = sys.argv[1], sys.argv[2]
+
+with open(src) as f:
   d = json.load(f)
 
 # normalize name
-d["name"] = d.get("name") or os.path.splitext(os.path.basename(path))[0]
+d["name"] = d.get("name") or os.path.splitext(os.path.basename(src))[0]
 
 # normalize accent
 accent = d.get("accent")
 if isinstance(accent, str):
-  # allow shorthand: "amber"
   d["accent"] = {"name": accent, "hex": None}
 elif accent is None:
-  # if missing, set a default
   d["accent"] = {"name": "amber", "hex": "#E5C07B"}
 
-with open(path, "w") as f:
+with open(dst, "w") as f:
   json.dump(d, f, indent=2)
   f.write("\n")
 PY
+    mv -f "$tmp" "$CURRENT"
 
     "$APPLY"
     ;;
@@ -128,7 +169,8 @@ PY
     mode_arg="${1:-}" # optional override
     shift || true
 
-    picked="$(python_pick <<'PY' "${THEMES_DIR}" "${CURRENT}" "${direction}" "${mode_arg}"
+    picked="$(
+      python_pick <<'PY' "${THEMES_DIR}" "${CURRENT}" "${direction}" "${mode_arg}"
 import glob, json, os, sys
 
 themes_dir, current_path, direction, mode_arg = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
@@ -160,19 +202,16 @@ if not themes:
   sys.exit(0)
 
 names = [n for n,_ in themes]
-if cur_name in names:
-  i = names.index(cur_name)
-else:
-  i = 0
+i = names.index(cur_name) if cur_name in names else 0
 
 step = 1 if direction == "next" else -1
 j = (i + step) % len(themes)
 print(themes[j][1])
 PY
 )"
-    [ -n "$picked" ] || die "no themes found for cycling"
+    [[ -n "$picked" ]] || die "no themes found for cycling"
 
-    cp "$picked" "$CURRENT"
+    write_current_from_file "$picked"
     "$APPLY"
     ;;
 
@@ -180,9 +219,12 @@ PY
     "$APPLY"
     ;;
 
+  ""|-h|--help|help)
+    usage
+    ;;
+
   *)
     usage
     exit 1
     ;;
 esac
-
