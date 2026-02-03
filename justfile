@@ -132,7 +132,7 @@ edit:
 
 # Show repo structure
 tree:
-    tree -L 2 -I '.git|node_modules|__pycache__'
+    tree -a -L 3 -I '.git|node_modules|__pycache__|*.jpg|*.png' --dirsfirst
 
 # Count lines of shell scripts
 loc:
