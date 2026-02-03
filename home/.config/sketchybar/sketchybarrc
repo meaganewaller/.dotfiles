@@ -32,7 +32,9 @@ sketchybar --default \
   background.padding_right=5 \
   icon.padding_right=5 \
   icon.font="$ICON_FONT" \
-  label.font="$REGULAR_FONT"
+  icon.color=$TEXT \
+  label.font="$REGULAR_FONT" \
+  label.color=$TEXT
 
 # ------------------------------------------------------------
 # LEFT: Front App
@@ -103,5 +105,20 @@ sketchybar --set battery icon.color=$C_BATTERY
 sketchybar --set clock icon.color=$C_CLOCK
 sketchybar --set vpn icon.color=$C_MEDIA
 sketchybar --set volume icon.color=$C_VOLUME
+
+# ------------------------------------------------------------
+# EVENTS: Theme change support
+# ------------------------------------------------------------
+
+sketchybar --add event theme_changed
+
+sketchybar --add item theme_handler right \
+           --set theme_handler \
+             drawing=off \
+             script="$PLUGIN_DIR/theme.sh" \
+           --subscribe theme_handler theme_changed
+
+# Apply current theme colors on startup
+"$PLUGIN_DIR/theme.sh"
 
 sketchybar --update
