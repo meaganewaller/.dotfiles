@@ -45,13 +45,15 @@ write_current_from_file() {
 ensure_dirs
 require_cmd python3
 
-# Validate apply script exists; allow non-executable but then fail with a nicer message
-if [[ ! -f "$APPLY" ]]; then
-  die "apply script not found: $APPLY"
-fi
-if [[ ! -x "$APPLY" ]]; then
-  die "apply script is not executable: $APPLY (run: chmod +x \"$APPLY\")"
-fi
+# Check apply script only for commands that need it
+require_apply() {
+  if [[ ! -f "$APPLY" ]]; then
+    die "apply script not found: $APPLY"
+  fi
+  if [[ ! -x "$APPLY" ]]; then
+    die "apply script is not executable: $APPLY (run: chmod +x \"$APPLY\")"
+  fi
+}
 
 cmd="${1:-}"
 shift || true
@@ -162,6 +164,7 @@ with open(dst, "w") as f:
 PY
     mv -f "$tmp" "$CURRENT"
 
+    require_apply
     "$APPLY"
     ;;
 
@@ -213,10 +216,12 @@ PY
     [[ -n "$picked" ]] || die "no themes found for cycling"
 
     write_current_from_file "$picked"
+    require_apply
     "$APPLY"
     ;;
 
   apply)
+    require_apply
     "$APPLY"
     ;;
 
