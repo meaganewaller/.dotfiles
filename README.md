@@ -39,6 +39,15 @@ dotfiles/
 │   └── Brewfile.personal         # Personal-only packages
 │
 ├── home/                         # Actual dotfiles (symlinked into $HOME)
+│   ├── .claude/                  # Claude Code config (profile-aware)
+│   │   ├── install.sh            # Merges settings + skills into ~/.claude
+│   │   ├── settings/
+│   │   │   ├── common/           # config.json (shared)
+│   │   │   ├── work/
+│   │   │   └── personal/
+│   │   └── skills/
+│   │       ├── common/           # Shared skills
+│   │       └── $PROFILE/         # Profile-specific skills (work, personal)
 │   ├── .bashrc
 │   ├── .config/
 │   │   ├── fish/                 # Fish shell config + completions
@@ -149,6 +158,31 @@ profile affects:
 
 right now, profiles are implemented procedurally in `bin/link-dotfiles` and `install.sh`.
 
+### Claude Code config
+
+Claude Code (and Cursor) config is profile-aware and lives under `home/.claude/`. It is **not** run by the main `install.sh`; run it when you want to sync Claude settings and skills.
+
+**Settings** (`~/.claude/settings.json`):
+
+- `settings/common/config.json` and `settings/$PROFILE/config.json` are **deep-merged** (common first, then profile; profile overrides only on key collision within nested dicts like `env` or `permissions`).
+- Requires `jq`. Output is written to `$HOME/.claude/settings.json`.
+
+**Skills** (`~/.claude/skills/`):
+
+- Files from `skills/common/` and `skills/$PROFILE/` are symlinked into `~/.claude/skills/` (profile overrides when the same path exists in both).
+- Missing directories (e.g. no `skills/common` yet) are skipped.
+
+**Run (preferred via just):**
+
+```bash
+just claude              # work profile (default)
+just claude personal     # personal profile
+just claude-dry work     # preview only
+just claude-refresh      # re-run after editing settings/skills
+```
+
+Or directly: `./home/.claude/install.sh --profile work` (supports `--dry-run`). `DOTFILES_PROFILE` is respected if set; otherwise default is `work`.
+
 eventually this will probably move to a declarative manifest, so:
 
 > profiles describe intent, scripts enforce it.
@@ -167,6 +201,9 @@ the easiest way to run common tasks:
 just              # show all available commands
 just install      # full install (link + brew)
 just link         # re-link dotfiles
+just claude       # merge Claude settings + link skills (default: work profile)
+just claude-refresh   # same as just claude
+just claude-dry   # preview Claude install (dry run)
 just doctor       # health check
 just lint         # shellcheck all scripts
 just check        # run all pre-commit hooks
@@ -400,3 +437,4 @@ when this works, it should feel unremarkable.
 - add runtimes/tools -> `mise/config.toml`
 - update linking logic -> `bin/link-dotfiles`
 - re-run `install.sh` to converge
+- after editing `home/.claude/settings/*` or `home/.claude/skills/*`, run `just claude-refresh` (or `home/.claude/install.sh --profile $DOTFILES_PROFILE`) to refresh `~/.claude/settings.json` and `~/.claude/skills/`

@@ -28,6 +28,23 @@ update:
     just install
 
 # ─────────────────────────────────────────────────────────────
+# Claude Code
+# ─────────────────────────────────────────────────────────────
+
+# Merge Claude settings (common + profile) and link skills into ~/.claude
+claude profile="work":
+    ./home/.claude/install.sh --profile {{ profile }}
+
+# Alias: claude-refresh = claude
+claude-refresh profile="work":
+    just claude {{ profile }}
+
+# Preview Claude install (dry run)
+claude-dry profile="work":
+    ./home/.claude/install.sh --profile {{ profile }} --dry-run
+
+
+# ─────────────────────────────────────────────────────────────
 # Health & Diagnostics
 # ─────────────────────────────────────────────────────────────
 
