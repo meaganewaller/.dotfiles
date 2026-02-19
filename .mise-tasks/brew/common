@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+#MISE description="Install common brew packages"
+set -euo pipefail
+brew bundle --file=bootstrap/Brewfile.common

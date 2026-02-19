@@ -39,15 +39,6 @@ dotfiles/
 │   └── Brewfile.personal         # Personal-only packages
 │
 ├── home/                         # Actual dotfiles (symlinked into $HOME)
-│   ├── .claude/                  # Claude Code config (profile-aware)
-│   │   ├── install.sh            # Merges settings + skills into ~/.claude
-│   │   ├── settings/
-│   │   │   ├── common/           # config.json (shared)
-│   │   │   ├── work/
-│   │   │   └── personal/
-│   │   └── skills/
-│   │       ├── common/           # Shared skills
-│   │       └── $PROFILE/         # Profile-specific skills (work, personal)
 │   ├── .bashrc
 │   ├── .config/
 │   │   ├── fish/                 # Fish shell config + completions
@@ -72,9 +63,16 @@ dotfiles/
 │   ├── .zshenv
 │   └── .zshrc
 │
-├── mise/                         # mise toolchain + tasks
+├── .mise-tasks/                  # mise tasks (supplements dotfiles CLI)
+│   ├── core/                     # install (link + brew)
+│   ├── brew/                     # bundle commands
+│   ├── health/                   # validate-themes
+│   └── utils/
+│
+├── home/.config/mise/            # mise toolchain config (tools, env)
 │   └── config.toml
 │
+├── mise.toml                     # repo-level mise config (default task)
 ├── install.sh                    # Stage 2 orchestrator
 ├── bootstrap.sh                  # Thin wrapper → install.sh
 └── .env                          # Optional local overrides (not committed)
@@ -110,7 +108,7 @@ a very thin wrapper:
 - respects `$DOTFILES_PROFILE`
 - calls `install.sh`
 
-all real logic lives elsewher
+all real logic lives elsewhere
 
 ### stage 2 - `install.sh`
 
@@ -158,72 +156,40 @@ profile affects:
 
 right now, profiles are implemented procedurally in `bin/link-dotfiles` and `install.sh`.
 
-### Claude Code config
-
-Claude Code (and Cursor) config is profile-aware and lives under `home/.claude/`. It is **not** run by the main `install.sh`; run it when you want to sync Claude settings and skills.
-
-**Settings** (`~/.claude/settings.json`):
-
-- `settings/common/config.json` and `settings/$PROFILE/config.json` are **deep-merged** (common first, then profile; profile overrides only on key collision within nested dicts like `env` or `permissions`).
-- Requires `jq`. Output is written to `$HOME/.claude/settings.json`.
-
-**Skills** (`~/.claude/skills/`):
-
-- Files from `skills/common/` and `skills/$PROFILE/` are symlinked into `~/.claude/skills/` (profile overrides when the same path exists in both).
-- Missing directories (e.g. no `skills/common` yet) are skipped.
-
-**Run (preferred via just):**
-
-```bash
-just claude              # work profile (default)
-just claude personal     # personal profile
-just claude-dry work     # preview only
-just claude-refresh      # re-run after editing settings/skills
-```
-
-Or directly: `./home/.claude/install.sh --profile work` (supports `--dry-run`). `DOTFILES_PROFILE` is respected if set; otherwise default is `work`.
-
-eventually this will probably move to a declarative manifest, so:
-
-> profiles describe intent, scripts enforce it.
-
-but we're not there yet, and this gets the job done in the meantime.
-
 ## daily workflow
 
 you almost never need to touch the bootstrap again.
 
-### quick commands with `just`
-
-the easiest way to run common tasks:
-
-```bash
-just              # show all available commands
-just install      # full install (link + brew)
-just link         # re-link dotfiles
-just claude       # merge Claude settings + link skills (default: work profile)
-just claude-refresh   # same as just claude
-just claude-dry   # preview Claude install (dry run)
-just doctor       # health check
-just lint         # shellcheck all scripts
-just check        # run all pre-commit hooks
-just theme jubi   # set theme
-just dark         # random dark theme
-just light        # random light theme
-```
-
-see all recipes: `just --list`
-
 ### the `dotfiles` cli
 
-a unified command for common operations:
+the main way to run day-to-day tasks:
 
 ```bash
 dotfiles doctor    # health check - verify links, deps, themes
-dotfiles link      # re-link all dotfiles
-dotfiles update    # git pull + re-converge
+dotfiles link      # re-link dotfiles (use --profile, --dry-run as needed)
+dotfiles update    # git pull + re-link
+dotfiles lint      # shellcheck all scripts
+dotfiles hooks     # install pre-commit hooks
 dotfiles help      # show usage
 ```
+
+### mise tasks (when you need them)
+
+a few tasks remain for things the dotfiles CLI doesn't cover:
+
+```bash
+mise tasks                      # list tasks
+mise run core:install           # full install (link + brew), optional: [profile]
+mise run brew:update            # brew update && upgrade
+mise run brew:all               # brew bundle (common + profile)
+mise run brew:profile           # brew bundle for profile, optional: [profile], default: work
+mise run utils:edit             # open the dotfiles repo in your $EDITOR
+mise run utils:tree             # tree of repo (excludes .git, node_modules, etc.)
+```
+
+To run pre-commit hooks manually: `pre-commit run --all-files`.
+
+Theme: use the `theme` CLI (`theme set <name>`, `theme dark`, `theme light`, etc.).
 
 ### check health
 
@@ -263,14 +229,14 @@ mise install
 ### update system packages
 
 ```bash
-brew bundle --file=bootstrap/Brewfile.common
-brew bundle --file=bootstrap/Brewfile.work
+mise run brew:common
+mise run brew:profile work
 ```
 
 ### re-run full convergence
 
 ```bash
-./install.sh --profile work
+mise run core:install work
 ```
 
 everything is designed to be safely repeatable
@@ -420,7 +386,7 @@ bootstap is imperative because reality isn't neat. everything after that should 
 
 ### profiles are first-class
 
-a machine isn't just "my laptop". it has an intent, constaints, and trust boundaries, profiles make that explicit.
+a machine isn't just "my laptop". it has an intent, constraints, and trust boundaries, profiles make that explicit.
 
 ### idempotence everywhere
 
@@ -434,7 +400,8 @@ when this works, it should feel unremarkable.
 
 - edit dotfiles -> `home/`
 - add system packages -> `bootstrap/Brewfile.*`
-- add runtimes/tools -> `mise/config.toml`
+- add runtimes/tools -> `home/.config/mise/config.toml`
+- add or change tasks -> `.mise-tasks/` (see `.mise-tasks/README.md`)
 - update linking logic -> `bin/link-dotfiles`
-- re-run `install.sh` to converge
-- after editing `home/.claude/settings/*` or `home/.claude/skills/*`, run `just claude-refresh` (or `home/.claude/install.sh --profile $DOTFILES_PROFILE`) to refresh `~/.claude/settings.json` and `~/.claude/skills/`
+- re-run `install.sh` (or `mise run core:install`) to converge
+- after editing `home/.claude/settings/*` or `home/.claude/skills/*`, run `./home/.claude/install.sh --profile $DOTFILES_PROFILE` to refresh `~/.claude/settings.json` and `~/.claude/skills/`

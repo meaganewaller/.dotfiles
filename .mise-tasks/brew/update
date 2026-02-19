@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+#MISE description="Update brew packages"
+set -euo pipefail
+brew update && brew upgrade

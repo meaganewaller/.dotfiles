@@ -1,3 +1,4 @@
+# set -x MISE_GITHUB_TOKEN "$(op read 'op://Development/GitHub/Credentials/Personal Access Token')"
 if test -f "$HOME/.gusto/init.fish"
   source $HOME/.gusto/init.fish
 else
