@@ -5,3 +5,4 @@ home/.config/zsh/.zsh_history
 home/.config/zsh/.zsh_sessions
 home/.gitconfig.local
 fish_variables
+.env

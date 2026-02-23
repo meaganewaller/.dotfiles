@@ -40,6 +40,15 @@ dotfiles/
 │
 ├── home/                         # Actual dotfiles (symlinked into $HOME)
 │   ├── .bashrc
+│   ├── .claude/                  # Claude Code config (profile-aware)
+│   │   ├── install.sh            # Merges settings + skills into ~/.claude
+│   │   ├── settings/
+│   │   │   ├── common/           # config.json (shared)
+│   │   │   ├── work/
+│   │   │   └── personal/
+│   │   └── skills/
+│   │       ├── common/           # Shared skills
+│   │       └── $PROFILE/         # Profile-specific skills (work, personal)
 │   ├── .config/
 │   │   ├── fish/                 # Fish shell config + completions
 │   │   ├── karabiner/            # Keyboard remapping
@@ -155,6 +164,32 @@ profile affects:
 - editor and shell configuration
 
 right now, profiles are implemented procedurally in `bin/link-dotfiles` and `install.sh`.
+
+### Claude Code Config
+
+Claude Code (and eventually Cursor and Codex) config is profile-aware and lives under `home/.claude/`. It is **not** run by the main `install.sh`; run it when you want to sync Claude settings, skills, and agents.
+
+
+**Settings** (`~/.claude/settings.json`):
+
+- `settings/common/config.json` and `settings/$PROFILE/config.json` are **deep-merged** (common first, then profile; profile overrides only on key collision within nested dicts like `env` or `permissions`).
+- Requires `jq`. Output is written to `$HOME/.claude/settings.json`.
+
+**Skills** (`~/.claude/skills/`):
+
+- Files from `skills/common/` and `skills/$PROFILE/` are symlinked into `~/.claude/skills/` (profile overrides when the same path exists in both).
+- Missing directories (e.g. no `skills/common` yet) are skipped.
+
+**Run (preferred via mise tasks):**
+
+```bash
+mise run claude                         # work profile (default)
+mise run claude --profile=personal      # personal profile
+mise run claude:dry-run --profile=work  # preview only
+mise run claude:refresh                 # re-run after editing settings/skills
+```
+
+Or directly: `./home/.claude/install.sh --profile work` (supports `--dry-run`). `DOTFILES_PROFILE` is respected if set; otherwise default is `work`.
 
 ## daily workflow
 

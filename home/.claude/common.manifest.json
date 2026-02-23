@@ -1,0 +1,15 @@
+{
+    "agents": [
+        "developer-experience/documentation-engineer",
+        "developer-experience/git-workflow-manager",
+        "developer-experience/refactoring-specialist",
+        "orchestration/agent-installer",
+        "orchestration/context-manager",
+        "orchestration/error-coordinator",
+        "orchestration/knowledge-synthesizer",
+        "orchestration/multi-agent-coordinator",
+        "orchestration/task-coordinator",
+        "orchestration/workflow-director",
+        "research-analysis/benchmarking-specialist"
+    ]
+}

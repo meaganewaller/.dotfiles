@@ -1,6 +1,5 @@
 [settings]
 experimental = true
-idiomatic_version_file_enable_tools = ["python", "node", "ruby"]
 
 [tools]
 node = "lts"
