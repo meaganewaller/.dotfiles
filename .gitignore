@@ -4,5 +4,6 @@ home/.config/zsh/.zcompdump
 home/.config/zsh/.zsh_history
 home/.config/zsh/.zsh_sessions
 home/.gitconfig.local
+home/.config/theme/current.json
 fish_variables
 .env
