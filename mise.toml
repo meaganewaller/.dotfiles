@@ -1,0 +1,19 @@
+# -----------------------------------------------------------------------------
+# Dotfiles Repo Specific Mise Configuration (global mise config is in `mise/config.toml`)
+# -----------------------------------------------------------------------------
+
+[tasks.default]
+description = "Show available commands"
+run = "mise tasks"
+
+[tasks.claude]
+description = "Merge Claude Code settings (common + profile) and link skills into ~/.claude"
+run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE"
+
+[tasks."claude:refresh"]
+description = "Re-run Claude Code install after editing settings/skills"
+run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE"
+
+[tasks."claude:dry-run"]
+description = "Preview Claude Code install (dry run)"
+run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE --dry-run"

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Run full install (link + brew bundle)"
+#MISE usage arg "[profile]" help="Profile (e.g. work, personal)" default="work"
+set -euo pipefail
+profile="${usage_profile:-work}"
+./install.sh --profile "$profile"

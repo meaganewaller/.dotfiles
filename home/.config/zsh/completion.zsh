@@ -15,7 +15,6 @@ bindkey -M menuselect '^xu' undo                           # Undo
 
 typeset -aU fpath
 autoload -Uz compinit; compinit
-zinit cdreplay -q
 
 zstyle ':completion:*' completer _extensions _complete _approximate
 zstyle ':completion:*' menu select

@@ -1,41 +1,45 @@
-#!/usr/bin/zsh
+# Documentation: https://github.com/romkatv/zsh4humans/blob/v5/README.md.
+#
+# Do not modify this file unless you know exactly what you are doing.
+# It is strongly recommended to keep all shell customization and configuration
+# (including exported environment variables such as PATH) in ~/.zshrc or in
+# files sourced from ~/.zshrc. If you are certain that you must export some
+# environment variables in ~/.zshenv, do it where indicated by comments below.
 
-#-----------------------------------------------
-###/* Note...
-###     XDG_CONFIG_HOME, XDG_DATA_HOME, and XDG_CACHE_HOME
-###     in linux mint defaults to the XDG standard
-###     so do not need to be explicitly set.
-###
-###     Ideally, only set XDG_... values when they explicitly do not match the standard
-###     The following defaults, per specification, are implemented by the XDG objects:
+if [ -n "${ZSH_VERSION-}" ]; then
+  # If you are certain that you must export some environment variables
+  # in ~/.zshenv (see comments at the top!), do it here:
+  #
+  #   export GOPATH=$HOME/go
+  #
+  # Do not change anything else in this file.
 
-###    $XDG_CACHE_HOME="$HOME/.cache"
-###    $XDG_CONFIG_HOME="$HOME/.config"
-###    $XDG_CONFIG_DIRS="/etc/xdg"
-###    $XDG_DATA_HOME="$HOME/.local/share"
-###    $XDG_DATA_DIRS="/usr/local/share/:/usr/share/"
-###    $XDG_RUNTIME_DIR.
-###    $XDG_STATE_HOME="$HOME/.local/state"
-###
+  : ${ZDOTDIR:=~}
+  setopt no_global_rcs
+  [[ -o no_interactive && -z "${Z4H_BOOTSTRAPPING-}" ]] && return
+  setopt no_rcs
+  unset Z4H_BOOTSTRAPPING
+fi
 
-#------------------------------------
-###     zsh specific shell variables
+Z4H_URL="https://raw.githubusercontent.com/romkatv/zsh4humans/v5"
+: "${Z4H:=${XDG_CACHE_HOME:-$HOME/.cache}/zsh4humans/v5}"
 
-# export XDG_CONFIG_HOME="$HOME/.config"
-# export XDG_CACHE_HOME="$HOME/.cache"
-# export XDG_DATA_HOME="$HOME/.local/share"
-# export XDG_STATE_HOME="$HOME/.local/state"
+umask o-w
 
-export ZDOTDIR="$HOME/.config/zsh"
+if [ ! -e "$Z4H"/z4h.zsh ]; then
+  mkdir -p -- "$Z4H" || return
+  >&2 printf '\033[33mz4h\033[0m: fetching \033[4mz4h.zsh\033[0m\n'
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -- "$Z4H_URL"/z4h.zsh >"$Z4H"/z4h.zsh.$$ || return
+  elif command -v wget >/dev/null 2>&1; then
+    wget -O-   -- "$Z4H_URL"/z4h.zsh >"$Z4H"/z4h.zsh.$$ || return
+  else
+    >&2 printf '\033[33mz4h\033[0m: please install \033[32mcurl\033[0m or \033[32mwget\033[0m\n'
+    return 1
+  fi
+  mv -- "$Z4H"/z4h.zsh.$$ "$Z4H"/z4h.zsh || return
+fi
 
-export EDITOR="nvim"
-export VISUAL="$EDITOR"
+. "$Z4H"/z4h.zsh || return
 
-export DOTFILES_REPO_URL="https://github.com/meaganewaller/.dotfiles.git"
-export DOTFILES_TARGET_DIR="$HOME/github/meaganewaller/.dotfiles"
-export DOTFILES_PROFILE=personal
-export GUSTO_SSH_SELF_MANAGED=1
-
-source "$ZDOTDIR/paths.zsh"
-
-# vi: filetype=zsh
+setopt rcs

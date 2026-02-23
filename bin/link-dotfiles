@@ -59,6 +59,8 @@ run ".config/fish"
 run ".local/bin/theme"
 run ".local/bin/dotfiles"
 
+run ".config/mise"
+
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"
   run ".hammerspoon"

@@ -1,0 +1,9 @@
+{
+    "agents": [
+        "language-experts/lua-developer",
+        "language-experts/python-engineer",
+        "language-experts/rails-expert",
+        "language-experts/react-specialist",
+        "language-experts/typescript-specialist"
+    ]
+}

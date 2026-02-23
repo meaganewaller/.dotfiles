@@ -1,45 +1,160 @@
-#!/usr/bin/zsh
+# Personal Zsh configuration file. It is strongly recommended to keep all
+# shell customization and configuration (including exported environment
+# variables such as PATH) in this file or in files sourced from it.
+#
+# Documentation: https://github.com/romkatv/zsh4humans/blob/v5/README.md.
 
-autoload -U bashcompinit
-bashcompinit
+[ -z "$ZPROF" ] || zmodload zsh/zprof
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${${HOME}/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${${HOME}/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# Periodic auto-update on Zsh startup: 'ask' or 'no'.
+# You can manually run `z4h update` to update everything.
+zstyle ':z4h:' auto-update      'ask'
+# Ask whether to auto-update this often; has no effect if auto-update is 'no'.
+zstyle ':z4h:' auto-update-days '7'
+
+# Keyboard type: 'mac' or 'pc'.
+zstyle ':z4h:bindkey' keyboard  'mac'
+
+# Don't start tmux.
+zstyle ':z4h:' start-tmux       'yes'
+
+# Mark up shell's output with semantic information.
+zstyle ':z4h:' term-shell-integration 'yes'
+
+zstyle ':z4h:' prompt-at-bottom 'yes'
+
+# Right-arrow key accepts one character ('partial-accept') from
+# command autosuggestions or the whole thing ('accept')?
+zstyle ':z4h:autosuggestions' forward-char 'accept'
+
+# Recursively traverse directories when TAB-completing files.
+zstyle ':z4h:fzf-complete' recurse-dirs 'yes'
+zstyle ':z4h:fzf-complete' fzf-bindings tab:repeat
+
+# Enable direnv to automatically source .envrc files.
+zstyle ':z4h:direnv'         enable 'yes'
+# Show "loading" and "unloading" notifications from direnv.
+zstyle ':z4h:direnv:success' notify 'yes'
+
+# Enable ('yes') or disable ('no') automatic teleportation of z4h over
+# SSH when connecting to these hosts.
+# zstyle ':z4h:ssh:example-hostname1'   enable 'yes'
+# zstyle ':z4h:ssh:*.example-hostname2' enable 'no'
+# The default value if none of the overrides above match the hostname.
+zstyle ':z4h:ssh:*'                   enable 'no'
+
+zstyle ':completion:*:ssh:argument-1:'       tag-order  hosts users
+zstyle ':completion:*:scp:argument-rest:'    tag-order  hosts files users
+zstyle ':completion:*:(ssh|scp|rdp):*:hosts' hosts
+
+zstyle ':z4h:term-title:ssh' preexec '%n@'${${${Z4H_SSH##*:}//\%/%%}:-%m}': ${1//\%/%%}'
+zstyle ':z4h:term-title:ssh' precmd  '%n@'${${${Z4H_SSH##*:}//\%/%%}:-%m}': %~'
+
+# https://github.com/romkatv/zsh4humans/issues/53#issuecomment-706493865
+zstyle ':zle:up-line-or-beginning-search'   leave-cursor true
+zstyle ':zle:down-line-or-beginning-search' leave-cursor true
+
+# The default completion color is an obnoxiously loud pink, so make it whiter
+zstyle ':z4h:*' fzf-flags --color=hl:7,hl+:7
+
+# Send these files over to the remote host when connecting over SSH to the
+# enabled hosts.
+# zstyle ':z4h:ssh:*' send-extra-files '~/.nanorc' '~/.env.zsh'
+
+# Clone additional Git repositories from GitHub.
+#
+# This doesn't do anything apart from cloning the repository and keeping it
+# up-to-date. Cloned files can be used after `z4h init`. This is just an
+# example. If you don't plan to use Oh My Zsh, delete this line.
+# z4h install ohmyzsh/ohmyzsh || return
+
+# Install or update core components (fzf, zsh-autosuggestions, etc.) and
+# initialize Zsh. After this point console I/O is unavailable until Zsh
+# is fully initialized. Everything that requires user interaction or can
+# perform network I/O must be done above. Everything else is best done below.
+z4h init || return
+
+# Extend PATH.
+path=(
+  $HOME/.local/bin
+  $path
+)
+
+export GPG_TTY=$TTY
+
+export EDITOR=nvim
+export VISUAL=nvim
+export MANPAGER="nvim +Man!"
+
+export RIPGREP_CONFIG_PATH="$HOME/.ripgrep/ripgreprc"
+
+export RUBY_YJIT_ENABLE=true
+
+# Use additional Git repositories pulled in with `z4h install`.
+#
+# This is just an example that you should delete. It does nothing useful.
+# z4h source ohmyzsh/ohmyzsh/lib/diagnostics.zsh  # source an individual file
+# z4h load   ohmyzsh/ohmyzsh/plugins/emoji-clock  # load a plugin
+
+# Define key bindings.
+z4h bindkey undo Ctrl+/   Shift+Tab  # undo the last command line change
+# z4h bindkey redo Option+/            # redo the last undone command line change
+
+# z4h bindkey z4h-cd-back    Shift+Left   # cd into the previous directory
+# z4h bindkey z4h-cd-forward Shift+Right  # cd into the next directory
+# z4h bindkey z4h-cd-up      Shift+Up     # cd into the parent directory
+# z4h bindkey z4h-cd-down    Shift+Down   # cd into a child directory
+
+# history
+z4h bindkey z4h-up-prefix-local Ctrl+P
+z4h bindkey z4h-down-prefix-local Ctrl+N
+z4h bindkey z4h-up-prefix-global Option+P
+z4h bindkey z4h-down-prefix-global Option+N
+
+# navigation
+z4h bindkey z4h-forward-zword Ctrl+F
+z4h bindkey z4h-backward-zword Ctrl+B # conflicts w/tmux prefix, find a better alternative?
+
+z4h bindkey magic-space Space
+
+if (( $+commands[fzf] )); then
+  # z4h source ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh}
+  [[ $- == *i* ]] && z4h source <(fzf --zsh)
+  # z4h source ~/.dotfiles/src/fzf-git.sh/fzf-git.sh
+
+  # https://github.com/junegunn/fzf/issues/164#issuecomment-581837757
+  z4h bindkey fzf-cd-widget ç
+
+  skip_dirs=.direnv,.git,.jj,node_modules,target
+
+  export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+  export FZF_TMUX_OPTS="-p80%,60%"
+  export FZF_DEFAULT_COMMAND="fd --type f --strip-cwd-prefix --hidden --follow --exclude .git"
+
+  # not sure why FZF_DEFAULT_COMMAND isn't being used here?
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_CTRL_T_OPTS="--walker-skip $skip_dirs \
+    --preview 'bat -n --color=always {}' \
+    --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+
+  # for some reason, `echo -n` just echoes the `-n`
+  export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo {2..} | pbcopy)+abort' \
+    --color header:italic \
+    --header 'Press CTRL-Y to copy command into clipboard'"
+
+  export FZF_ALT_C_COMMAND="fd --type d --strip-cwd-prefix --hidden --follow --exclude .git"
+  export FZF_ALT_C_OPTS="--walker-skip $skip_dirs \
+    --preview 'eza --tree --color=always {}'"
 fi
 
-source "$ZDOTDIR/aliases.zsh"
-# Files in $ZDOTDIR/include allows host-specific configurations.
-# For example, these may be files not suitable to be tracked by version control.
-if [[ -d "$ZDOTDIR/include/" ]]; then
-    for file in $ZDOTDIR/include/*.zsh; do
-        source "$file"
-    done
-fi
+# Autoload functions
+autoload -Uz zmv
 
-source "$ZDOTDIR/completion.zsh"
+# Define functions and completions
+function md() { [[ $# == 1 ]] && mkdir -p -- "$1" && cd -- "$1" }
+compdef _directories md
 
-export HISTFILE="$HOME/.local/share/zsh/history"
-export SAVEHIST=100000
-export HISTSIZE=200000
-
-# The meaning of these options can be found in man page of `zshoptions`.
-setopt EXTENDED_HISTORY  # record command start time
-setopt HIST_EXPIRE_DUPS_FIRST  # expire duplicate entries first when trimming history
-setopt HIST_FIND_NO_DUPS  # do not display duplicates of a previously found line when searching history
-setopt HIST_IGNORE_SPACE  # ignore commands that start with space
-setopt HIST_REDUCE_BLANKS  # remove unnecessary blanks
-setopt HIST_SAVE_NO_DUPS  # do not save duplicated command
-setopt INC_APPEND_HISTORY_TIME  # append command to history file immediately after execution
-
-# To customize prompt, run `p10k configure` or edit $ZDOTDIR/.p10k.zsh.
-[[ ! -f "$ZDOTDIR/.p10k.zsh" ]] || source "$ZDOTDIR/.p10k.zsh"
-
-# Work-specific configurations
-[[ -f "$HOME/.gusto/init.sh" ]] && source "$HOME/.gusto/init.sh"
-export AWS_PROFILE=developer-exp-eng-gusto-main
-
-# Environment setup
-[[ -f "$HOME/.local/bin/env" ]] && source "$HOME/.local/bin/env"
+tat() {
+  name=${1:-$(basename $PWD | ruby -e "puts ARGF.read.strip.downcase.gsub(/[^\w]+/, ?-)")}
+  tmux new-session -As $name
+}

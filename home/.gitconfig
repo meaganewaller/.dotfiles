@@ -54,3 +54,5 @@
 # Local machine overrides (never committed)
 [include]
   path = ~/.gitconfig.local
+[maintenance]
+	repo = /Users/meagan.waller/workspace/web
