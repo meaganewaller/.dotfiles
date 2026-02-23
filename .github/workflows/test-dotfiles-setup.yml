@@ -1,10 +1,12 @@
-name: CI
+name: Test Dotfiles Setup
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    paths:
+      - '**/*.sh'
+      - '.github/workflows/*.yml'
+  workflow_dispatch:
 
 jobs:
   lint:

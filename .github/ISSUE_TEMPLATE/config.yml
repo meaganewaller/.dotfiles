@@ -1,0 +1,3 @@
+blank_issues_enabled: true
+# Single flexible template for all issue types
+# See README.md for philosophy behind this approach
