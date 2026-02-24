@@ -1,0 +1,26 @@
+{
+  "name": "dotfiles",
+  "version": "1.0.0",
+  "description": "[![CI](https://github.com/meaganewaller/.dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/meaganewaller/.dotfiles/actions/workflows/ci.yml)",
+  "homepage": "https://github.com/meaganewaller/.dotfiles#readme",
+  "bugs": {
+    "url": "https://github.com/meaganewaller/.dotfiles/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meaganewaller/.dotfiles.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "json5": "^2.2.3"
+  }
+}

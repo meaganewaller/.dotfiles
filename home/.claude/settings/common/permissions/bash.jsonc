@@ -1,0 +1,127 @@
+{
+    // Bash command permissions - allowed and denied shell operations
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "permissions": {
+        "allow": [
+            // Code Quality & Formatting
+            "Bash(biome:*)",
+            "Bash(mdformat:*)",
+            "Bash(ruff:*)",
+            "Bash(shellcheck:*)",
+            "Bash(shfmt:*)",
+            // Core Shell Commands
+            "Bash(COMMAND:*)", // used in slash commands
+            "Bash(kill:*)",
+            "Bash(ln:*)",
+            "Bash(ps:*)",
+            "Bash(pwd:*)",
+            "Bash(time:*)",
+            "Bash(timeout:*)",
+            "Bash(which:*)",
+            "Bash(xargs:*)",
+            // Custom Scripts
+            "Bash(~/.agents/helpers/*)",
+            "Bash(~/.claude/helpers/*)",
+            "Bash(~/.claude/hooks/*)",
+            "Bash(~/.agents/skills/*)",
+            "Bash(~/.claude/skills/*)",
+            // File System
+            "Bash(bat:*)",
+            "Bash(chmod:*)",
+            "Bash(cp:*)",
+            "Bash(eza:*)",
+            "Bash(fd:*)",
+            "Bash(find:*)",
+            "Bash(fzf:*)",
+            "Bash(ls:*)",
+            "Bash(mkdir:*)",
+            "Bash(stat:*)",
+            "Bash(tar:*)",
+            "Bash(touch:*)",
+            "Bash(tree:*)",
+            // Git & Version Control
+            "Bash(gh:*)",
+            "Bash(git:*)",
+            // Misc
+            "Bash(amp:*)",
+            "Bash(atuin:*)",
+            "Bash(bc:*)",
+            "Bash(curl:*)",
+            "Bash(diff:*)",
+            "Bash(jq:*)",
+            "Bash(just:*)",
+            "Bash(lsof:*)",
+            "Bash(test:*)",
+            "Bash(zk:*)",
+            // Node.js
+            "Bash(bun:*)",
+            "Bash(bun x:*)",
+            "Bash(bunx:*)",
+            "Bash(na:*)",
+            "Bash(ni:*)",
+            "Bash(node:*)",
+            "Bash(npm:*)",
+            "Bash(npx:*)",
+            "Bash(nlx:*)",
+            "Bash(nr:*)",
+            "Bash(nun:*)",
+            "Bash(pnpm:*)",
+            "Bash(tsc:*)",
+            "Bash(tsgo:*)",
+            "Bash(tsx:*)",
+            "Bash(yarn:*)",
+            // Python
+            "Bash(pip:*)",
+            "Bash(python:*)",
+            "Bash(python3:*)",
+            "Bash(uv:*)",
+            // Text Processing
+            "Bash(awk:*)",
+            "Bash(cat:*)",
+            "Bash(cut:*)",
+            "Bash(echo:*)",
+            "Bash(grep:*)",
+            "Bash(head:*)",
+            "Bash(printf:*)",
+            "Bash(sed:*)",
+            "Bash(sort:*)",
+            "Bash(tail:*)",
+            // Search
+            "Bash(rg:*)",
+            // Web3
+            "Bash(anvil:*)",
+            "Bash(cast:*)",
+            "Bash(forge:*)"
+        ],
+        "deny": [
+            // Destructive File Operations
+            "Bash(chmod -R:*)",
+            "Bash(chown -R:*)",
+            "Bash(rm -rf /:*)",
+            "Bash(rm -rf ~:*)",
+            // Dangerous Disk Operations
+            "Bash(> /dev/sda*)",
+            "Bash(> /etc/*)",
+            "Bash(dd:*)",
+            "Bash(mkfs:*)",
+            // Process Management
+            "Bash(kill -9:*)",
+            "Bash(killall:*)",
+            // Git & Version Control
+            "Bash(git reset --hard:*)",
+            // Node.js
+            "Bash(npm publish:*)",
+            // System Administration
+            "Bash(doas:*)",
+            "Bash(passwd:*)",
+            "Bash(su:*)",
+            "Bash(sudo:*)",
+            "Bash(systemctl:*)",
+            "Bash(userdel:*)",
+            "Bash(usermod:*)",
+            // System Control
+            "Bash(reboot:*)",
+            "Bash(shutdown:*)"
+        ]
+    }
+}

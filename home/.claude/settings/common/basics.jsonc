@@ -1,0 +1,14 @@
+{
+    // Basic COMMON configuration for Claude Code
+    // General settings, environment variables, and UI customization
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "alwaysThinkingEnabled": true,
+    "model": "opus",
+    "env": {
+        "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    },
+    "statusLine": {
+        "command": "ccstatusline",
+        "type": "command"
+    }
+}

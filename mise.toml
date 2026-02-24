@@ -2,7 +2,7 @@
 # Dotfiles Repo Specific Mise Configuration (global mise config is in `mise/config.toml`)
 # -----------------------------------------------------------------------------
 [tools]
-node = "lts"
+node = "latest"
 python = "3.12"
 ruby = "3.4.6"
 uv = "latest"

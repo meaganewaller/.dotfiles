@@ -40,31 +40,85 @@ link() {
 }
 
 merge_config() {
-  local common="$DOTFILES_ROOT/home/.claude/settings/common/config.json"
-  local profile="$DOTFILES_ROOT/home/.claude/settings/$PROFILE/config.json"
+  local settings_root="$DOTFILES_ROOT/home/.claude/settings"
+  local common_dir="$settings_root/common"
+  local profile_dir="$settings_root/$PROFILE"
   local dest="$HOME/.claude/settings.json"
 
   if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
-    log "Would merge config (common + $PROFILE) -> $dest"
+    log "Would merge JSONC settings (common + $PROFILE) -> $dest"
     return 0
   fi
 
   if ! command -v jq &>/dev/null; then
-    log "jq is required to merge config; install with: brew install jq"
+    log "jq is required; install with: brew install jq"
     return 1
   fi
 
-  [[ -f "$common" ]] || { log "Missing $common"; return 1; }
-  [[ -f "$profile" ]] || { log "Missing $profile"; return 1; }
+  if ! command -v fd &>/dev/null; then
+    log "fd is required; install with: brew install fd"
+    return 1
+  fi
 
   mkdir -p "$(dirname "$dest")"
-  # jq * does deep merge: nested dicts (e.g. env, permissions) merge by key; profile overrides only on collision
-  if jq -s '.[0] * .[1]' "$common" "$profile" > "$dest"; then
-    log "Merged config -> $dest"
-  else
-    log "Failed to merge config"
+
+  # ---------------------------------------------
+  # 1. Collect files in deterministic order
+  # ---------------------------------------------
+
+  mapfile -t settings_files < <(
+    {
+      fd -t f -e json -e jsonc . "$common_dir" --exclude permissions 2>/dev/null
+      fd -t f -e json -e jsonc . "$common_dir/permissions" 2>/dev/null
+      fd -t f -e json -e jsonc . "$profile_dir" --exclude permissions 2>/dev/null
+      fd -t f -e json -e jsonc . "$profile_dir/permissions" 2>/dev/null
+    } | sort
+  )
+
+  if [[ "${#settings_files[@]}" -eq 0 ]]; then
+    log "No settings files found under $settings_root"
     return 1
   fi
+
+  # ---------------------------------------------
+  # 2. Parse JSONC using single Node process
+  # ---------------------------------------------
+
+  parsed_json=$(npx -y -p json5 node -e "
+    const fs = require('fs');
+    const JSON5 = require('json5');
+
+    process.argv.slice(1).forEach(file => {
+      try {
+        console.log(JSON.stringify(JSON5.parse(fs.readFileSync(file, 'utf8'))));
+      } catch (e) {
+        console.log('{}');
+      }
+    });
+  " "${settings_files[@]}")
+
+  # ---------------------------------------------
+  # 3. Merge with jq
+  # ---------------------------------------------
+
+  merged_json=$(echo "$parsed_json" | jq -s '
+    # Collect permissions across all layers
+    {
+      permissions: {
+        additionalDirectories: ([.[].permissions.additionalDirectories // [] | .[]] | unique),
+        allow: ([.[].permissions.allow // [] | .[]] | unique),
+        deny: ([.[].permissions.deny // [] | .[]] | unique)
+      }
+    }
+    *
+    # Deep merge everything else (profile overrides common)
+    (reduce .[] as $item ({}; . * ($item | del(.permissions))))
+    | del(."$schema")
+    | walk(if type == "object" then to_entries | sort_by(.key) | from_entries else . end)
+  ')
+
+  echo "$merged_json" > "$dest"
+  log "Merged JSONC config -> $dest"
 }
 
 merge_skills() {
@@ -109,72 +163,6 @@ merge_hooks() {
       dest="$dest_dir/$rel"
       make_symlink "$f" "$dest"
       log "Linked hook $rel"
-    done < <(find "$dir" -type f -print0 2>/dev/null)
-  done
-}
-
-merge_commands() {
-  local common_dir="$DOTFILES_ROOT/home/.claude/commands/common"
-  local profile_dir="$DOTFILES_ROOT/home/.claude/commands/$PROFILE"
-  local dest_dir="$HOME/.claude/commands"
-
-  if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
-    log "Would merge commands (common + $PROFILE) -> $dest_dir"
-    return 0
-  fi
-  mkdir -p "$dest_dir"
-  for dir in "$common_dir" "$profile_dir"; do
-    [[ -d "$dir" ]] || continue
-    while IFS= read -r -d '' f; do
-      rel="${f#"$dir"/}"
-      rel="${rel#/}"
-      dest="$dest_dir/$rel"
-      make_symlink "$f" "$dest"
-      log "Linked command $rel"
-    done < <(find "$dir" -type f -print0 2>/dev/null)
-  done
-}
-
-merge_rules() {
-  local common_dir="$DOTFILES_ROOT/home/.claude/rules/common"
-  local profile_dir="$DOTFILES_ROOT/home/.claude/rules/$PROFILE"
-  local dest_dir="$HOME/.claude/rules"
-
-  if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
-    log "Would merge rules (common + $PROFILE) -> $dest_dir"
-    return 0
-  fi
-  mkdir -p "$dest_dir"
-  for dir in "$common_dir" "$profile_dir"; do
-    [[ -d "$dir" ]] || continue
-    while IFS= read -r -d '' f; do
-      rel="${f#"$dir"/}"
-      rel="${rel#/}"
-      dest="$dest_dir/$rel"
-      make_symlink "$f" "$dest"
-      log "Linked rule $rel"
-    done < <(find "$dir" -type f -print0 2>/dev/null)
-  done
-}
-
-merge_contexts() {
-  local common_dir="$DOTFILES_ROOT/home/.claude/contexts/common"
-  local profile_dir="$DOTFILES_ROOT/home/.claude/contexts/$PROFILE"
-  local dest_dir="$HOME/.claude/contexts"
-
-  if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
-    log "Would merge contexts (common + $PROFILE) -> $dest_dir"
-    return 0
-  fi
-  mkdir -p "$dest_dir"
-  for dir in "$common_dir" "$profile_dir"; do
-    [[ -d "$dir" ]] || continue
-    while IFS= read -r -d '' f; do
-      rel="${f#"$dir"/}"
-      rel="${rel#/}"
-      dest="$dest_dir/$rel"
-      make_symlink "$f" "$dest"
-      log "Linked context $rel"
     done < <(find "$dir" -type f -print0 2>/dev/null)
   done
 }
@@ -225,7 +213,4 @@ merge_agents() {
 merge_config
 merge_hooks
 merge_skills
-merge_commands
-merge_rules
-merge_contexts
 merge_agents

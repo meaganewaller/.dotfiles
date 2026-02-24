@@ -1,0 +1,140 @@
+{
+    // Common hooks configuration for Claude Code, ordered alphabetically.
+    // These hooks execute in response to events during Claude Code's operation
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/impact-extractor.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/large-diff-escalator.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/dependency-change-detector.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/reversal-detector.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/async-test-runner.sh",
+                        "async": true
+                    }
+            ]
+            }
+        ],
+        "PostToolUseFailure": [
+            {
+                "matcher": "Bash|Task|Read|Write|Edit|Glob|Grep|mcp__.*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUseFailure/skill-gap-detector.sh"
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/Stop/hard-stop-test-blocker.sh"
+                    },
+                    {
+                        "type": "prompt",
+                        "prompt": "Evaluate whether this session produced meaningful leverage.\n\nContext: $ARGUMENTS\n\nAllow stopping ONLY if at least one of the following occurred:\n- A reusable abstraction was created\n- A decision was documented\n- A measurable improvement was made\n- A clear lesson was extracted\n\n- If last test_run shows failed -> block stopping\n\nIf none apply, respond with:\n{ \"ok\": false, \"reason\": \"Capture one insight from this session before stopping.\" }\n\nOtherwise respond:\n{ \"ok\": true }",
+                        "timeout": 30
+                    }
+                ]
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/UserPromptSubmit/idea-classifier.sh"
+                    }
+                ]
+            }
+        ],
+        "SubagentStop": [
+            {
+                "matcher": "Explore|Plan",
+                "hooks": [
+                    {
+                        "type": "agent",
+                        "timeout": 60,
+                        "prompt": "You are extracting architectural reasoning from a subagent session.\n\nHook input JSON:\n$ARGUMENTS\n\nYour task:\n\n1. Inspect `last_assistant_message`.\n2. Determine whether meaningful architectural reasoning occurred.\n   This includes:\n   - Explicit tradeoffs (\"X vs Y\", \"pros/cons\", \"benefits/drawbacks\")\n   - Multiple options evaluated\n   - Design principles invoked (e.g. layering, determinism, separation of concerns, performance, security)\n\nIf NO meaningful reasoning occurred:\nReturn exactly:\n{ \"ok\": true }\n\nIf meaningful reasoning DID occur:\n\nExtract:\n- decision_summary (1 sentence)\n- tradeoffs (array of strings)\n- options_considered (array of strings)\n- principles_invoked (array of strings)\n\nThen use the Write tool to append a single JSON line to:\n.claude/dev-os-events.jsonl\n\nThe JSON line must be:\n{\n  \"timestamp\": \"<ISO8601>\",\n  \"event_type\": \"decision_tradeoff\",\n  \"payload\": {\n    \"decision_summary\": \"...\",\n    \"tradeoffs\": [...],\n    \"options_considered\": [...],\n    \"principles_invoked\": [...]\n  }\n}\n\nAfter writing, return exactly:\n{ \"ok\": true }\n\nImportant rules:\n- Do NOT block stopping.\n- Do NOT rewrite or summarize unrelated content.\n- Only emit an event if reasoning is real, not superficial.\n"
+                    }
+                ]
+            }
+        ],
+        "SessionEnd": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/SessionEnd/learning-suggestion-generator.sh"
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PreToolUse/layering-guard.sh"
+                    }
+                ]
+            }
+        ],
+        "TaskCompleted": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/TaskCompleted/task-gate.sh"
+                    }
+                ]
+            }
+        ],
+        "PreCompact": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PreCompact/pre-compact-snapshot.sh"
+                    }
+                ]
+            }
+        ],
+        "SessionStart": [
+            {
+              "matcher": "startup|resume",
+              "hooks": [
+                {
+                  "type": "command",
+                  "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/SessionStart/session-context-injector.sh"
+                },
+                {
+                    "type": "command",
+                    "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/SessionStart/friction-escalator.sh"
+                }
+              ]
+            }
+          ]
+
+    }
+}
