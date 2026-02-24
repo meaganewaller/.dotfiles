@@ -37,3 +37,40 @@ make_symlink() {
 
   ln -s "$src" "$dest"
 }
+
+# Link directory contents into a real target dir, excluding README files.
+# Use when a dir has a README.md for repo docs that should not appear in $HOME.
+# Usage: make_symlink_dir_contents <rel_path> [exclude_pattern ...]
+# Default exclude: README.md
+make_symlink_dir_contents() {
+  local rel="$1"
+  shift
+  local exclude=("$@")
+  [[ ${#exclude[@]} -eq 0 ]] && exclude=(README.md)
+
+  local src="$DOTFILES_ROOT/home/$rel"
+  local dest="$HOME/$rel"
+
+  [[ -d "$src" ]] || { log "Skip $dest (no source dir)"; return 0; }
+
+  # If target is a symlink (e.g. previously linked as whole dir), remove it
+  if [[ -L "$dest" ]]; then
+    rm -f "$dest"
+  elif [[ -e "$dest" ]]; then
+    mv "$dest" "$dest.backup.$(date +%s)"
+  fi
+  mkdir -p "$dest"
+
+  local entry
+  for entry in "$src"/*; do
+    [[ -e "$entry" || -L "$entry" ]] || continue
+    local name="${entry##*/}"
+    local skip=
+    local pat
+    for pat in "${exclude[@]}"; do
+      if [[ "$name" == "$pat" ]]; then skip=1; break; fi
+    done
+    [[ -n "$skip" ]] && continue
+    make_symlink "$rel/$name"
+  done
+}

@@ -36,6 +36,17 @@ run() {
   fi
 }
 
+run_dir_contents() {
+  local rel="$1"
+  shift
+  if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
+    log "Would link contents of $rel (excluding README)"
+  else
+    log "Linking contents of $rel (excluding README)"
+    make_symlink_dir_contents "$rel" "$@"
+  fi
+}
+
 run ".zshrc"
 run ".zsh_prompt"
 run ".zprofile"
@@ -62,7 +73,7 @@ run ".config/wezterm"
 run ".config/nvim"
 run ".config/theme"
 run ".config/zsh"
-run ".config/fish"
+run_dir_contents ".config/fish"   # links contents only; README.md stays in repo
 run ".local/bin/theme"
 run ".local/bin/dotfiles"
 
