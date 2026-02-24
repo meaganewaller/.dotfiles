@@ -1,6 +1,29 @@
 # -----------------------------------------------------------------------------
 # Dotfiles Repo Specific Mise Configuration (global mise config is in `mise/config.toml`)
 # -----------------------------------------------------------------------------
+[tools]
+node = "lts"
+python = "3.12"
+ruby = "3.4.6"
+uv = "latest"
+bun = "latest"
+
+[env]
+DOTFILES = "{{config_root}}"
+
+[tasks.bootstrap]
+run = """
+if command -v brew >/dev/null; then
+    brew bundle --file=bootstrap/Brewfile.common
+    brew bundle --file=bootstrap/Brewfile.${DOTFILES_PROFILE}
+fi
+"""
+
+[tasks.tools]
+run = """
+echo "Installing CLI tools..."
+gh extension upgrade --all || true
+"""
 
 [tasks.default]
 description = "Show available commands"

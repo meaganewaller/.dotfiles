@@ -4,7 +4,11 @@
 [init]
   defaultBranch = main
 
+[push]
+  autoSetupRemote = true
+
 [core]
+  editor = nvim
   excludesfile = ~/.gitignore_global
   autocrlf = input
   pager = delta
@@ -12,6 +16,10 @@
 [pager]
   diff = delta
   status = true
+
+[diff]
+  colorMoved = default
+  algorithm = patience # more intelligent diff algorithm
 
 [interactive]
   diffFilter = delta --color-only
@@ -33,10 +41,19 @@
   lg = log --oneline --graph --decorate --all
 
 [delta]
-  features = collared-trogon
   navigate = true
+  light = false
   side-by-side = true
   line-numbers = true
+  syntax-theme = Monokai Extended
+  diff-so-fanacy = true
+  max-line-length = 200 # prevent overly wide diffs
+
+[delta "interactive"]
+  keep-plus-minus-markers = false
+
+[merge]
+  conflictstyle = diff3
 
 [help]
   autocorrect = 1

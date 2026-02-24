@@ -37,8 +37,15 @@ run() {
 }
 
 run ".zshrc"
-run ".zshenv"
+run ".zsh_prompt"
+run ".zprofile"
+run ".bash_aliases"
+run ".bash_exports"
+run ".bash_exports.local"
+run ".bash_profile"
+run ".bash_secrets"
 run ".bashrc"
+run ".bash_aliases.d"
 
 run ".gitconfig"
 run ".gitconfig.work"
@@ -61,26 +68,16 @@ run ".local/bin/dotfiles"
 
 run ".config/mise"
 
+run ".tmux.conf"
+run ".tmux/settings.conf"
+run ".tmux/bindings.conf"
+run ".tmux/style.conf"
+
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"
   run ".hammerspoon"
   run ".config/karabiner"
   run ".config/sketchybar"
-
-  if [[ "$DOTFILES_DRY_RUN" -eq 0 ]]; then
-    log "Linking $DOTFILES_ROOT/home/.claude/work-settings.json to $HOME/.claude/settings.json"
-    make_symlink "$DOTFILES_ROOT/home/.claude/work-settings.json" "$HOME/.claude/settings.json"
-
-    log "Linking $DOTFILES_ROOT/home/.claude/skills/ruby-code-documenter to $HOME/.claude/skills/ruby-code-documenter"
-    make_symlink "$DOTFILES_ROOT/home/.claude/skills/ruby-code-documenter" "$HOME/.claude/skills/ruby-code-documenter"
-
-    log "Linking $DOTFILES_ROOT/home/.claude/skills/changelog-generator to $HOME/.claude/skills/changelog-generator"
-    make_symlink "$DOTFILES_ROOT/home/.claude/skills/changelog-generator" "$HOME/.claude/skills/changelog-generator"
-  else
-    log "Dry-run: Would link $DOTFILES_ROOT/home/.claude/work-settings.json to $HOME/.claude/settings.json"
-    log "Dry-run: Would link $DOTFILES_ROOT/home/.claude/skills/ruby-code-documenter to $HOME/.claude/skills/ruby-code-documenter"
-    log "Dry-run: Would link $DOTFILES_ROOT/home/.claude/skills/changelog-generator to $HOME/.claude/skills/changelog-generator"
-  fi
 fi
 
 if [[ "$PROFILE" == "personal" ]]; then

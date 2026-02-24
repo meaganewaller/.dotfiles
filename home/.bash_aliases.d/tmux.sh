@@ -1,0 +1,14 @@
+# Tmux related aliases
+# Include this file in your .bashrc or .bash_aliases
+
+# Switch to main branch and reload tmux config
+alias tmux-main="git checkout main && tmux source-file ~/.tmux.conf && echo 'Switched to main branch config'"
+
+# Switch to previous branch and reload tmux config
+alias tmux-branch='git checkout - && tmux source-file ~/.tmux.conf && echo "Switched to branch: $(git branch --show-current)"'
+
+# Quick access to tmux cheatsheet
+alias tmux-help="less ~/github/meaganewaller/.dotfiles/home/.tmux/tmux-cheatsheet.md"
+
+# Copy full tmux pane history (joined lines) to system clipboard
+alias tmux-copy-history='tmux capture-pane -p -J -S -999999 | clipboard_copy'

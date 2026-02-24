@@ -3,6 +3,7 @@
     "env": {
         "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
     },
+    "effortLevel": "medium",
     "permissions": {
         "allow": [
             "Read",
@@ -100,6 +101,11 @@
                     },
                     {
                         "type": "command",
+                        "description": "Block destructive rm commands and suggest using trash instead",
+                        "command": "node $HOME/.claude/hooks/no-rm.mjs"
+                    },
+                    {
+                        "type": "command",
                         "description": "Remind before git push to verify branch and remote",
                         "command": "node $HOME/.claude/hooks/pre-push-check.js"
                     },
@@ -178,6 +184,11 @@
                         "type": "command",
                         "description": "Detect vague prompts and suggest clarification",
                         "command": "node $HOME/.claude/hooks/prompt-check.js"
+                    },
+                    {
+                        "type": "command",
+                        "description": "Activate continuous learning activator",
+                        "command": "$HOME/.claude/hooks/continuous-learning-activator.js"
                     }
                 ]
             }

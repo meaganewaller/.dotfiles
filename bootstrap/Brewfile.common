@@ -80,7 +80,6 @@ cask "visual-studio-code"
 # -------------------------------------------------------------------------
 brew "shellcheck"          # shell script linter
 brew "pre-commit"          # git hooks manager
-brew "just"                # command runner (better make)
 
 # -------------------------------------------------------------------------
 # AI / CLI tools (optional, but common baseline)

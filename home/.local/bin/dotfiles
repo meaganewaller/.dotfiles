@@ -34,6 +34,7 @@ ${BOLD}COMMANDS${NC}
     update      Pull latest changes and re-converge
     lint        Run shellcheck on all scripts
     hooks       Install pre-commit hooks
+    install     Install dotfiles
     help        Show this help message
 
 ${BOLD}OPTIONS${NC}
@@ -42,6 +43,8 @@ ${BOLD}OPTIONS${NC}
 
 ${BOLD}EXAMPLES${NC}
     dotfiles doctor
+    dotfiles install --profile personal --dry-run
+    dotfiles install --profile personal
     dotfiles link --profile work
     dotfiles lint
     dotfiles hooks
@@ -362,6 +365,10 @@ cmd_hooks() {
   echo "To run manually: pre-commit run --all-files"
 }
 
+cmd_install() {
+  "$DOTFILES_ROOT/install.sh" --profile "$PROFILE"
+}
+
 # Parse global options
 DRY_RUN=0
 while [[ $# -gt 0 ]]; do
@@ -394,6 +401,9 @@ case "$cmd" in
   link)
     cmd_link
     ;;
+  install)
+    cmd_install
+    ;;
   update)
     cmd_update
     ;;
@@ -410,5 +420,4 @@ case "$cmd" in
     echo "Unknown command: $cmd"
     usage
     exit 1
-    ;;
 esac
