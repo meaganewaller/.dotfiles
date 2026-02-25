@@ -13,12 +13,28 @@ curl -fsSL https://raw.githubusercontent.com/meaganewaller/.dotfiles/main/bootst
 
 ## repo structure
 
-- **`bootstrap/`** — Stage 0 (remote-bootstrap.sh) and Brewfiles (common + per-profile).
-- **`home/`** — Dotfiles symlinked into `$HOME`. Config lives under `home/.config/` (fish, nvim, wezterm, theme, etc.).
-- **`bin/`** — `link-dotfiles` (orchestrates symlinks), `make-symlink` (safe idempotent linker).
-- **`.mise-tasks/`** — mise tasks (install, brew, health, utils). See `.mise-tasks/README.md`.
+```
+.dotfiles/
+├── bootstrap/      # Stage 0: remote-bootstrap.sh, Brewfiles
+├── home/           # Symlinked into $HOME
+│   ├── .config/    # XDG configs (fish, nvim, wezterm, theme)
+│   ├── .claude/    # Claude Code (hooks, skills, settings)
+│   └── .*          # Shell, git, ssh configs
+├── bin/            # link-dotfiles, make-symlink
+├── lib/            # Shared shell functions
+└── .mise-tasks/    # mise task definitions
+```
 
-Documentation for specific areas lives in each directory: e.g. `home/.config/fish/README.md`, `home/.claude/README.md`, `home/.config/theme/` (theme system). READMEs in `home/` are for the repo only and are not symlinked into your home directory.
+See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the full system design.
+
+## documentation
+
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, directory structure, profile system |
+| [home/.claude/README.md](./home/.claude/README.md) | Claude Code config, Dev OS telemetry |
+| [home/.claude/skills/README.md](./home/.claude/skills/README.md) | Catalog of 16 custom skills |
+| [.mise-tasks/README.md](./.mise-tasks/README.md) | mise task reference |
 
 ## daily workflow
 

@@ -20,3 +20,8 @@ Tasks are defined as executable scripts in this directory. Scripts use `#MISE` c
 | Task | Description |
 |------|-------------|
 | `default` | Show available commands |
+| `bootstrap` | Run Brewfile.common + Brewfile.{profile} |
+| `tools` | Install/upgrade CLI tools (gh extensions) |
+| `claude` | Merge Claude Code settings and link skills |
+| `claude:refresh` | Re-run Claude install after editing |
+| `claude:dry-run` | Preview Claude install changes |
