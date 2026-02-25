@@ -9,23 +9,23 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/impact-extractor.sh"
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/impact-extractor.sh"
                     },
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/large-diff-escalator.sh"
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/large-diff-escalator.sh"
                     },
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/dependency-change-detector.sh"
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/dependency-change-detector.sh"
                     },
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/reversal-detector.sh"
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/reversal-detector.sh"
                     },
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUse/async-test-runner.sh",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/async-test-runner.sh",
                         "async": true
                     }
             ]
@@ -37,7 +37,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PostToolUseFailure/skill-gap-detector.sh"
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUseFailure/skill-gap-detector.sh"
                     }
                 ]
             }
@@ -47,7 +47,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/Stop/hard-stop-test-blocker.sh"
+                        "command": "\"$HOME\"/.claude/hooks/Stop/hard-stop-test-blocker.sh"
                     },
                     {
                         "type": "prompt",
@@ -62,7 +62,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/UserPromptSubmit/idea-classifier.sh"
+                        "command": "\"$HOME\"/.claude/hooks/UserPromptSubmit/idea-classifier.sh"
                     }
                 ]
             }
@@ -84,7 +84,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/SessionEnd/learning-suggestion-generator.sh"
+                        "command": "\"$HOME\"/.claude/hooks/SessionEnd/learning-suggestion-generator.sh"
                     }
                 ]
             }
@@ -95,7 +95,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PreToolUse/layering-guard.sh"
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/layering-guard.sh"
                     }
                 ]
             }
@@ -105,7 +105,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/TaskCompleted/task-gate.sh"
+                        "command": "\"$HOME\"/.claude/hooks/TaskCompleted/task-gate.sh"
                     }
                 ]
             }
@@ -115,7 +115,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/PreCompact/pre-compact-snapshot.sh"
+                        "command": "\"$HOME\"/.claude/hooks/PreCompact/pre-compact-snapshot.sh"
                     }
                 ]
             }
@@ -126,11 +126,11 @@
               "hooks": [
                 {
                   "type": "command",
-                  "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/SessionStart/session-context-injector.sh"
+                  "command": "\"$HOME\"/.claude/hooks/SessionStart/session-context-injector.sh"
                 },
                 {
                     "type": "command",
-                    "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/SessionStart/friction-escalator.sh"
+                    "command": "\"$HOME\"/.claude/hooks/SessionStart/friction-escalator.sh"
                 }
               ]
             }

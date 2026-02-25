@@ -9,9 +9,8 @@ INPUT=$(cat)
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-mkdir -p .claude
-STREAM=".claude/dev-os-events.jsonl"
-
+OUT="$HOME/.claude/dev-os-events.jsonl"
+mkdir -p "$(dirname "$OUT")"
 jq -n \
   --arg ts "$TIMESTAMP" \
   --arg sid "$SESSION_ID" \
@@ -22,6 +21,6 @@ jq -n \
     session_id: $sid,
     event_type: $type,
     payload: $payload
-  }' >> "$STREAM"
+  }' >> "$OUT"
 
 exit 0
