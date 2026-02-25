@@ -1,6 +1,6 @@
 # my dotfiles
 
-[![CI](https://github.com/meaganewaller/.dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/meaganewaller/.dotfiles/actions/workflows/ci.yml)
+[![Test Dotfiles Setup](https://github.com/meaganewaller/.dotfiles/actions/workflows/test-dotfiles-setup.yml/badge.svg)](https://github.com/meaganewaller/.dotfiles/actions/workflows/test-dotfiles-setup.yml)
 
 Profile-aware, self-healing machine bootstrap for macOS (and eventually Linux). Treats your dev env like infra: stage 0 via `curl`, then Homebrew, mise, and idempotent symlinks into `$HOME`.
 
