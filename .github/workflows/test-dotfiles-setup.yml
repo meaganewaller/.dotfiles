@@ -51,6 +51,11 @@ jobs:
           export DOTFILES_ROOT="$PWD"
           ./bin/link-dotfiles --profile work --dry-run
 
+      - name: Install mise
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+
       - name: Test install (dry-run)
         run: |
           export DOTFILES_ROOT="$PWD"
