@@ -1,6 +1,6 @@
 ---
 name: weekly-review
-description: Generate a weekly engineering review by aggregating dev-os-events across ALL projects, rendering charts, and producing staff-level insights + promotion-ready bullets.
+description: This skill should be used at the end of each week, when asking "how was my week?", "generate weekly review", "what did I accomplish?", or "/weekly-review". Aggregates dev-os-events across ALL projects, renders charts, and produces staff-level insights with promotion-ready bullets.
 context: fork
 agent: general-purpose
 allowed-tools:
@@ -100,3 +100,87 @@ python3 ~/.claude/skills/weekly-review/scripts/render_dashboard.py REVIEW_DIR/su
 ```
 
 This updates index.html with the edited review content in the Review tab.
+
+## Troubleshooting
+
+### No events found
+
+```
+Error: No events in the last 7 days
+```
+
+**Cause:** `~/.claude/dev-os-events.jsonl` is empty or missing recent events.
+
+**Fix:** Verify hooks are emitting events:
+```bash
+tail -5 ~/.claude/dev-os-events.jsonl
+```
+
+If empty, check that hooks are configured in `~/.claude/settings.json`.
+
+---
+
+### Script permission denied
+
+```
+Error: Permission denied: aggregate.sh
+```
+
+**Fix:** Make scripts executable:
+```bash
+chmod +x ~/.claude/skills/weekly-review/scripts/*.sh
+chmod +x ~/.claude/skills/weekly-review/scripts/*.py
+```
+
+---
+
+### Python dependencies missing
+
+```
+ModuleNotFoundError: No module named 'jinja2'
+```
+
+**Fix:** Install required packages:
+```bash
+pip3 install jinja2
+```
+
+---
+
+### jq not found
+
+```
+Command not found: jq
+```
+
+**Fix:** Install jq:
+```bash
+# macOS
+brew install jq
+
+# Ubuntu/Debian
+sudo apt-get install jq
+```
+
+---
+
+### Charts not rendering
+
+**Cause:** `charts.py` requires matplotlib or the charts/ directory wasn't created.
+
+**Fix:** Check charts directory exists and has content:
+```bash
+ls -la REVIEW_DIR/charts/
+```
+
+If empty, charts generation may have silently failed. Check for Python errors.
+
+---
+
+### Dashboard shows placeholder text
+
+**Cause:** Step 3 (Edit placeholders) was skipped or Step 4 (Regenerate dashboard) wasn't run.
+
+**Fix:**
+1. Verify review.md has real content (not placeholder text)
+2. Re-run: `python3 ~/.claude/skills/weekly-review/scripts/render_dashboard.py REVIEW_DIR/summary.json`
