@@ -3,17 +3,28 @@
     "$schema": "https://json.schemastore.org/claude-code-settings.json",
     "permissions": {
         "allow": [
+            "Skill(abstraction-check:*)",
+            "Skill(api-conventions:*)",
+            "Skill(assumption-scan:*)",
+            "Skill(complexity-audit:*)",
+            "Skill(dependency-evaluator:*)",
+            "Skill(dependency-evaluator:*)",
             "Skill(design-review:*)",
+            "Skill(experiment-design:*)",
+            "Skill(experiment-design:*)",
+            "Skill(friction-deep-dive:*)",
+            "Skill(friction-deep-dive:*)",
+            "Skill(mental-model:*)",
+            "Skill(promotion-draft:*)",
+            "Skill(promotion-draft:*)",
+            "Skill(refactor-safely:*)",
             "Skill(refactor-safely:*)",
             "Skill(risk-audit:*)",
+            "Skill(risk-audit:*)",
             "Skill(tradeoff-memo:*)",
-            "Skill(friction-deep-dive:*)",
-            "Skill(dependency-evaluator:*)",
-            "Skill(experiment-design:*)",
-            "Skill(promotion-draft:*)",
-            "Skill(api-conventions:*)",
-            "Skill(weekly-review:*)",
-            "Skill(weekly-review/scripts:*)"
+            "Skill(tradeoff-memo:*)",
+            "Skill(weekly-review/scripts:*)",
+            "Skill(weekly-review:*)"
         ]
     }
 }

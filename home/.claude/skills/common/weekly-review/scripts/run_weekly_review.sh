@@ -14,8 +14,12 @@ if [[ ! -f "$SUMMARY_JSON" ]]; then
   exit 1
 fi
 
-# 3. Generate charts
-python3 "$SKILL_DIR/charts.py" "$SUMMARY_JSON"
+# 3. Generate charts (optional - requires matplotlib)
+if python3 -c "import matplotlib" 2>/dev/null; then
+  python3 "$SKILL_DIR/charts.py" "$SUMMARY_JSON"
+else
+  echo "⚠ Skipping charts (matplotlib not installed)" >&2
+fi
 
 # 4. Generate markdown
 bash "$SKILL_DIR/render_md.sh" "$SUMMARY_JSON"

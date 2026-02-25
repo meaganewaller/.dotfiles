@@ -16,8 +16,8 @@ if ! echo "$LOWER" | grep -qiE \
   exit 0
 fi
 
-mkdir -p .claude
-VAULT=".claude/idea-vault.md"
+mkdir -p "$HOME/.claude"
+VAULT="$HOME/.claude/idea-vault.md"
 
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M")
 
@@ -29,7 +29,7 @@ PAYLOAD=$(jq -n \
     tags: $tags
   }')
 
-echo "$INPUT" | .claude/hooks/dev-os-emit.sh prompt_opinion "$PAYLOAD"
+echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" prompt_opinion "$PAYLOAD"
 
 # ----------------------------------------
 # Tag detection

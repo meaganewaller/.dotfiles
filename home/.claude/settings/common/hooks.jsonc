@@ -28,7 +28,7 @@
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/async-test-runner.sh",
                         "async": true
                     }
-            ]
+                ]
             }
         ],
         "PostToolUseFailure": [
@@ -51,7 +51,7 @@
                     },
                     {
                         "type": "prompt",
-                        "prompt": "Evaluate whether this session produced meaningful leverage.\n\nContext: $ARGUMENTS\n\nAllow stopping ONLY if at least one of the following occurred:\n- A reusable abstraction was created\n- A decision was documented\n- A measurable improvement was made\n- A clear lesson was extracted\n\n- If last test_run shows failed -> block stopping\n\nIf none apply, respond with:\n{ \"ok\": false, \"reason\": \"Capture one insight from this session before stopping.\" }\n\nOtherwise respond:\n{ \"ok\": true }",
+                        "prompt": "You must respond with ONLY a JSON object, no other text.\n\nEvaluate whether this session produced meaningful leverage.\n\nContext: $ARGUMENTS\n\nAllow stopping if ANY of these occurred:\n- A reusable abstraction was created\n- A decision was documented\n- A measurable improvement was made\n- A clear lesson was extracted\n\nRespond with EXACTLY ONE of these JSON objects (no markdown, no explanation, no other text):\n\nIf stopping is allowed:\n{\"ok\":true}\n\nIf stopping should be blocked:\n{\"ok\":false,\"reason\":\"Capture one insight from this session before stopping.\"}",
                         "timeout": 30
                     }
                 ]
@@ -72,9 +72,9 @@
                 "matcher": "Explore|Plan",
                 "hooks": [
                     {
+                        "prompt": "You are extracting architectural reasoning from a subagent session.\n\nHook input JSON:\n$ARGUMENTS\n\nYour task:\n\n1. Inspect `last_assistant_message`.\n2. Determine whether meaningful architectural reasoning occurred.\n   This includes:\n   - Explicit tradeoffs (\"X vs Y\", \"pros/cons\", \"benefits/drawbacks\")\n   - Multiple options evaluated\n   - Design principles invoked (e.g. layering, determinism, separation of concerns, performance, security)\n\nIf NO meaningful reasoning occurred:\nReturn exactly:\n{ \"ok\": true }\n\nIf meaningful reasoning DID occur:\n\nExtract:\n- decision_summary (1 sentence)\n- tradeoffs (array of strings)\n- options_considered (array of strings)\n- principles_invoked (array of strings)\n\nThen use the Write tool to append a single JSON line to:\n~/.claude/dev-os-events.jsonl\n\nThe JSON line must be:\n{\n  \"timestamp\": \"<ISO8601>\",\n  \"event_type\": \"decision_tradeoff\",\n  \"payload\": {\n    \"decision_summary\": \"...\",\n    \"tradeoffs\": [...],\n    \"options_considered\": [...],\n    \"principles_invoked\": [...]\n  }\n}\n\nAfter writing, return exactly:\n{ \"ok\": true }\n\nImportant rules:\n- Do NOT block stopping.\n- Do NOT rewrite or summarize unrelated content.\n- Only emit an event if reasoning is real, not superficial.\n",
                         "type": "agent",
-                        "timeout": 60,
-                        "prompt": "You are extracting architectural reasoning from a subagent session.\n\nHook input JSON:\n$ARGUMENTS\n\nYour task:\n\n1. Inspect `last_assistant_message`.\n2. Determine whether meaningful architectural reasoning occurred.\n   This includes:\n   - Explicit tradeoffs (\"X vs Y\", \"pros/cons\", \"benefits/drawbacks\")\n   - Multiple options evaluated\n   - Design principles invoked (e.g. layering, determinism, separation of concerns, performance, security)\n\nIf NO meaningful reasoning occurred:\nReturn exactly:\n{ \"ok\": true }\n\nIf meaningful reasoning DID occur:\n\nExtract:\n- decision_summary (1 sentence)\n- tradeoffs (array of strings)\n- options_considered (array of strings)\n- principles_invoked (array of strings)\n\nThen use the Write tool to append a single JSON line to:\n.claude/dev-os-events.jsonl\n\nThe JSON line must be:\n{\n  \"timestamp\": \"<ISO8601>\",\n  \"event_type\": \"decision_tradeoff\",\n  \"payload\": {\n    \"decision_summary\": \"...\",\n    \"tradeoffs\": [...],\n    \"options_considered\": [...],\n    \"principles_invoked\": [...]\n  }\n}\n\nAfter writing, return exactly:\n{ \"ok\": true }\n\nImportant rules:\n- Do NOT block stopping.\n- Do NOT rewrite or summarize unrelated content.\n- Only emit an event if reasoning is real, not superficial.\n"
+                        "timeout": 60
                     }
                 ]
             }
@@ -122,19 +122,18 @@
         ],
         "SessionStart": [
             {
-              "matcher": "startup|resume",
-              "hooks": [
-                {
-                  "type": "command",
-                  "command": "\"$HOME\"/.claude/hooks/SessionStart/session-context-injector.sh"
-                },
-                {
-                    "type": "command",
-                    "command": "\"$HOME\"/.claude/hooks/SessionStart/friction-escalator.sh"
-                }
-              ]
+                "matcher": "startup|resume",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SessionStart/session-context-injector.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SessionStart/friction-escalator.sh"
+                    }
+                ]
             }
-          ]
-
+        ]
     }
 }

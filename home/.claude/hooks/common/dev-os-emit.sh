@@ -11,16 +11,11 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 OUT="$HOME/.claude/dev-os-events.jsonl"
 mkdir -p "$(dirname "$OUT")"
-jq -n \
+jq -cn \
   --arg ts "$TIMESTAMP" \
   --arg sid "$SESSION_ID" \
   --arg type "$EVENT_TYPE" \
   --argjson payload "$PAYLOAD_JSON" \
-  '{
-    timestamp: $ts,
-    session_id: $sid,
-    event_type: $type,
-    payload: $payload
-  }' >> "$OUT"
+  '{timestamp: $ts, session_id: $sid, event_type: $type, payload: $payload}' >> "$OUT"
 
 exit 0

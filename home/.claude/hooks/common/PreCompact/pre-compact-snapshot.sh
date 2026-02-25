@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p .claude/session-summaries
+mkdir -p "$HOME/.claude/session-summaries"
 
 TIMESTAMP=$(date +"%Y-%m-%dT%H:%M:%S")
-OUT=".claude/session-summaries/$TIMESTAMP.md"
+OUT="$HOME/.claude/session-summaries/$TIMESTAMP.md"
 
 # Extract last assistant message from transcript
 INPUT=$(cat)

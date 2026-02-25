@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 [tools]
 node = "latest"
-python = "3.12"
+python = "latest"
 ruby = "3.4.6"
 uv = "latest"
 bun = "latest"

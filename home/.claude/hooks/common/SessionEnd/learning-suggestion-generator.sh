@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p .claude/learning-targets
+mkdir -p "$HOME/.claude/learning-targets"
 
-IMPACT_LOG=".claude/impact-log.jsonl"
-FRICTION_LOG=".claude/skill-friction-log.jsonl"
-JOURNAL_DIR=".claude/decision-journal"
-OUT=".claude/learning-targets/latest.md"
+IMPACT_LOG="$HOME/.claude/impact-log.jsonl"
+FRICTION_LOG="$HOME/.claude/skill-friction-log.jsonl"
+JOURNAL_DIR="$HOME/.claude/decision-journal"
+OUT="$HOME/.claude/learning-targets/latest.md"
 
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -23,10 +23,11 @@ if [[ -f "$FRICTION_LOG" ]]; then
 fi
 
 # Top friction domains (last 30 entries to keep it fast)
+# Note: friction log uses proper JSONL (one object per line)
 top_domains=$(
   if [[ -f "$FRICTION_LOG" ]]; then
     tail -n 30 "$FRICTION_LOG" \
-      | jq -r '.domain // "unknown"' \
+      | jq -r '.domain // "unknown"' 2>/dev/null \
       | sort | uniq -c | sort -nr \
       | head -n 5 \
       | awk '{printf "- %s (recent hits: %s)\n", $2, $1}'
@@ -34,13 +35,13 @@ top_domains=$(
 )
 
 # Top skill domains from impact log (last 30 entries)
+# Note: impact log may have pretty-printed JSON, use slurp to handle multi-line objects
 top_skills=$(
   if [[ -f "$IMPACT_LOG" ]]; then
-    tail -n 30 "$IMPACT_LOG" \
-      | jq -r '.skill_domains[]? // empty' \
+    jq -rs '.[-30:] | .[] | .skill_domains[]? // empty' "$IMPACT_LOG" 2>/dev/null \
       | sort | uniq -c | sort -nr \
       | head -n 5 \
-      | awk '{printf "- %s (recent touches: %s)\n", $2, $1}'
+      | awk '{count=$1; $1=""; sub(/^ +/, ""); printf "- %s (recent touches: %s)\n", $0, count}'
   fi
 )
 

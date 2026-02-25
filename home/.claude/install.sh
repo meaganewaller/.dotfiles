@@ -63,7 +63,37 @@ merge_config() {
   mkdir -p "$(dirname "$dest")"
 
   # ---------------------------------------------
-  # 1. Collect files in deterministic order
+  # 1. Preserve Claude Code's internal state
+  # ---------------------------------------------
+
+  local existing_state="{}"
+  if [[ -f "$dest" ]]; then
+    # Extract internal state fields that Claude Code manages
+    existing_state=$(jq '{
+      numStartups,
+      installMethod,
+      autoUpdates,
+      tipsHistory,
+      promptQueueUseCount,
+      cachedGrowthBookFeatures,
+      userID,
+      firstStartTime,
+      sonnet45MigrationComplete,
+      opus45MigrationComplete,
+      opusProMigrationComplete,
+      thinkingMigrationComplete,
+      cachedChromeExtensionInstalled,
+      changelogLastFetched,
+      autoUpdatesProtectedForNative,
+      shiftEnterKeyBindingInstalled,
+      hasCompletedOnboarding,
+      lastOnboardingVersion,
+      projects
+    } | with_entries(select(.value != null))' "$dest" 2>/dev/null || echo "{}")
+  fi
+
+  # ---------------------------------------------
+  # 2. Collect files in deterministic order
   # ---------------------------------------------
 
   mapfile -t settings_files < <(
@@ -81,7 +111,7 @@ merge_config() {
   fi
 
   # ---------------------------------------------
-  # 2. Parse JSONC using single Node process
+  # 3. Parse JSONC using single Node process
   # ---------------------------------------------
 
   parsed_json=$(npx -y -p json5 node -e "
@@ -98,10 +128,10 @@ merge_config() {
   " "${settings_files[@]}")
 
   # ---------------------------------------------
-  # 3. Merge with jq
+  # 4. Merge with jq (preserving internal state)
   # ---------------------------------------------
 
-  merged_json=$(echo "$parsed_json" | jq -s '
+  merged_json=$(echo "$parsed_json" | jq -s --argjson state "$existing_state" '
     # Collect permissions across all layers
     {
       permissions: {
@@ -114,11 +144,13 @@ merge_config() {
     # Deep merge everything else (profile overrides common)
     (reduce .[] as $item ({}; . * ($item | del(.permissions))))
     | del(."$schema")
+    # Merge in preserved internal state
+    * $state
     | walk(if type == "object" then to_entries | sort_by(.key) | from_entries else . end)
   ')
 
   echo "$merged_json" > "$dest"
-  log "Merged JSONC config -> $dest"
+  log "Merged JSONC config -> $dest (preserved internal state)"
 }
 
 merge_skills() {

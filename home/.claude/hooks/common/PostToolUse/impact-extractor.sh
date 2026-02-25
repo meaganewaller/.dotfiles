@@ -96,9 +96,9 @@ PAYLOAD=$(jq -n \
         skills: $skills
     }')
 
-LOG_FILE=".claude/impact-log.jsonl"
-mkdir -p .claude
-echo "$INPUT" | .claude/hooks/dev-os-emit.sh tool_write "$PAYLOAD"
+LOG_FILE="$HOME/.claude/impact-log.jsonl"
+mkdir -p "$HOME/.claude"
+echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" tool_write "$PAYLOAD"
 
 jq -n \
   --arg timestamp "$TIMESTAMP" \

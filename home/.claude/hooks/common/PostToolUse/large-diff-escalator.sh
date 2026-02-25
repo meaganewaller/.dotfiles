@@ -18,7 +18,7 @@ if (( LINES > 250 )); then
   PAYLOAD=$(jq -n --arg file "$FILE" --arg lines "$LINES" \
     '{file_path:$file, lines_changed:($lines|tonumber), risk:"high"}')
 
-  echo "$INPUT" | .claude/hooks/dev-os-emit.sh large_change "$PAYLOAD"
+  echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" large_change "$PAYLOAD"
 
   echo '{"systemMessage":"Large change detected. Summarize risk surface before continuing."}'
 fi
