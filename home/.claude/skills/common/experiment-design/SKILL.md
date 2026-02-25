@@ -6,17 +6,18 @@ context: fork
 agent: Plan
 ---
 
-Experiment idea:
+Design an experiment for:
 
 $ARGUMENTS
 
-Define:
+Include:
 
-1. Hypothesis
-2. Success criteria (measurable)
-3. Metrics to track
-4. Risk level
-5. Rollback plan
-6. What would falsify the hypothesis?
+- Hypothesis
+- Independent variable
+- Measurement metric
+- Success criteria
+- Failure criteria
+- Duration
+- Rollback plan
 
 Make this falsifiable.

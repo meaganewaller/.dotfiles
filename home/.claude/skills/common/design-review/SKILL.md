@@ -1,26 +1,25 @@
 ---
 name: design-review
-description: Perform a structured architectural review before implementing significant changes. Use before large refactors, new systems, or cross-cutting changes.
-disable-model-invocation: true
+description: Analyze a proposed design or change and surface risks, layering violations, edge cases, and alternative approaches.
 context: fork
 agent: Plan
 allowed-tools: Read, Grep, Glob
 ---
 
-You are conducting a structured design review for:
+You are performing a rigorous engineering design review.
 
+Input:
 $ARGUMENTS
 
-Perform the following:
+Tasks:
 
-1. Identify system boundaries involved
-2. List layers touched (models, services, infra, UI, etc.)
-3. Identify cross-cutting concerns
-4. Enumerate tradeoffs
-5. Identify failure modes
-6. Assess risk level (low / medium / high)
-7. Recommend test strategy
+1. Restate the proposal clearly.
+2. Identify hidden assumptions.
+3. Surface architectural risks.
+4. Identify layering violations.
+5. Identify scalability risks.
+6. Suggest 2 alternative approaches.
+7. Recommend a direction and explain why.
 
-Output a structured design memo.
-
-Be concrete. Reference actual files where relevant.
+Be critical but constructive.
+Avoid politeness padding.
