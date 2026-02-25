@@ -10,3 +10,4 @@ fish_variables
 lib/env.sh
 home/.bash_exports.local
 home/.bash_secrets
+.claude/settings.local.json

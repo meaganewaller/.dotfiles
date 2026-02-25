@@ -55,7 +55,7 @@ set_domain() {
 # ============================================================================
 
 # 1. File does not exist (most common - ~25 occurrences)
-if echo "$TEXT" | grep -qiE "file does not exist|no such file or directory|ENOENT|cannot find|not found.*file"; then
+if echo "$TEXT" | grep -qiE "file does not exist|no such file or directory|ENOENT|cannot find|not found.*file|missing .*(file|json|config)"; then
   set_domain "state" "file-not-found"
   add_signal "state:file-not-found"
   add_hint "Verify the file path exists; check for typos, stale references, or race conditions in file creation."
@@ -207,6 +207,14 @@ if echo "$TEXT" | grep -qiE "are identical|same file|circular|symlink loop"; the
   set_domain "state" "identity"
   add_signal "state:file-identity"
   add_hint "Check for symlinks pointing to source; avoid copying file to itself."
+fi
+
+# Generic command failure (exit code with no specific error message)
+# This catches silent failures like `ls ... 2>/dev/null` or empty grep results
+if echo "$TEXT" | grep -qiE "exit code [1-9]"; then
+  set_domain "state" "command-failed"
+  add_signal "state:command-exit-nonzero"
+  add_hint "Command returned non-zero exit code; check if target exists or if output was suppressed."
 fi
 
 # ============================================================================

@@ -25,6 +25,10 @@
                     },
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tradeoff-capture.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/async-test-runner.sh",
                         "async": true
                     }
@@ -48,6 +52,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/Stop/hard-stop-test-blocker.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/Stop/pending-tradeoff-blocker.sh"
                     },
                     {
                         "type": "prompt",
