@@ -1,0 +1,61 @@
+-- commands.local.lua
+-- Machine-specific WezTerm commands (not tracked in git)
+--
+-- Copy this file to commands.local.lua and customize:
+--   cp commands.local.lua.example commands.local.lua
+--
+-- Commands here are merged with the defaults from commands.lua
+-- and appear in the CMD+r quick launcher.
+
+-- Access the commands module for helper functions
+local commands = require("commands")
+
+return {
+  -- Simple: just open a directory
+  {
+    label = "my-project",
+    title = "my-project",
+    cwd = "~/projects/my-project",
+  },
+
+  -- With commands to run
+  {
+    label = "dev-server",
+    title = "dev-server",
+    cwd = "~/projects/webapp",
+    cmds = { "npm run dev" },
+  },
+
+  -- Using environment variables
+  {
+    label = "work-repo",
+    title = "work",
+    cwd = "$WORK_REPO", -- Set WORK_REPO in your shell profile
+  },
+
+  -- Complex: custom callback function
+  {
+    label = "full-stack-dev",
+    title = "full-stack",
+    cb = function(window, pane)
+      local dir = commands.expand_path("~/projects/webapp")
+
+      -- Spawn multiple tabs
+      commands.spawn_tab_with(window, {
+        title = "frontend",
+        cwd = dir .. "/frontend",
+        cmds = { "npm run dev" },
+      })
+      commands.spawn_tab_with(window, {
+        title = "backend",
+        cwd = dir .. "/backend",
+        cmds = { "rails server" },
+      })
+      commands.spawn_tab_with(window, {
+        title = "editor",
+        cwd = dir,
+        cmds = { "nvim ." },
+      })
+    end,
+  },
+}
