@@ -3,6 +3,7 @@ local wezterm = require("wezterm")
 local act = wezterm.action
 local util = require("util")
 local commands = require("commands")
+local projects = require("projects")
 
 local M = {}
 
@@ -165,6 +166,7 @@ function M.apply(config)
     -- fuzzy launchers
     { "a", "CMD", act.ShowLauncherArgs({ flags = "FUZZY|COMMANDS" }) },
     { "d", "CMD", act.ShowLauncherArgs({ flags = "FUZZY|WORKSPACES" }) },
+    { "p", "CMD", projects.picker_action() },
 
     -- tools
     { "k", "CMD", tab("lazygit", { "lazygit" }) },
@@ -214,7 +216,7 @@ function M.apply(config)
           "Resize:   (in splits) R resize mode | hjkl resize | Esc exit",
           "WS:       CMD+w workspace mode | n new | r rename | o picker | j/k next/prev",
           "Tools:    CMD+k lazygit | CMD+u scratch | CMD+i open scrollback in editor",
-          "Launcher: CMD+r run command | CMD+a commands | CMD+d workspaces",
+          "Launcher: CMD+r run command | CMD+a commands | CMD+d workspaces | CMD+p projects",
         })
       end),
     },

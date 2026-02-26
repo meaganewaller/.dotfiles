@@ -1,0 +1,34 @@
+-- projects.local.lua.example
+-- Copy this to projects.local.lua and customize for your machine
+--
+-- Each project can have:
+--   name  (required) - workspace name, shown in picker and status bar
+--   path  (required) - directory to open (supports ~ and $ENV_VAR)
+--   icon  (optional) - nerd font icon, defaults to 󰉋
+--   cmds  (optional) - commands to run on workspace creation
+--
+return {
+  {
+    name = "work-monolith",
+    path = "~/work/monolith",
+    icon = "󰬟",
+    cmds = { "nvim" },
+  },
+  {
+    name = "side-project",
+    path = "~/projects/side-project",
+    icon = "󰛦",
+  },
+  {
+    name = "notes",
+    path = "~/notes",
+    icon = "󰠮",
+    cmds = { "nvim ." },
+  },
+  -- Use environment variables for paths that vary by machine
+  {
+    name = "downloads",
+    path = "$HOME/Downloads",
+    icon = "󰉍",
+  },
+}

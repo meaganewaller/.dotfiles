@@ -13,6 +13,8 @@ wezterm/
 ├── events.lua               # Tab formatting, status line
 ├── commands.lua             # Quick command launcher
 ├── commands.local.lua       # Machine-specific commands (gitignored)
+├── projects.lua             # Project workspace launcher
+├── projects.local.lua       # Machine-specific projects (gitignored)
 ├── util.lua                 # Helper functions
 └── wallpapers/              # Background images
 ```
@@ -94,6 +96,7 @@ The leader key activates key tables for panes and workspaces.
 
 | Key | Action |
 |-----|--------|
+| `Cmd+p` | Project workspace picker |
 | `Cmd+r` | Run custom command |
 | `Cmd+a` | Command palette |
 | `Cmd+y` | WezTerm command palette |
@@ -157,6 +160,56 @@ See `commands.local.lua.example` for more examples including:
 - Environment variable expansion (`$WORK_REPO`)
 - Complex multi-tab setups with callbacks
 
+## Project Workspaces
+
+Project workspaces let you quickly switch between predefined project directories. Each project gets its own workspace, preserving window/tab/pane state between switches.
+
+### Usage
+
+Press `Cmd+p` to open the project picker:
+
+- First time selecting a project → creates new workspace at that directory
+- Subsequent selections → switches to existing workspace (preserves state)
+
+The current workspace name is shown in the status bar.
+
+### Adding Projects
+
+Create `~/.config/wezterm/projects.local.lua` (not tracked in git):
+
+```lua
+return {
+  {
+    name = "work-monolith",
+    path = "~/work/monolith",
+    icon = "󰬟",
+    cmds = { "nvim" },
+  },
+  {
+    name = "side-project",
+    path = "~/projects/side-project",
+    icon = "󰛦",
+  },
+  {
+    name = "notes",
+    path = "~/notes",
+    icon = "󰠮",
+    cmds = { "nvim ." },
+  },
+}
+```
+
+### Project Options
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `name` | Yes | Workspace name, shown in picker and status bar |
+| `path` | Yes | Directory to open (supports `~` and `$ENV_VAR`) |
+| `icon` | No | Nerd font icon (defaults to 󰉋) |
+| `cmds` | No | Commands to run when workspace is first created |
+
+See `projects.local.lua.example` for more examples.
+
 ## Customization
 
 ### Changing Leader Key
@@ -209,12 +262,13 @@ Then activate with:
 
 ## Troubleshooting
 
-### Commands not loading
+### Commands or projects not loading
 
-Check `commands.local.lua` syntax:
+Check syntax of your local config:
 
 ```bash
 lua -c "dofile('~/.config/wezterm/commands.local.lua')"
+lua -c "dofile('~/.config/wezterm/projects.local.lua')"
 ```
 
 ### Theme not applying
