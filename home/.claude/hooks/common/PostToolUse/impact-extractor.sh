@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Source shared validation utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=../validate-path.sh
+source "$SCRIPT_DIR/validate-path.sh"
+
 INPUT=$(cat)
 
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name')
@@ -16,10 +21,16 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
   exit 0
 fi
 
+# Resource guard: skip very large files to prevent memory issues
+if ! guard_file_size "$FILE_PATH" 512; then
+  exit 0
+fi
+
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-# Get diff summary
-DIFF=$(git diff HEAD -- "$FILE_PATH" || true)
+# Get diff summary with resource guard (limit to 2000 lines)
+RAW_DIFF=$(git diff HEAD -- "$FILE_PATH" 2>/dev/null || true)
+DIFF=$(guard_diff_size "$RAW_DIFF" 2000)
 
 # ----------------------------------------
 # Heuristic Classification
@@ -96,11 +107,17 @@ PAYLOAD=$(jq -n \
         skills: $skills
     }')
 
-LOG_FILE="$HOME/.claude/impact-log.jsonl"
-mkdir -p "$HOME/.claude"
+LOG_FILE="$CLAUDE_IMPACT_LOG"
+
+# Resource guard: rotate log if too large
+if ! guard_log_size "$LOG_FILE" 25; then
+  TEMP_LOG=$(mktemp)
+  tail -n 500 "$LOG_FILE" > "$TEMP_LOG" && mv "$TEMP_LOG" "$LOG_FILE"
+fi
+
 echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" tool_write "$PAYLOAD"
 
-jq -n \
+LOG_ENTRY=$(jq -n \
   --arg timestamp "$TIMESTAMP" \
   --arg file "$FILE_PATH" \
   --arg change_type "$CHANGE_TYPE" \
@@ -114,6 +131,7 @@ jq -n \
     skill_domains: $skills,
     impact_guess: $impact,
     risk_level: $risk
-  }' >> "$LOG_FILE"
+  }')
+safe_append "$LOG_FILE" "$LOG_ENTRY"
 
 exit 0

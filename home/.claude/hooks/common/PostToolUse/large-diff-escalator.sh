@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Source shared validation utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=../validate-path.sh
+source "$SCRIPT_DIR/validate-path.sh"
+
 INPUT=$(cat)
 FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
@@ -9,6 +14,11 @@ if [[ -z "$FILE" ]]; then
 fi
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  exit 0
+fi
+
+# Resource guard: skip processing very large files
+if ! guard_file_size "$FILE" 2048; then
   exit 0
 fi
 
@@ -26,7 +36,14 @@ if (( LINES > 250 )); then
 
   # Create a marker file for the tradeoff capture agent
   MARKER_DIR="$HOME/.claude/pending-tradeoffs"
-  mkdir -p "$MARKER_DIR"
+  ensure_dir_exists "$MARKER_DIR"
+
+  # Resource guard: clean up old markers if too many (>100)
+  MARKER_COUNT=$(find "$MARKER_DIR" -name "*.json" 2>/dev/null | wc -l | tr -d ' ')
+  if (( MARKER_COUNT > 100 )); then
+    find "$MARKER_DIR" -name "*.json" -mtime +7 -delete 2>/dev/null || true
+  fi
+
   MARKER_FILE="$MARKER_DIR/$(date +%s)-$(basename "$FILE").json"
   jq -n \
     --arg file "$FILE" \

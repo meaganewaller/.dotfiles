@@ -37,6 +37,6 @@ if git diff --cached | grep -q "public def"; then
 fi
 
 PAYLOAD='{"status":"passed"}'
-echo "$INPUT" | .claude/hooks/dev-os-emit.sh task_completed "$PAYLOAD"
+echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" task_completed "$PAYLOAD"
 
 exit 0

@@ -106,7 +106,7 @@ PAYLOAD=$(jq -n \
   --arg cmd "$TEST_CMD" \
   '{ result: $result, project: $project, test_command: $cmd }')
 
-echo "$INPUT" | "$HOME"/.claude/hooks/dev-os-emit.sh test_run "$PAYLOAD"
+echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" test_run "$PAYLOAD"
 
 # Notify on failure
 if [[ "$RESULT" == "failed" ]]; then

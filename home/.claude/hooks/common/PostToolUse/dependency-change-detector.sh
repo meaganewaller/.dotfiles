@@ -23,6 +23,6 @@ PAYLOAD=$(jq -n \
   --arg removed "$REMOVED" \
   '{file_path:$file, lines_added:($added|tonumber), lines_removed:($removed|tonumber)}')
 
-echo "$INPUT" | .claude/hooks/dev-os-emit.sh dependency_change "$PAYLOAD"
+echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" dependency_change "$PAYLOAD"
 
 exit 0

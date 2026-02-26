@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Source shared validation utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=../validate-path.sh
+source "$SCRIPT_DIR/validate-path.sh"
+
 INPUT=$(cat)
 
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
@@ -13,13 +18,20 @@ if [[ -z "${ERROR}${CMD}" ]]; then
   exit 0
 fi
 
-mkdir -p "$HOME/.claude"
-LOG_FILE="$HOME/.claude/skill-friction-log.jsonl"
+LOG_FILE="$CLAUDE_FRICTION_LOG"
+ensure_file_exists "$LOG_FILE"
+
+# Resource guard: check log size and rotate if needed
+if ! guard_log_size "$LOG_FILE" 50; then
+  # Rotate: keep last 1000 entries
+  TEMP_LOG=$(mktemp)
+  tail -n 1000 "$LOG_FILE" > "$TEMP_LOG" && mv "$TEMP_LOG" "$LOG_FILE"
+fi
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-# Create a text blob for classification
-TEXT="$(printf "%s\n%s\n%s\n" "$TOOL_NAME" "$CMD" "$ERROR" | tr '[:upper:]' '[:lower:]')"
+# Create a text blob for classification (truncate to prevent memory issues)
+TEXT="$(printf "%s\n%s\n%s\n" "$TOOL_NAME" "${CMD:0:2000}" "${ERROR:0:2000}" | tr '[:upper:]' '[:lower:]')"
 
 # ============================================================================
 # FRICTION TAXONOMY

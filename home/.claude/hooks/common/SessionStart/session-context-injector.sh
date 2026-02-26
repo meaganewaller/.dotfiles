@@ -1,25 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMPACT=".claude/impact-log.jsonl"
-FRICTION=".claude/skill-friction-log.jsonl"
-JOURNAL_DIR=".claude/decision-journal"
+# Source shared validation utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=../validate-path.sh
+source "$SCRIPT_DIR/validate-path.sh"
+
+IMPACT="$CLAUDE_IMPACT_LOG"
+FRICTION="$CLAUDE_FRICTION_LOG"
+JOURNAL_DIR="$CLAUDE_HOME/decision-journal"
 
 CONTEXT=""
 
-if [[ -f "$IMPACT" ]]; then
+IMPACT_LINES=$(safe_tail "$IMPACT" 5)
+if [[ -n "$IMPACT_LINES" ]]; then
   CONTEXT+="Recent Impact:\n"
-  CONTEXT+=$(tail -n 5 "$IMPACT" | jq -r '"- " + .change_type + " (" + .timestamp + ")"')
+  CONTEXT+=$(echo "$IMPACT_LINES" | jq -r '"- " + .change_type + " (" + .timestamp + ")"')
   CONTEXT+="\n\n"
 fi
 
-if [[ -f "$FRICTION" ]]; then
+FRICTION_LINES=$(safe_tail "$FRICTION" 5)
+if [[ -n "$FRICTION_LINES" ]]; then
   CONTEXT+="Recent Friction:\n"
-  CONTEXT+=$(tail -n 5 "$FRICTION" | jq -r '"- " + .domain + " (" + .timestamp + ")"')
+  CONTEXT+=$(echo "$FRICTION_LINES" | jq -r '"- " + .domain + " (" + .timestamp + ")"')
   CONTEXT+="\n\n"
 fi
 
-if [[ -d "$JOURNAL_DIR" ]]; then
+if validate_dir_exists "$JOURNAL_DIR"; then
   CONTEXT+="Recent Decision Journal:\n"
   CONTEXT+=$(ls -t "$JOURNAL_DIR"/*.md 2>/dev/null | head -n 1 | xargs cat 2>/dev/null | head -n 30)
 fi

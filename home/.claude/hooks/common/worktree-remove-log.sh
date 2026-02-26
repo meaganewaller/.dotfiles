@@ -8,6 +8,6 @@ PAYLOAD=$(jq -n \
   --arg path "$PATH" \
   '{ experiment_path: $path, result: "removed" }')
 
-echo "$INPUT" | .claude/hooks/dev-os-emit.sh worktree_removed "$PAYLOAD"
+echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" worktree_removed "$PAYLOAD"
 
 rm -rf "$PATH"
