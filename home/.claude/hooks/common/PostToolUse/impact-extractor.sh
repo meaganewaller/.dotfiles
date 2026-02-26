@@ -117,7 +117,7 @@ fi
 
 echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" tool_write "$PAYLOAD"
 
-LOG_ENTRY=$(jq -n \
+LOG_ENTRY=$(jq -cn \
   --arg timestamp "$TIMESTAMP" \
   --arg file "$FILE_PATH" \
   --arg change_type "$CHANGE_TYPE" \

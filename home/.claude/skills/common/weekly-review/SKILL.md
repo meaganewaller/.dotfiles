@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(jq *)
   - Bash(python3 *)
   - Bash(bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh)
+  - Bash(bash ~/.claude/skills/weekly-review/scripts/publish_to_jekyll.sh *)
 ---
 
 # Weekly Engineering Review (Dev OS)
@@ -100,6 +101,21 @@ python3 ~/.claude/skills/weekly-review/scripts/render_dashboard.py REVIEW_DIR/su
 ```
 
 This updates index.html with the edited review content in the Review tab.
+
+## Step 5 — Publish to Jekyll and open browser
+
+After all edits are complete, publish the synthesized review to Jekyll and launch the server:
+
+```bash
+bash ~/.claude/skills/weekly-review/scripts/publish_to_jekyll.sh REVIEW_DIR
+```
+
+This will:
+- Copy the synthesized review.md content to the Jekyll post
+- Update the summary.json in Jekyll's _data directory
+- Copy charts to Jekyll assets
+- Start the Jekyll server (if not already running)
+- Open the review in your browser
 
 ## Troubleshooting
 

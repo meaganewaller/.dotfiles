@@ -65,25 +65,29 @@ Each line must be valid JSON with these fields:
 
 ```typescript
 interface SummaryJSON {
-  window: {
-    since: string;      // ISO8601 UTC timestamp
-    until: string;      // ISO8601 UTC timestamp
-    days: number;       // Always 7
+  schema_version: string;  // e.g., "1.0.0"
+  week: {
+    start: string;         // YYYY-MM-DD (Monday)
+    end: string;           // YYYY-MM-DD (Sunday)
+    generated_at: string;  // ISO8601 UTC timestamp
   };
-  counts: {
-    events_total: number;
+  totals: {
+    events: number;
+    sessions: number;
     projects_touched: number;
-    sessions_total: number;
-    files_modified: number;
     writes: number;
     failures: number;
-    tradeoff_events: number;
-    large_change_events: number;
-    reversal_events: number;
-    dependency_change_events: number;
-    test_runs_total: number;
-    test_runs_passed: number;
+    large_changes: number;
+    reversals: number;
+    decisions_documented: number;
+    test_runs: number;
+    dependency_changes: number;
+    files_modified: number;
+  };
+  derived_metrics: {
+    failure_rate: number;           // 0.0 - 1.0
     test_stability_rate: number | null;  // null if no tests
+    test_runs_passed: number;
   };
   projects: Array<{
     project: string;      // Short project name
@@ -108,7 +112,8 @@ interface SummaryJSON {
 
 | Condition | Exit Code | Stderr Message |
 |-----------|-----------|----------------|
-| Missing dev-os-events.jsonl | 1 | `Missing ~/.claude/dev-os-events.jsonl` |
+| Missing dev-os-events.jsonl | 1 | `Error: Missing ~/.claude/dev-os-events.jsonl` |
+| Missing Jekyll root | 1 | `Error: Jekyll root directory does not exist: <path>` |
 | Invalid JSON lines | 0 | Silently skipped |
 | Missing projects directory | 0 | Continues with empty session map |
 | Python error | 1 | Python traceback |
@@ -120,6 +125,17 @@ interface SummaryJSON {
 - Only events from past 7 days are included
 - Arrays are sorted by count descending (most common first)
 - `top_*` arrays are limited to 10 items max (except files: 20)
+- Schema version is always present and follows semver
+
+### Jekyll Publishing
+
+After local aggregation, the script:
+
+1. Copies `summary.json` to `$JEKYLL_ROOT/_data/dev_os/{week-start}-summary.json`
+2. Creates post stub at `$JEKYLL_ROOT/_posts/{week-start}-weekly-review.md` (if missing)
+3. Never overwrites existing posts (idempotent)
+
+Environment variable `JEKYLL_ROOT` can override the default path.
 
 ---
 

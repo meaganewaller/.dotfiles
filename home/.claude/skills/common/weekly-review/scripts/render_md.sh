@@ -11,35 +11,44 @@ OUT_DIR="$(cd "$(dirname "$SUMMARY_JSON")" && pwd)"
 OUT_MD="$OUT_DIR/review.md"
 CHARTS_DIR="$OUT_DIR/charts"
 
-WINDOW_SINCE=$(jq -r '.window.since' "$SUMMARY_JSON")
-WINDOW_UNTIL=$(jq -r '.window.until' "$SUMMARY_JSON")
+# Week info (new schema)
+WEEK_START=$(jq -r '.week.start // .window.since // "unknown"' "$SUMMARY_JSON")
+WEEK_END=$(jq -r '.week.end // .window.until // "unknown"' "$SUMMARY_JSON")
 
-# Core metrics
-EVENTS_TOTAL=$(jq -r '.counts.events_total' "$SUMMARY_JSON")
-PROJECTS=$(jq -r '.counts.projects_touched // 0' "$SUMMARY_JSON")
-SESSIONS=$(jq -r '.counts.sessions_total // 0' "$SUMMARY_JSON")
-FILES_MOD=$(jq -r '.counts.files_modified // 0' "$SUMMARY_JSON")
-WRITES=$(jq -r '.counts.writes' "$SUMMARY_JSON")
-FAILURES=$(jq -r '.counts.failures' "$SUMMARY_JSON")
-TRADEOFFS=$(jq -r '.counts.tradeoff_events' "$SUMMARY_JSON")
-LARGE=$(jq -r '.counts.large_change_events' "$SUMMARY_JSON")
-REVERSALS=$(jq -r '.counts.reversal_events' "$SUMMARY_JSON")
-DEPS=$(jq -r '.counts.dependency_change_events' "$SUMMARY_JSON")
-TESTS_TOTAL=$(jq -r '.counts.test_runs_total' "$SUMMARY_JSON")
-TESTS_PASSED=$(jq -r '.counts.test_runs_passed' "$SUMMARY_JSON")
-TEST_RATE=$(jq -r '.counts.test_stability_rate' "$SUMMARY_JSON")
+# Core metrics (support both old and new schema)
+EVENTS_TOTAL=$(jq -r '.totals.events // .counts.events_total // 0' "$SUMMARY_JSON")
+PROJECTS=$(jq -r '.totals.projects_touched // .counts.projects_touched // 0' "$SUMMARY_JSON")
+SESSIONS=$(jq -r '.totals.sessions // .counts.sessions_total // 0' "$SUMMARY_JSON")
+FILES_MOD=$(jq -r '.totals.files_modified // .counts.files_modified // 0' "$SUMMARY_JSON")
+WRITES=$(jq -r '.totals.writes // .counts.writes // 0' "$SUMMARY_JSON")
+FAILURES=$(jq -r '.totals.failures // .counts.failures // 0' "$SUMMARY_JSON")
+TRADEOFFS=$(jq -r '.totals.decisions_documented // .counts.tradeoff_events // 0' "$SUMMARY_JSON")
+LARGE=$(jq -r '.totals.large_changes // .counts.large_change_events // 0' "$SUMMARY_JSON")
+REVERSALS=$(jq -r '.totals.reversals // .counts.reversal_events // 0' "$SUMMARY_JSON")
+DEPS=$(jq -r '.totals.dependency_changes // .counts.dependency_change_events // 0' "$SUMMARY_JSON")
+TESTS_TOTAL=$(jq -r '.totals.test_runs // .counts.test_runs_total // 0' "$SUMMARY_JSON")
+TESTS_PASSED=$(jq -r '.derived_metrics.test_runs_passed // .counts.test_runs_passed // 0' "$SUMMARY_JSON")
+TEST_RATE=$(jq -r '.derived_metrics.test_stability_rate // .counts.test_stability_rate // "N/A"' "$SUMMARY_JSON")
+FAILURE_RATE=$(jq -r '.derived_metrics.failure_rate // 0' "$SUMMARY_JSON")
 
-# Calculate failure rate
-if [[ "$EVENTS_TOTAL" -gt 0 ]]; then
-  FAILURE_RATE=$(echo "scale=1; $FAILURES * 100 / $EVENTS_TOTAL" | bc)
+# Format failure rate as percentage
+if [[ "$FAILURE_RATE" != "null" && "$FAILURE_RATE" != "N/A" ]]; then
+  FAILURE_PCT=$(echo "scale=1; $FAILURE_RATE * 100" | bc 2>/dev/null || echo "0")
 else
-  FAILURE_RATE="0"
+  FAILURE_PCT="0"
+fi
+
+# Format test rate as percentage
+if [[ "$TEST_RATE" != "null" && "$TEST_RATE" != "N/A" ]]; then
+  TEST_PCT=$(echo "scale=1; $TEST_RATE * 100" | bc 2>/dev/null || echo "N/A")
+else
+  TEST_PCT="N/A"
 fi
 
 {
   echo "# Weekly Engineering Review"
   echo
-  echo "**Window:** $WINDOW_SINCE → $WINDOW_UNTIL"
+  echo "**Window:** $WEEK_START → $WEEK_END"
   echo
   echo "## 📝 Executive Summary"
   echo
@@ -57,12 +66,12 @@ fi
   echo "| Total events | $EVENTS_TOTAL |"
   echo "| Files modified | $FILES_MOD |"
   echo "| Writes | $WRITES |"
-  echo "| Failures/friction | $FAILURES ($FAILURE_RATE%) |"
-  echo "| Tradeoff events | $TRADEOFFS |"
+  echo "| Failures/friction | $FAILURES ($FAILURE_PCT%) |"
+  echo "| Decisions documented | $TRADEOFFS |"
   echo "| Large changes | $LARGE |"
   echo "| Reversals | $REVERSALS |"
   echo "| Dependency changes | $DEPS |"
-  echo "| Test runs | $TESTS_PASSED / $TESTS_TOTAL passed (rate: $TEST_RATE) |"
+  echo "| Test runs | $TESTS_PASSED / $TESTS_TOTAL passed ($TEST_PCT%) |"
   echo
   echo "### Per-Project Breakdown"
   echo "| Project | Events | Sessions | Writes | Failures | Tradeoffs |"
@@ -109,9 +118,9 @@ fi
   echo
   echo "## 📈 Charts"
   if [[ -d "$CHARTS_DIR" ]]; then
-    [[ -f "$CHARTS_DIR/events_by_type.png" ]] && echo "![Events by Type]($CHARTS_DIR/events_by_type.png)"
-    [[ -f "$CHARTS_DIR/friction_domains.png" ]] && echo "![Friction Domains]($CHARTS_DIR/friction_domains.png)"
-    [[ -f "$CHARTS_DIR/principles_invoked.png" ]] && echo "![Principles Invoked]($CHARTS_DIR/principles_invoked.png)"
+    [[ -f "$CHARTS_DIR/events_by_type.png" ]] && echo "![Events by Type](charts/events_by_type.png)"
+    [[ -f "$CHARTS_DIR/friction_domains.png" ]] && echo "![Friction Domains](charts/friction_domains.png)"
+    [[ -f "$CHARTS_DIR/principles_invoked.png" ]] && echo "![Principles Invoked](charts/principles_invoked.png)"
   else
     echo "_(Charts not generated - matplotlib not installed)_"
   fi

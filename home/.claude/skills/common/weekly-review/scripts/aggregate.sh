@@ -1,25 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ============================================================================
+# Configuration
+# ============================================================================
+
 OUT_DIR_BASE="$HOME/.claude/reviews"
 PROJECTS_DIR="$HOME/.claude/projects"
 GLOBAL_STREAM="$HOME/.claude/dev-os-events.jsonl"
+JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/weekly-reviews}"
 
-# Require global stream
+# ============================================================================
+# Validation
+# ============================================================================
+
+# FR-6: Require global stream
 if [[ ! -f "$GLOBAL_STREAM" ]]; then
-  echo "Missing $GLOBAL_STREAM" >&2
+  echo "Error: Missing $GLOBAL_STREAM" >&2
   exit 1
 fi
 
+# FR-6: Require Jekyll root directory
+if [[ ! -d "$JEKYLL_ROOT" ]]; then
+  echo "Error: Jekyll root directory does not exist: $JEKYLL_ROOT" >&2
+  exit 1
+fi
+
+# ============================================================================
+# Setup directories
+# ============================================================================
+
 mkdir -p "$OUT_DIR_BASE"
 
-# Week folder: start-of-week (Monday) in UTC
-WEEK_START=$(python3 - <<'PY'
+POSTS_DIR="$JEKYLL_ROOT/_posts"
+DATA_DIR="$JEKYLL_ROOT/_data/dev_os"
+
+mkdir -p "$POSTS_DIR"
+mkdir -p "$DATA_DIR"
+
+# ============================================================================
+# Compute week boundaries (Monday-based, UTC)
+# ============================================================================
+
+read -r WEEK_START WEEK_END < <(python3 - <<'PY'
 import datetime as dt
 now = dt.datetime.now(dt.timezone.utc)
 monday = now - dt.timedelta(days=now.weekday())
 monday = dt.datetime(monday.year, monday.month, monday.day, tzinfo=dt.timezone.utc)
-print(monday.date().isoformat())
+sunday = monday + dt.timedelta(days=6)
+print(monday.date().isoformat(), sunday.date().isoformat())
 PY
 )
 
@@ -28,13 +57,22 @@ mkdir -p "$OUT_DIR"
 
 SUMMARY_JSON="$OUT_DIR/summary.json"
 
-# Run Python aggregation with project mapping
-python3 - <<'PY' "$GLOBAL_STREAM" "$PROJECTS_DIR" "$SUMMARY_JSON"
-import json, sys, os, datetime as dt
+# ============================================================================
+# Aggregate events (Python)
+# ============================================================================
+
+python3 - <<PY "$GLOBAL_STREAM" "$PROJECTS_DIR" "$SUMMARY_JSON" "$WEEK_START" "$WEEK_END"
+import json, sys, datetime as dt
 from collections import Counter, defaultdict
 from pathlib import Path
 
-stream_path, projects_dir, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+stream_path = sys.argv[1]
+projects_dir = sys.argv[2]
+out_path = sys.argv[3]
+week_start = sys.argv[4]
+week_end = sys.argv[5]
+
+SCHEMA_VERSION = "1.0.0"
 
 def parse_ts(s: str):
     if s.endswith("Z"):
@@ -58,7 +96,6 @@ def build_session_project_map(projects_dir: str) -> dict:
         if not project_dir.is_dir() or project_dir.name.startswith("."):
             continue
         project_name = decode_project_name(project_dir.name)
-        # Find session files (UUID.jsonl)
         for item in project_dir.iterdir():
             if item.suffix == ".jsonl" and item.is_file():
                 session_id = item.stem
@@ -72,7 +109,6 @@ def build_session_project_map(projects_dir: str) -> dict:
 now = dt.datetime.now(dt.timezone.utc)
 since = now - dt.timedelta(days=7)
 
-# Build session -> project mapping
 session_map = build_session_project_map(projects_dir)
 
 # Read and filter events
@@ -94,7 +130,6 @@ with open(stream_path, "r", encoding="utf-8") as f:
         except Exception:
             continue
         if t >= since:
-            # Enrich with project info
             session_id = e.get("session_id", "")
             if session_id in session_map:
                 e["_project"] = session_map[session_id]
@@ -149,7 +184,6 @@ for e in events:
         d = payload.get("domain")
         if isinstance(d, str) and d.strip():
             friction_domains[d.strip()] += 1
-        # Handle new structured friction_domain
         fd = payload.get("friction_domain") or {}
         subdomain = fd.get("subdomain")
         if subdomain:
@@ -181,6 +215,7 @@ for e in events:
 total_tests = sum(test_results.values())
 pass_tests = test_results.get("passed", 0)
 test_stability_rate = (pass_tests / total_tests) if total_tests else None
+failure_rate = (failures / len(events)) if events else 0.0
 
 # Convert project stats for JSON (sets -> counts)
 projects_summary = []
@@ -196,26 +231,31 @@ for proj, stats in sorted(project_stats.items(), key=lambda x: -x[1]["events"]):
         "reversals": stats["reversals"]
     })
 
+# FR-5: Schema with version and structured format
 summary = {
-    "window": {
-        "since": since.isoformat().replace("+00:00", "Z"),
-        "until": now.isoformat().replace("+00:00", "Z"),
-        "days": 7
+    "schema_version": SCHEMA_VERSION,
+    "week": {
+        "start": week_start,
+        "end": week_end,
+        "generated_at": now.isoformat().replace("+00:00", "Z")
     },
-    "counts": {
-        "events_total": len(events),
+    "totals": {
+        "events": len(events),
+        "sessions": len(set(e.get("session_id", "") for e in events)),
         "projects_touched": len(project_stats),
-        "sessions_total": len(set(e.get("session_id", "") for e in events)),
-        "files_modified": len(files_modified),
         "writes": writes,
         "failures": failures,
-        "tradeoff_events": tradeoffs,
-        "large_change_events": large_changes,
-        "reversal_events": reversals,
-        "dependency_change_events": dependency_changes,
-        "test_runs_total": total_tests,
-        "test_runs_passed": pass_tests,
-        "test_stability_rate": test_stability_rate
+        "large_changes": large_changes,
+        "reversals": reversals,
+        "decisions_documented": tradeoffs,
+        "test_runs": total_tests,
+        "dependency_changes": dependency_changes,
+        "files_modified": len(files_modified)
+    },
+    "derived_metrics": {
+        "failure_rate": round(failure_rate, 4),
+        "test_stability_rate": round(test_stability_rate, 4) if test_stability_rate is not None else None,
+        "test_runs_passed": pass_tests
     },
     "projects": projects_summary,
     "events_by_type": dict(by_type.most_common()),
@@ -228,9 +268,63 @@ summary = {
 
 with open(out_path, "w", encoding="utf-8") as out:
     json.dump(summary, out, indent=2)
-
-print(out_path, file=sys.stderr)
 PY
 
-echo "✓ Wrote $SUMMARY_JSON" >&2
+# FR-7: Log local summary
+echo "✓ Wrote local summary: $SUMMARY_JSON" >&2
+
+# ============================================================================
+# FR-2: Publish to Jekyll
+# ============================================================================
+
+JEKYLL_SUMMARY="$DATA_DIR/${WEEK_START}-summary.json"
+JEKYLL_POST="$POSTS_DIR/${WEEK_START}-weekly-review.md"
+
+# Copy summary JSON (overwrites safely)
+cp "$SUMMARY_JSON" "$JEKYLL_SUMMARY"
+echo "✓ Published summary to Jekyll: $JEKYLL_SUMMARY" >&2
+
+# ============================================================================
+# FR-3: Create post stub if missing
+# ============================================================================
+
+if [[ ! -f "$JEKYLL_POST" ]]; then
+  cat > "$JEKYLL_POST" <<EOF
+---
+layout: review
+title: "Weekly Engineering Review — ${WEEK_START}"
+date: ${WEEK_START}
+summary_file: ${WEEK_START}-summary.json
+---
+
+<!-- PLACEHOLDER:EXECUTIVE_SUMMARY -->
+
+## Executive Summary
+
+_(AI synthesis will populate this section.)_
+
+<!-- PLACEHOLDER:FRICTION_ANALYSIS -->
+
+## Friction Analysis
+
+_(Generated from summary data.)_
+
+<!-- PLACEHOLDER:IMPACT_BULLETS -->
+
+## Promotion-Ready Impact Bullets
+
+-
+
+<!-- PLACEHOLDER:PRECISION_MOVES -->
+
+## Precision Moves for Next Week
+
+-
+EOF
+  echo "✓ Created post: $JEKYLL_POST" >&2
+else
+  echo "• Skipped: $JEKYLL_POST already exists" >&2
+fi
+
+# Print output directory (for consumers)
 echo "$OUT_DIR"

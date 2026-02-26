@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Generate weekly review artifacts (local only)
+# Jekyll publishing happens separately via publish_to_jekyll.sh after AI synthesis
+
 SKILL_DIR="$HOME/.claude/skills/weekly-review/scripts"
 
-# 1. Aggregate
+# 1. Aggregate events and publish initial summary to Jekyll
 OUT_DIR=$("$SKILL_DIR/aggregate.sh")
 
 # 2. Determine summary.json path
@@ -21,11 +24,12 @@ else
   echo "⚠ Skipping charts (matplotlib not installed)" >&2
 fi
 
-# 4. Generate markdown
+# 4. Generate markdown (with placeholders for AI synthesis)
 bash "$SKILL_DIR/render_md.sh" "$SUMMARY_JSON"
 
 # 5. Generate dashboard
 python3 "$SKILL_DIR/render_dashboard.py" "$SUMMARY_JSON"
 
-echo "✓ Weekly review generated at: $OUT_DIR"
+echo "✓ Weekly review generated at: $OUT_DIR" >&2
+echo "→ Next: AI will fill placeholders, then run publish_to_jekyll.sh" >&2
 echo "$OUT_DIR"

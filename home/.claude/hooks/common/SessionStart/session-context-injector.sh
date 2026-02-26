@@ -14,16 +14,22 @@ CONTEXT=""
 
 IMPACT_LINES=$(safe_tail "$IMPACT" 5)
 if [[ -n "$IMPACT_LINES" ]]; then
-  CONTEXT+="Recent Impact:\n"
-  CONTEXT+=$(echo "$IMPACT_LINES" | jq -r '"- " + .change_type + " (" + .timestamp + ")"')
-  CONTEXT+="\n\n"
+  IMPACT_PARSED=$(echo "$IMPACT_LINES" | jq -r '"- " + .change_type + " (" + .timestamp + ")"' 2>/dev/null || true)
+  if [[ -n "$IMPACT_PARSED" ]]; then
+    CONTEXT+="Recent Impact:\n"
+    CONTEXT+="$IMPACT_PARSED"
+    CONTEXT+="\n\n"
+  fi
 fi
 
 FRICTION_LINES=$(safe_tail "$FRICTION" 5)
 if [[ -n "$FRICTION_LINES" ]]; then
-  CONTEXT+="Recent Friction:\n"
-  CONTEXT+=$(echo "$FRICTION_LINES" | jq -r '"- " + .domain + " (" + .timestamp + ")"')
-  CONTEXT+="\n\n"
+  FRICTION_PARSED=$(echo "$FRICTION_LINES" | jq -r '"- " + .domain + " (" + .timestamp + ")"' 2>/dev/null || true)
+  if [[ -n "$FRICTION_PARSED" ]]; then
+    CONTEXT+="Recent Friction:\n"
+    CONTEXT+="$FRICTION_PARSED"
+    CONTEXT+="\n\n"
+  fi
 fi
 
 if validate_dir_exists "$JOURNAL_DIR"; then
