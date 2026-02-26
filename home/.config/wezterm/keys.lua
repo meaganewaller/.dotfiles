@@ -4,6 +4,7 @@ local act = wezterm.action
 local util = require("util")
 local commands = require("commands")
 local projects = require("projects")
+local cheatsheet = require("cheatsheet")
 
 local M = {}
 
@@ -206,20 +207,8 @@ function M.apply(config)
         end),
       }),
     },
-    {
-      "k",
-      "CMD|SHIFT",
-      wezterm.action_callback(function(window, pane)
-        util.show_keymap(window, pane, "WezTerm – Keymaps", {
-          "Tabs:     CMD+t new tab | CMD+h/l prev/next | CMD+SHIFT+h/l move | CMD+x close | CMD+n rename",
-          "Panes:    ALT+h/j/k/l move focus | CMD+s splits mode | (in splits) v vertical | s horizontal | c close",
-          "Resize:   (in splits) R resize mode | hjkl resize | Esc exit",
-          "WS:       CMD+w workspace mode | n new | r rename | o picker | j/k next/prev",
-          "Tools:    CMD+k lazygit | CMD+u scratch | CMD+i open scrollback in editor",
-          "Launcher: CMD+r run command | CMD+a commands | CMD+d workspaces | CMD+p projects",
-        })
-      end),
-    },
+    -- keybinding help
+    { "k", "CMD|SHIFT", cheatsheet.quick_lookup_action() },
   })
 
   -- splice in the shared hjkl nav bindings

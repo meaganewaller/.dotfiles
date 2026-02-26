@@ -15,6 +15,7 @@ wezterm/
 ├── commands.local.lua       # Machine-specific commands (gitignored)
 ├── projects.lua             # Project workspace launcher
 ├── projects.local.lua       # Machine-specific projects (gitignored)
+├── cheatsheet.lua           # Keybinding cheatsheet
 ├── util.lua                 # Helper functions
 └── wallpapers/              # Background images
 ```
@@ -108,12 +109,12 @@ The leader key activates key tables for panes and workspaces.
 | `Ctrl+c` | Smart copy (copies selection if present, else sends SIGINT) |
 | `Ctrl+v` | Paste from clipboard |
 
-### Debug
+### Help & Debug
 
 | Key | Action |
 |-----|--------|
+| `Cmd+Shift+k` | Keybinding help (fuzzy searchable) |
 | `Cmd+Shift+i` | Show debug overlay |
-| `Cmd+Shift+k` | Show keybinding help |
 
 ## Theme Integration
 
