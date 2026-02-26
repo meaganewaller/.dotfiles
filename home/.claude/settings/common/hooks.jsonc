@@ -51,6 +51,10 @@
                 "hooks": [
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/Stop/response-topics-writer.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/Stop/hard-stop-test-blocker.sh"
                     },
                     {
@@ -70,7 +74,25 @@
                 "hooks": [
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/UserPromptSubmit/cue-injector-prompt.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/UserPromptSubmit/state-triggers.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/UserPromptSubmit/idea-classifier.sh"
+                    }
+                ]
+            }
+        ],
+        "SubagentStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/SubagentStart/cue-inject-subagent.sh"
                     }
                 ]
             }
@@ -99,8 +121,39 @@
         ],
         "PreToolUse": [
             {
+                "matcher": "TaskCreate",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/PreToolUse/mark-tasks-active.sh"
+                    }
+                ]
+            },
+            {
+                "matcher": "Task",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/PreToolUse/cue-task-stash.sh"
+                    }
+                ]
+            },
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/PreToolUse/cue-injector-bash.sh"
+                    }
+                ]
+            },
+            {
                 "matcher": "Write|Edit",
                 "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/PreToolUse/cue-injector-file.sh"
+                    },
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/layering-guard.sh"
@@ -132,6 +185,10 @@
             {
                 "matcher": "startup|resume",
                 "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/SessionStart/clear-cue-markers.sh"
+                    },
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/session-context-injector.sh"

@@ -95,6 +95,46 @@ teardown() {
   bash -n "$HOOKS_DIR/UserPromptSubmit/idea-classifier.sh"
 }
 
+@test "match-cues.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/match-cues.sh"
+}
+
+@test "SessionStart/clear-cue-markers.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/SessionStart/clear-cue-markers.sh"
+}
+
+@test "UserPromptSubmit/cue-injector-prompt.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/UserPromptSubmit/cue-injector-prompt.sh"
+}
+
+@test "UserPromptSubmit/state-triggers.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/UserPromptSubmit/state-triggers.sh"
+}
+
+@test "PreToolUse/cue-injector-bash.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/cue-injector-bash.sh"
+}
+
+@test "PreToolUse/cue-injector-file.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/cue-injector-file.sh"
+}
+
+@test "PreToolUse/mark-tasks-active.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/mark-tasks-active.sh"
+}
+
+@test "PreToolUse/cue-task-stash.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/cue-task-stash.sh"
+}
+
+@test "SubagentStart/cue-inject-subagent.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/SubagentStart/cue-inject-subagent.sh"
+}
+
+@test "Stop/response-topics-writer.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/Stop/response-topics-writer.sh"
+}
+
 # ============================================================================
 # Source Validation - Hooks that source validate-path.sh must work
 # ============================================================================

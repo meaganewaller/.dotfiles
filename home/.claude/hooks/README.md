@@ -13,14 +13,28 @@ hooks/
     ├── hook-health.sh        # CLI: check hook execution health
     ├── worktree-create-log.sh # log worktree creation (e.g. from git hook or script)
     ├── worktree-remove-log.sh # log worktree removal
+    ├── match-cues.sh            # shared: find cues matching prompt/command/file (used by cue injectors)
     ├── SessionStart/
+    │   ├── clear-cue-markers.sh
     │   ├── session-context-injector.sh
     │   ├── friction-escalator.sh
     │   └── hook-health-reporter.sh
     ├── UserPromptSubmit/
+    │   ├── cue-injector-prompt.sh
+    │   ├── state-triggers.sh
     │   └── idea-classifier.sh
     ├── PreToolUse/
+    │   ├── cue-injector-bash.sh
+    │   ├── cue-injector-file.sh
+    │   ├── mark-tasks-active.sh
+    │   ├── cue-task-stash.sh
     │   └── layering-guard.sh
+    ├── SubagentStart/
+    │   └── cue-inject-subagent.sh
+    ├── Stop/
+    │   ├── response-topics-writer.sh
+    │   ├── hard-stop-test-blocker.sh
+    │   └── pending-tradeoff-blocker.sh
     ├── PostToolUse/
     │   ├── impact-extractor.sh
     │   ├── large-diff-escalator.sh
@@ -30,9 +44,6 @@ hooks/
     │   └── async-test-runner.sh
     ├── PostToolUseFailure/
     │   └── skill-gap-detector.sh
-    ├── Stop/
-    │   ├── hard-stop-test-blocker.sh
-    │   └── pending-tradeoff-blocker.sh
     ├── TaskCompleted/
     │   └── task-gate.sh
     ├── PreCompact/
@@ -52,18 +63,19 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 
 **Stop** runs a command first (`hard-stop-test-blocker.sh`), then a prompt gate. **SubagentStop** is defined entirely in the JSON (agent only).
 
-**Paths:** Some hooks use the **project** `.claude/` (e.g. `session-context-injector` reads from the repo’s `.claude/`). Others use **`$HOME/.claude/`** for logs and outputs (e.g. `impact-log.jsonl`, `skill-friction-log.jsonl`, `dev-os-events.jsonl`, `learning-targets/`). Scripts in this repo may use either depending on whether the data is project-specific or global.
+**Paths:** Some hooks use the **project** `.claude/` (e.g. `session-context-injector` reads from the repo’s `.claude/`). Others use **`$HOME/.claude/`** for logs and outputs (e.g. `impact-log.jsonl`, `skill-friction-log.jsonl`, `dev-os-events.jsonl`, `learning-targets/`). **Cues** live in `~/.claude/cues/<name>/cue.md` (and optionally `$PROJECT/.claude/cues/`); they are declarative guidance that fires when the user prompt, a bash command, or a file path matches regexes in the cue’s frontmatter (`pattern:`, `commands:`, `files:`). Once-per-session gating uses markers under `/tmp/.claude-devos-cue-*`; `clear-cue-markers.sh` resets them on SessionStart.
 
 ## Event → script summary
 
 | Event              | Script(s) | When / purpose |
 |--------------------|-----------|----------------|
-| **SessionStart**   | `session-context-injector.sh`, `friction-escalator.sh`, `hook-health-reporter.sh` | On startup/resume: inject recent impact, friction, and decision-journal context; if recent friction log shows 3+ hits in one domain, inject a suggestion to study that domain; report hook health issues if failure rate >10%. |
-| **UserPromptSubmit** | `idea-classifier.sh` | On every prompt: if the prompt looks like a strong opinion or tradeoff, append to `.claude/idea-vault.md`. |
-| **PreToolUse**     | `layering-guard.sh` | Before Write/Edit: block app code that violates layering (e.g. models referencing controllers). |
+| **SessionStart**   | `clear-cue-markers.sh`, `session-context-injector.sh`, `friction-escalator.sh`, `hook-health-reporter.sh` | Clear cue/task markers; inject recent impact, friction, journal, and `core.md`; friction escalator; hook health. |
+| **UserPromptSubmit** | `cue-injector-prompt.sh`, `state-triggers.sh`, `idea-classifier.sh` | Match prompt (and last-response topics) to cues; session-start / context-threshold state triggers; idea vault. |
+| **PreToolUse**     | `mark-tasks-active.sh` (TaskCreate), `cue-task-stash.sh` (Task), `cue-injector-bash.sh` (Bash), `cue-injector-file.sh` + `layering-guard.sh` (Write\|Edit) | TaskCreate: set tasks-active marker. Task: stash cues for subagent. Bash: inject cues for command. Write/Edit: inject cues for file path, then layering guard. |
 | **PostToolUse**    | `impact-extractor.sh`, `large-diff-escalator.sh`, `dependency-change-detector.sh`, `reversal-detector.sh`, `async-test-runner.sh` | After Write/Edit: log change type to impact log; if diff >250 lines emit `large_change` and prompt to summarize risk; if dependency file changed emit `dependency_change`; if large net removal (reversal) emit `reversal`; run tests and emit `test_run` (async). |
 | **PostToolUseFailure** | `skill-gap-detector.sh` | After tool failure: classify and append to `.claude/skill-friction-log.jsonl`. |
-| **Stop**           | `hard-stop-test-blocker.sh` (then prompt) | Before allowing stop: block if last `test_run` in dev-os-events was failed; then prompt gate for meaningful leverage. |
+| **SubagentStart**  | `cue-inject-subagent.sh` | Inject stashed cue content into subagent context. |
+| **Stop**           | `response-topics-writer.sh`, `hard-stop-test-blocker.sh`, `pending-tradeoff-blocker.sh` (then prompt) | Write last-response topics for next prompt; block if last test failed or pending tradeoffs; then leverage prompt. |
 | **TaskCompleted**  | `task-gate.sh` | When a task is marked complete: run rspec, rubocop, migration/reversible and public-API-doc checks; on success emit `task_completed`. |
 | **PreCompact**     | `pre-compact-snapshot.sh` | Before context compact: write a snapshot to `.claude/session-summaries/`. |
 | **SessionEnd**     | `learning-suggestion-generator.sh` | On session end: generate `.claude/learning-targets/latest.md` from impact/friction/journal. |

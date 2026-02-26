@@ -40,6 +40,11 @@ if validate_dir_exists "$JOURNAL_DIR"; then
   CONTEXT+=$(ls -t "$JOURNAL_DIR"/*.md 2>/dev/null | head -n 1 | xargs cat 2>/dev/null | head -n 30)
 fi
 
+if [[ -f "$CLAUDE_HOME/core.md" ]]; then
+  CONTEXT+="\n---\n"
+  CONTEXT+=$(cat "$CLAUDE_HOME/core.md" 2>/dev/null || true)
+fi
+
 jq -n \
   --arg context "$CONTEXT" \
   '{
