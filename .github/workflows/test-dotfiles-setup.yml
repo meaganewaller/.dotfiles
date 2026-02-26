@@ -5,7 +5,11 @@ on:
     branches: [main]
     paths:
       - '**/*.sh'
+      - '**/*.py'
+      - '**/*.bats'
       - '.github/workflows/*.yml'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -18,21 +22,57 @@ jobs:
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
 
+      - name: Check shell script syntax
+        run: |
+          echo "Checking shell script syntax..."
+          FAILED=0
+          while IFS= read -r -d '' script; do
+            if ! bash -n "$script" 2>/dev/null; then
+              echo "Syntax error: $script"
+              FAILED=1
+            fi
+          done < <(find . -name "*.sh" -not -path "./.git/*" -print0)
+          exit $FAILED
+
       - name: Run shellcheck
         run: |
           find . -name "*.sh" -not -path "./.git/*" -print0 | xargs -0 shellcheck --severity=warning || true
-          shellcheck --severity=warning bin/* || true
-          shellcheck --severity=warning home/.local/bin/* || true
+          shellcheck --severity=warning bin/* 2>/dev/null || true
+          shellcheck --severity=warning home/.local/bin/* 2>/dev/null || true
 
       - name: Validate JSON
         run: |
-          for f in home/.config/theme/themes/*.json; do
-            echo "Checking $f"
-            python3 -m json.tool "$f" > /dev/null
-          done
+          echo "Validating JSON files..."
+          FAILED=0
+          while IFS= read -r -d '' f; do
+            if ! python3 -m json.tool "$f" > /dev/null 2>&1; then
+              echo "Invalid JSON: $f"
+              FAILED=1
+            fi
+          done < <(find . -name "*.json" -not -path "./.git/*" -not -path "*/node_modules/*" -print0)
+          exit $FAILED
 
       - name: Validate themes
         run: python3 bin/validate-themes
+
+  unit-tests:
+    name: Unit Tests (BATS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install BATS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+
+      - name: Run hook unit tests
+        run: |
+          if [[ -d test/hooks ]]; then
+            bats test/hooks/*.bats
+          else
+            echo "No BATS tests found"
+          fi
 
   test-macos:
     name: Test (macOS)

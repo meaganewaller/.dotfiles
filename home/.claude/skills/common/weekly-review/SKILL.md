@@ -45,12 +45,16 @@ Read:
 
 Analyze the data and prepare content for these sections:
 
-1. **Executive Summary** (3–6 sentences): interpret execution quality, risk, discipline.
-2. **Friction Analysis**: pick top 1–2 friction domains, explain why they’re happening, and propose a deliberate practice plan.
-3. **Architecture & Principles**: interpret which principles dominate and what that implies (strengths + blindspots).
-4. **Discipline Flags**: call out large-change-without-tradeoff, reversals, dependency churn. Be direct.
-5. **Promotion-Ready Impact Bullets**: 4–6 bullets; specific and measurable; grounded in patterns.
-6. **Precision Moves**: exactly 3 moves for next week:
+1. **Executive Summary**: A structured overview with these subsections:
+   - **Overall Assessment** (1 sentence): High-level verdict on the week
+   - **Key Wins** (2-3 bullets): What went well
+   - **Concerns** (2-3 bullets): What needs attention
+   - **Week Character** (1 sentence): The nature/theme of the work
+2. **Friction Analysis**: pick top 1–2 friction domains, explain why they’re happening, and propose a deliberate practice plan. Use headers and bullet points.
+3. **Architecture & Principles**: interpret which principles dominate and what that implies (strengths + blindspots). Use **Strengths:** and **Blindspots:** subsections.
+4. **Discipline Flags**: call out large-change-without-tradeoff, reversals, dependency churn. Use bold headers for each flag type.
+5. **Promotion-Ready Impact Bullets**: 4–6 bullets; specific and measurable; grounded in patterns. Each bullet should start with a bold action verb.
+6. **Precision Moves**: exactly 3 moves for next week, each with a bold title and 2-3 sentence explanation:
    - 1 architecture focus
    - 1 skill deepening focus
    - 1 leverage move (documentation/abstraction/thought leadership)
@@ -86,7 +90,19 @@ old_string: |
   <!-- END:EXECUTIVE_SUMMARY -->
 
 new_string: |
-  This week demonstrated strong execution discipline with 45 successful writes...
+  **Overall Assessment:** Strong execution week with solid test coverage but elevated friction.
+
+  **Key Wins:**
+  - Delivered 45 successful writes across 3 projects
+  - Maintained 92% test stability throughout infrastructure changes
+  - Documented 4 architectural decisions with clear tradeoffs
+
+  **Concerns:**
+  - 38% failure rate indicates environmental friction
+  - Only 2 of 8 large changes had documented tradeoffs
+  - Resource-limit errors suggest need for chunked operations
+
+  **Week Character:** Infrastructure investment week with expected turbulence.
 ```
 
 You MUST use the Edit tool to modify the file. Do NOT skip this step or claim you cannot edit.
