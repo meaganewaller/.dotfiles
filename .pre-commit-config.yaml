@@ -42,3 +42,6 @@ repos:
         language: script
         files: ^home/\.config/theme/themes/.*\.json$
         pass_filenames: false
+
+      # tradeoff-gate is now a global git hook (see ~/.config/git/hooks/pre-commit)
+      # It runs automatically for all repos via core.hooksPath

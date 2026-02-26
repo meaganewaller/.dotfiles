@@ -8,12 +8,15 @@ This directory holds **hook scripts** that run in response to Claude Code events
 hooks/
 ├── README.md                  # this file
 └── common/                   # shared hooks (used by all profiles)
+    ├── validate-path.sh      # shared utilities: path validation, health monitoring
     ├── dev-os-emit.sh        # helper: append events to .claude/dev-os-events.jsonl
+    ├── hook-health.sh        # CLI: check hook execution health
     ├── worktree-create-log.sh # log worktree creation (e.g. from git hook or script)
     ├── worktree-remove-log.sh # log worktree removal
     ├── SessionStart/
     │   ├── session-context-injector.sh
-    │   └── friction-escalator.sh
+    │   ├── friction-escalator.sh
+    │   └── hook-health-reporter.sh
     ├── UserPromptSubmit/
     │   └── idea-classifier.sh
     ├── PreToolUse/
@@ -23,11 +26,13 @@ hooks/
     │   ├── large-diff-escalator.sh
     │   ├── dependency-change-detector.sh
     │   ├── reversal-detector.sh
+    │   ├── tradeoff-capture.sh
     │   └── async-test-runner.sh
     ├── PostToolUseFailure/
     │   └── skill-gap-detector.sh
     ├── Stop/
-    │   └── hard-stop-test-blocker.sh
+    │   ├── hard-stop-test-blocker.sh
+    │   └── pending-tradeoff-blocker.sh
     ├── TaskCompleted/
     │   └── task-gate.sh
     ├── PreCompact/
@@ -53,7 +58,7 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 
 | Event              | Script(s) | When / purpose |
 |--------------------|-----------|----------------|
-| **SessionStart**   | `session-context-injector.sh`, `friction-escalator.sh` | On startup/resume: inject recent impact, friction, and decision-journal context; if recent friction log shows 3+ hits in one domain, inject a suggestion to study that domain. |
+| **SessionStart**   | `session-context-injector.sh`, `friction-escalator.sh`, `hook-health-reporter.sh` | On startup/resume: inject recent impact, friction, and decision-journal context; if recent friction log shows 3+ hits in one domain, inject a suggestion to study that domain; report hook health issues if failure rate >10%. |
 | **UserPromptSubmit** | `idea-classifier.sh` | On every prompt: if the prompt looks like a strong opinion or tradeoff, append to `.claude/idea-vault.md`. |
 | **PreToolUse**     | `layering-guard.sh` | Before Write/Edit: block app code that violates layering (e.g. models referencing controllers). |
 | **PostToolUse**    | `impact-extractor.sh`, `large-diff-escalator.sh`, `dependency-change-detector.sh`, `reversal-detector.sh`, `async-test-runner.sh` | After Write/Edit: log change type to impact log; if diff >250 lines emit `large_change` and prompt to summarize risk; if dependency file changed emit `dependency_change`; if large net removal (reversal) emit `reversal`; run tests and emit `test_run` (async). |
@@ -65,12 +70,31 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 
 ## Helper scripts
 
-- **`dev-os-emit.sh`**  
-  Used by other hooks to append a single JSON line to `.claude/dev-os-events.jsonl`.  
-  Usage: `echo '<hook stdin>' | ./dev-os-emit.sh <event_type> '<payload json>'`.  
+- **`validate-path.sh`**
+  Shared utility library sourced by most hooks. Provides:
+  - Path constants: `CLAUDE_HOME`, `CLAUDE_EVENTS_LOG`, `CLAUDE_FRICTION_LOG`, `CLAUDE_IMPACT_LOG`, `CLAUDE_HOOK_HEALTH_LOG`
+  - Validation functions: `validate_file_exists`, `validate_file_readable`, `validate_dir_exists`
+  - Ensure functions: `ensure_dir_exists`, `ensure_file_exists`
+  - Safe I/O: `safe_tail`, `safe_append`, `safe_emit`
+  - Resource guards: `guard_diff_size`, `guard_file_size`, `guard_log_size`
+  - **Hook health monitoring**: `hook_register`, `hook_success`, `hook_failure`, `hook_health_summary`
+
+- **`dev-os-emit.sh`**
+  Used by other hooks to append a single JSON line to `.claude/dev-os-events.jsonl`.
+  Usage: `echo '<hook stdin>' | ./dev-os-emit.sh <event_type> '<payload json>'`.
   Event types used: `test_run`, `task_completed`, `worktree_created`, `worktree_removed`, `large_change`, `dependency_change`, `reversal`, `tool_write`, `tool_failure`, `prompt_opinion`. Subagent **SubagentStop** can also write `decision_tradeoff` events to the same file (via the agent, not this script). Output is written to **`$HOME/.claude/dev-os-events.jsonl`**.
 
-- **`worktree-create-log.sh`** / **`worktree-remove-log.sh`**  
+- **`hook-health.sh`**
+  CLI tool to check hook execution health. Reads from `$HOME/.claude/hook-health.jsonl`.
+  ```bash
+  hook-health.sh              # 24-hour summary
+  hook-health.sh 168          # 7-day summary
+  hook-health.sh --recent     # Last 10 executions
+  hook-health.sh --failures   # Recent failures only
+  hook-health.sh --tail       # Follow log in real-time
+  ```
+
+- **`worktree-create-log.sh`** / **`worktree-remove-log.sh`**
   Emit `worktree_created` / `worktree_removed` via `dev-os-emit.sh` then run the real worktree add/remove. Intended to be used as the actual worktree add/remove command (e.g. from a wrapper or git hook) so experiments are logged.
 
 ## Input/output
@@ -85,6 +109,32 @@ Paths may be **project** (e.g. `.claude/` under `$CLAUDE_PROJECT_DIR`) or **home
 
 ---
 
+## Hook health monitoring
+
+Hooks can opt into health monitoring by calling `hook_register` at startup. This provides “observability of the observer” - when hooks fail silently, you'll know.
+
+**To instrument a hook:**
+```bash
+source “$SCRIPT_DIR/validate-path.sh”
+hook_register “my-hook-name”   # Call early; sets up EXIT trap
+# ... hook logic ...
+# Exit trap automatically logs success/failure to ~/.claude/hook-health.jsonl
+```
+
+**What gets logged:**
+- Timestamp, hook name, status (success/failure), duration in ms, error message (if any)
+
+**How to check health:**
+```bash
+~/.claude/hooks/hook-health.sh           # 24h summary
+~/.claude/hooks/hook-health.sh --recent  # Last 10 runs
+~/.claude/hooks/hook-health.sh --tail    # Live follow
+```
+
+**SessionStart reporter:** The `hook-health-reporter.sh` hook runs at session start and surfaces a warning if hook failure rate exceeds 10% or there are more than 5 failures in the last 24 hours.
+
+---
+
 ## Context for each hook
 
 ### SessionStart
@@ -92,8 +142,11 @@ Paths may be **project** (e.g. `.claude/` under `$CLAUDE_PROJECT_DIR`) or **home
 - **session-context-injector.sh**  
   Runs on startup/resume (matcher: `startup|resume`). Reads from the **project** `.claude/`: last 5 lines of `impact-log.jsonl`, last 5 of `skill-friction-log.jsonl`, and the latest markdown in `decision-journal/`. Builds a short “Recent Impact / Recent Friction / Recent Decision Journal” summary and outputs it as `hookSpecificOutput.additionalContext` so Claude sees it at session start. If those files don’t exist or are in `$HOME/.claude/`, this may inject nothing.
 
-- **friction-escalator.sh**  
+- **friction-escalator.sh**
   Runs right after the context injector. Reads **`$HOME/.claude/skill-friction-log.jsonl`** (last 20 lines). If one domain (or `unknown`) appears 3+ times, it outputs `hookSpecificOutput.additionalContext` suggesting repeated friction in that domain and to consider deliberate study; optionally includes subdomain breakdown and a recent hint. Otherwise exits without output.
+
+- **hook-health-reporter.sh**
+  Runs after friction-escalator. Reads **`$HOME/.claude/hook-health.jsonl`** and computes 24-hour stats. If failure rate exceeds 10% or total failures exceed 5, outputs a warning via `hookSpecificOutput.additionalContext` listing the top failing hooks and their error messages. Provides "observability of the observer" - ensures you know when the telemetry system itself is failing.
 
 ### UserPromptSubmit
 

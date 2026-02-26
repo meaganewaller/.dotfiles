@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tradeoff - Quick tradeoff documentation CLI
+#
+# Usage:
+#   tradeoff                    # Interactive prompt
+#   tradeoff "quick note"       # One-liner
+#   tradeoff --list             # List recent tradeoffs
+#   tradeoff --edit             # Edit most recent tradeoff
+
+JOURNAL_DIR="${TRADEOFF_JOURNAL:-$HOME/.claude/decision-journal}"
+mkdir -p "$JOURNAL_DIR"
+
+# Colors
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+show_help() {
+  cat << 'EOF'
+tradeoff - Quick tradeoff documentation
+
+Usage:
+  tradeoff                    Interactive editor
+  tradeoff "note"             Quick one-liner
+  tradeoff --list, -l         List recent tradeoffs
+  tradeoff --edit, -e         Edit most recent
+  tradeoff --help, -h         Show this help
+
+Environment:
+  TRADEOFF_JOURNAL    Override journal directory (default: ~/.claude/decision-journal)
+  EDITOR              Editor for interactive mode (default: vi)
+
+Examples:
+  tradeoff "Chose hash map over tree for O(1) lookup; revisit if ordering needed"
+  tradeoff --list
+EOF
+}
+
+list_tradeoffs() {
+  local count="${1:-10}"
+  echo -e "${BLUE}Recent Tradeoffs:${NC}"
+  echo
+
+  if ! ls "$JOURNAL_DIR"/*-tradeoff.md &>/dev/null; then
+    echo "  No tradeoffs documented yet."
+    return
+  fi
+
+  ls -t "$JOURNAL_DIR"/*-tradeoff.md 2>/dev/null | head -n "$count" | while read -r file; do
+    local date branch note
+    date=$(basename "$file" | cut -d- -f1-3)
+    branch=$(grep -m1 "^\*\*Branch:\*\*" "$file" 2>/dev/null | sed 's/.*\*\* //' || echo "unknown")
+    # Get first non-empty line after "## Note" or "## What I chose to do"
+    note=$(grep -A2 "^## " "$file" 2>/dev/null | grep -v "^##" | grep -v "^--" | head -1 | cut -c1-60 || echo "")
+
+    echo -e "  ${GREEN}$date${NC} [$branch]"
+    if [[ -n "$note" && "$note" != *"<!--"* ]]; then
+      echo "    $note..."
+    fi
+  done
+}
+
+edit_recent() {
+  local recent
+  recent=$(ls -t "$JOURNAL_DIR"/*-tradeoff.md 2>/dev/null | head -1)
+  if [[ -z "$recent" ]]; then
+    echo "No tradeoffs to edit."
+    exit 1
+  fi
+  ${EDITOR:-vi} "$recent"
+}
+
+create_tradeoff() {
+  local note="${1:-}"
+  local timestamp branch entry_file
+
+  timestamp=$(date +%Y-%m-%d-%H%M)
+  branch=$(git branch --show-current 2>/dev/null || echo "n/a")
+  entry_file="$JOURNAL_DIR/$timestamp-tradeoff.md"
+
+  if [[ -n "$note" ]]; then
+    # Quick one-liner
+    cat > "$entry_file" << EOF
+# Tradeoff: $(date +%Y-%m-%d)
+
+**Branch:** $branch
+**Context:** CLI capture
+
+## Note
+
+$note
+EOF
+    echo -e "${GREEN}✓ Saved: $entry_file${NC}"
+  else
+    # Interactive - create template and open editor
+    cat > "$entry_file" << EOF
+# Tradeoff: $(date +%Y-%m-%d)
+
+**Branch:** $branch
+**Context:** $(pwd | sed "s|$HOME|~|")
+
+## What I chose to do
+
+
+## What I chose NOT to do
+
+
+## Why
+
+<!-- What constraints, priorities, or principles drove this decision? -->
+
+## Revisit if
+
+<!-- Under what conditions should this decision be reconsidered? -->
+EOF
+    ${EDITOR:-vi} "$entry_file"
+
+    # Verify something was written
+    if grep -qE "^## What I chose to do\s*$" "$entry_file"; then
+      echo -e "${YELLOW}⚠ Entry appears empty but saved: $entry_file${NC}"
+    else
+      echo -e "${GREEN}✓ Saved: $entry_file${NC}"
+    fi
+  fi
+}
+
+# Parse arguments
+case "${1:-}" in
+  --help|-h)
+    show_help
+    ;;
+  --list|-l)
+    list_tradeoffs "${2:-10}"
+    ;;
+  --edit|-e)
+    edit_recent
+    ;;
+  "")
+    create_tradeoff
+    ;;
+  *)
+    # Treat as quick note
+    create_tradeoff "$*"
+    ;;
+esac

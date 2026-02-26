@@ -52,6 +52,32 @@ Theme: `theme set <name>`, `theme dark`, `theme light`, etc. Claude Code: `mise 
 
 `work` | `personal` | `server` | `container`. Controls which Brewfiles and dotfiles are linked and git identity (includeIf). Set `DOTFILES_PROFILE` or pass `--profile` to `link-dotfiles` / install.
 
+## global git hooks
+
+This repo includes global git hooks that run for **all repositories**:
+
+```
+~/.config/git/hooks/pre-commit   # Global hook dispatcher
+~/.local/bin/tradeoff-gate       # Prompts for tradeoff docs on large changes
+~/.local/bin/tradeoff            # CLI for manual tradeoff capture
+```
+
+**Tradeoff Gate**: When you commit changes exceeding 50 lines, you're prompted to document the tradeoff ("What did you choose NOT to do, and why?"). Tradeoffs are saved to `~/.claude/decision-journal/`.
+
+```bash
+# Bypass options
+SKIP_TRADEOFF=1 git commit -m "..."   # Skip prompt
+git commit --no-verify                 # Skip all hooks
+TRADEOFF_THRESHOLD=100 git commit      # Raise threshold
+
+# Manual capture anytime
+tradeoff "chose X over Y because Z"    # Quick one-liner
+tradeoff                               # Opens editor
+tradeoff --list                        # View recent
+```
+
+The global hooks also delegate to local repo hooks (`.git/hooks/pre-commit.local` or `pre-commit` framework).
+
 ## making changes
 
 - Edit dotfiles under `home/`.

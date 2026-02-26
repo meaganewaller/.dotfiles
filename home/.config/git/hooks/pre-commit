@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Global pre-commit hook
+# Runs global hooks first, then delegates to local hooks
+#
+# Setup: git config --global core.hooksPath ~/.config/git/hooks
+#
+# To add repo-specific hooks alongside global hooks:
+#   1. Rename .git/hooks/pre-commit to .git/hooks/pre-commit.local
+#   2. Or just use .pre-commit-config.yaml (auto-detected)
+
+set -euo pipefail
+
+GLOBAL_HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null)"
+LOCAL_HOOKS_DIR="$GIT_DIR/hooks"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+
+# ============================================================================
+# Global Hooks
+# ============================================================================
+
+# Tradeoff gate - prompt for documentation on large changes
+if [[ -x "$HOME/.local/bin/tradeoff-gate" ]]; then
+  "$HOME/.local/bin/tradeoff-gate" || exit $?
+fi
+
+# Add more global hooks here as needed...
+
+# ============================================================================
+# Delegate to Local Hooks
+# ============================================================================
+
+# Option 1: Local hook renamed to .local suffix
+if [[ -x "$LOCAL_HOOKS_DIR/pre-commit.local" ]]; then
+  "$LOCAL_HOOKS_DIR/pre-commit.local" "$@" || exit $?
+fi
+
+# Option 2: pre-commit framework (most common)
+if [[ -f "$REPO_ROOT/.pre-commit-config.yaml" ]]; then
+  if command -v pre-commit &>/dev/null; then
+    # Run pre-commit with explicit config path
+    pre-commit run --config "$REPO_ROOT/.pre-commit-config.yaml" || exit $?
+  fi
+fi
+
+exit 0

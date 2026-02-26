@@ -12,6 +12,7 @@
   excludesfile = ~/.gitignore_global
   autocrlf = input
   pager = delta
+  hooksPath = ~/.config/git/hooks
 
 [pager]
   diff = delta

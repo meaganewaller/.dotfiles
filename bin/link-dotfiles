@@ -76,6 +76,10 @@ run ".config/zsh"
 run_dir_contents ".config/fish"   # links contents only; README.md stays in repo
 run ".local/bin/theme"
 run ".local/bin/dotfiles"
+run ".local/bin/tradeoff"
+run ".local/bin/tradeoff-gate"
+
+run ".config/git/hooks"
 
 run ".config/mise"
 

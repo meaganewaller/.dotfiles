@@ -48,6 +48,15 @@ Contract tests ensuring all hooks:
 - Can be sourced without errors
 - Produce valid JSON output (when applicable)
 
+#### `hooks/hook-health.bats`
+Tests for the hook health monitoring system:
+- Health log path configuration
+- `hook_register`, `hook_success`, `hook_failure` functions
+- Duration tracking and timestamp recording
+- `hook_health_summary` aggregation
+- EXIT trap behavior for automatic failure logging
+- `hook-health.sh` CLI functionality
+
 ## Writing New Tests
 
 ### BATS Test Structure
