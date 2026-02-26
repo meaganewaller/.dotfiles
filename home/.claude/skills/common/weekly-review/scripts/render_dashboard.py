@@ -374,7 +374,6 @@ li code {{
   background: var(--bg-card);
   padding: 48px 56px;
   border-radius: 16px;
-  max-width: 800px;
   font-size: 16px;
   line-height: 1.8;
 }}
@@ -447,8 +446,8 @@ li code {{
 }}
 .review-content .styled-list li strong {{
   color: var(--text-primary);
-  display: block;
-  margin-bottom: 4px;
+  display: inline-block;
+  margin-right: 4px;
 }}
 .review-content ol.styled-list {{
   counter-reset: item;
