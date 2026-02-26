@@ -15,7 +15,137 @@ export CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
 export CLAUDE_EVENTS_LOG="$CLAUDE_HOME/dev-os-events.jsonl"
 export CLAUDE_FRICTION_LOG="$CLAUDE_HOME/skill-friction-log.jsonl"
 export CLAUDE_IMPACT_LOG="$CLAUDE_HOME/impact-log.jsonl"
+export CLAUDE_HOOK_HEALTH_LOG="$CLAUDE_HOME/hook-health.jsonl"
 export DEV_OS_EMIT="$CLAUDE_HOME/hooks/dev-os-emit.sh"
+
+# ============================================================================
+# HOOK HEALTH MONITORING
+# ============================================================================
+# These functions provide observability into hook execution.
+# Usage:
+#   source validate-path.sh
+#   hook_register "my-hook-name"   # Call at start of hook
+#   # ... hook logic ...
+#   hook_success                   # Call on success (or let trap handle failure)
+
+# Current hook context (set by hook_register)
+_HOOK_NAME=""
+_HOOK_START_TIME=""
+
+# Register hook execution start
+# Usage: hook_register "hook-name"
+hook_register() {
+  _HOOK_NAME="${1:-unknown}"
+  # Get time in milliseconds (macOS compatible)
+  if [[ "$(uname)" == "Darwin" ]]; then
+    _HOOK_START_TIME=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || date +%s)
+  else
+    _HOOK_START_TIME=$(date +%s%3N 2>/dev/null || date +%s)
+  fi
+
+  # Set up trap to catch failures
+  trap '_hook_on_exit $?' EXIT
+}
+
+# Log hook success (call explicitly or let trap determine)
+hook_success() {
+  _hook_log "success" ""
+  trap - EXIT  # Clear trap since we're handling it
+}
+
+# Log hook failure with optional error message
+# Usage: hook_failure "error message"
+hook_failure() {
+  local error_msg="${1:-}"
+  _hook_log "failure" "$error_msg"
+  trap - EXIT
+}
+
+# Internal: called by EXIT trap
+_hook_on_exit() {
+  local exit_code="$1"
+  if [[ $exit_code -eq 0 ]]; then
+    _hook_log "success" ""
+  else
+    _hook_log "failure" "exit_code=$exit_code"
+  fi
+  trap - EXIT
+}
+
+# Internal: write to health log
+_hook_log() {
+  local status="$1"
+  local error_msg="$2"
+
+  [[ -z "$_HOOK_NAME" ]] && return 0
+
+  local end_time duration_ms timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  # Get end time in milliseconds (macOS compatible)
+  if [[ "$(uname)" == "Darwin" ]]; then
+    end_time=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || date +%s)
+  else
+    end_time=$(date +%s%3N 2>/dev/null || date +%s)
+  fi
+
+  # Calculate duration (handle both ms and s timestamps)
+  if [[ ${#_HOOK_START_TIME} -gt 10 && ${#end_time} -gt 10 ]]; then
+    duration_ms=$((end_time - _HOOK_START_TIME))
+  else
+    # Fallback to seconds-based calculation
+    duration_ms=0
+  fi
+
+  ensure_file_exists "$CLAUDE_HOOK_HEALTH_LOG" || return 0
+
+  jq -cn \
+    --arg ts "$timestamp" \
+    --arg hook "$_HOOK_NAME" \
+    --arg status "$status" \
+    --arg error "$error_msg" \
+    --argjson duration "$duration_ms" \
+    '{timestamp: $ts, hook: $hook, status: $status, duration_ms: $duration, error: (if $error == "" then null else $error end)}' \
+    >> "$CLAUDE_HOOK_HEALTH_LOG" 2>/dev/null
+
+  # Reset context
+  _HOOK_NAME=""
+  _HOOK_START_TIME=""
+}
+
+# Get hook health summary for last N hours
+# Usage: health=$(hook_health_summary 24)
+# Returns JSON with success/failure counts per hook
+hook_health_summary() {
+  local hours="${1:-24}"
+  local cutoff_time
+
+  if ! validate_file_readable "$CLAUDE_HOOK_HEALTH_LOG"; then
+    echo '{}'
+    return 0
+  fi
+
+  # Calculate cutoff timestamp
+  if [[ "$(uname)" == "Darwin" ]]; then
+    cutoff_time=$(date -u -v-"${hours}"H +"%Y-%m-%dT%H:%M:%SZ")
+  else
+    cutoff_time=$(date -u -d "$hours hours ago" +"%Y-%m-%dT%H:%M:%SZ")
+  fi
+
+  jq -s --arg cutoff "$cutoff_time" '
+    map(select(.timestamp >= $cutoff))
+    | group_by(.hook)
+    | map({
+        hook: .[0].hook,
+        total: length,
+        success: map(select(.status == "success")) | length,
+        failure: map(select(.status == "failure")) | length,
+        avg_duration_ms: (map(.duration_ms) | add / length | floor),
+        last_error: (map(select(.error != null)) | last | .error // null)
+      })
+    | sort_by(-.failure)
+  ' "$CLAUDE_HOOK_HEALTH_LOG" 2>/dev/null || echo '[]'
+}
 
 # ============================================================================
 # VALIDATION FUNCTIONS (return 0/1, never exit)

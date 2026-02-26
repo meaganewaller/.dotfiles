@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Source shared validation utilities for health monitoring
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -f "$SCRIPT_DIR/validate-path.sh" ]]; then
+  # shellcheck source=../validate-path.sh
+  source "$SCRIPT_DIR/validate-path.sh"
+  hook_register "friction-escalator"
+fi
+
 LOG="$HOME/.claude/skill-friction-log.jsonl"
 
 if [[ ! -f "$LOG" ]]; then

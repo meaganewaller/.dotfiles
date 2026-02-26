@@ -6,6 +6,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=../validate-path.sh
 source "$SCRIPT_DIR/validate-path.sh"
 
+# Register for health monitoring
+hook_register "session-context-injector"
+
 IMPACT="$CLAUDE_IMPACT_LOG"
 FRICTION="$CLAUDE_FRICTION_LOG"
 JOURNAL_DIR="$CLAUDE_HOME/decision-journal"
