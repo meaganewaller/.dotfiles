@@ -36,24 +36,24 @@ if [[ -z "$WEEK_START" || "$WEEK_START" == "null" ]]; then
 fi
 
 # Paths
-POSTS_DIR="$JEKYLL_ROOT/_posts"
+REVIEWS_DIR="$JEKYLL_ROOT/_reviews"
 DATA_DIR="$JEKYLL_ROOT/_data/dev_os"
 REVIEW_MD="$REVIEW_DIR/review.md"
-JEKYLL_POST="$POSTS_DIR/${WEEK_START}-weekly-review.md"
+JEKYLL_REVIEW="$REVIEWS_DIR/${WEEK_START}-weekly-review.md"
 JEKYLL_SUMMARY="$DATA_DIR/${WEEK_START}-summary.json"
 
-mkdir -p "$POSTS_DIR" "$DATA_DIR"
+mkdir -p "$REVIEWS_DIR" "$DATA_DIR"
 
 # Copy summary.json (always update)
 cp "$SUMMARY_JSON" "$JEKYLL_SUMMARY"
 echo "✓ Published summary: $JEKYLL_SUMMARY" >&2
 
-# Copy review.md content into Jekyll post (preserving frontmatter)
+# Copy review.md content into Jekyll review (preserving frontmatter)
 if [[ -f "$REVIEW_MD" ]]; then
-  # Check if Jekyll post exists
-  if [[ -f "$JEKYLL_POST" ]]; then
-    # Extract frontmatter from existing post, append new content
-    FRONTMATTER=$(sed -n '1,/^---$/p' "$JEKYLL_POST" | head -n -1)
+  # Check if Jekyll review exists
+  if [[ -f "$JEKYLL_REVIEW" ]]; then
+    # Extract frontmatter from existing review, append new content
+    FRONTMATTER=$(sed -n '1,/^---$/p' "$JEKYLL_REVIEW" | head -n -1)
     if [[ -z "$FRONTMATTER" ]]; then
       # No frontmatter found, create it
       FRONTMATTER="---
@@ -73,10 +73,10 @@ summary_file: ${WEEK_START}-summary.json
       echo
       # Skip the first line (# Weekly Engineering Review) and blank line
       tail -n +3 "$REVIEW_MD"
-    } > "$JEKYLL_POST"
-    echo "✓ Updated post: $JEKYLL_POST" >&2
+    } > "$JEKYLL_REVIEW"
+    echo "✓ Updated weekly review: $JEKYLL_REVIEW" >&2
   else
-    # Create new post with frontmatter
+    # Create new review with frontmatter
     {
       echo "---"
       echo "layout: review"
@@ -86,8 +86,8 @@ summary_file: ${WEEK_START}-summary.json
       echo "---"
       echo
       tail -n +3 "$REVIEW_MD"
-    } > "$JEKYLL_POST"
-    echo "✓ Created post: $JEKYLL_POST" >&2
+    } > "$JEKYLL_REVIEW"
+    echo "✓ Created weekly review: $JEKYLL_REVIEW" >&2
   fi
 fi
 
@@ -129,16 +129,15 @@ else
   done
 fi
 
-# Build post URL (Jekyll converts YYYY-MM-DD to YYYY/MM/DD)
-POST_URL="http://localhost:$JEKYLL_PORT/${WEEK_START//-/\/}/weekly-review/"
+REVIEW_URL="http://localhost:$JEKYLL_PORT/reviews/${WEEK_START//-/\/}/weekly-review/"
 
-echo "✓ Opening $POST_URL" >&2
+echo "✓ Opening $REVIEW_URL" >&2
 
 # Cross-platform browser open
 if command -v open >/dev/null 2>&1; then
-  open "$POST_URL"
+  open "$REVIEW_URL"
 elif command -v xdg-open >/dev/null 2>&1; then
-  xdg-open "$POST_URL"
+  xdg-open "$REVIEW_URL"
 else
-  echo "Open in browser: $POST_URL" >&2
+  echo "Open in browser: $REVIEW_URL" >&2
 fi

@@ -59,6 +59,7 @@ fi
   echo "## 📊 Execution Metrics"
   echo
   echo "### Overview"
+  echo
   echo "| Metric | Value |"
   echo "|--------|-------|"
   echo "| Projects touched | $PROJECTS |"
@@ -74,6 +75,7 @@ fi
   echo "| Test runs | $TESTS_PASSED / $TESTS_TOTAL passed ($TEST_PCT%) |"
   echo
   echo "### Per-Project Breakdown"
+  echo
   echo "| Project | Events | Sessions | Writes | Failures | Tradeoffs |"
   echo "|---------|--------|----------|--------|----------|-----------|"
   jq -r '.projects[]? | "| \(.project) | \(.events) | \(.sessions) | \(.writes) | \(.failures) | \(.tradeoffs) |"' "$SUMMARY_JSON" || echo "_(No project data)_"

@@ -12,7 +12,7 @@ allowed-tools:
   - Bash(jq *)
   - Bash(python3 *)
   - Bash(bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh)
-  - Bash(bash ~/.claude/skills/weekly-review/scripts/publish_to_jekyll.sh *)
+  - Bash(bash ~/.claude/skills/weekly-review/scripts/finalize_review.sh *)
 ---
 
 # Weekly Engineering Review (Dev OS)
@@ -114,30 +114,23 @@ new_string: |
 You MUST use the Edit tool to modify the file. Do NOT skip this step or claim you cannot edit.
 Do NOT output the content to the chat — write it directly to the file.
 
-## Step 4 — Regenerate dashboard
+## Step 4 — Finalize and publish
 
-After updating review.md, regenerate the HTML dashboard to include your synthesized content:
-
-```bash
-python3 ~/.claude/skills/weekly-review/scripts/render_dashboard.py REVIEW_DIR/summary.json
-```
-
-This updates index.html with the edited review content in the Review tab.
-
-## Step 5 — Publish to Jekyll and open browser
-
-After all edits are complete, publish the synthesized review to Jekyll and launch the server:
+After all edits are complete, run the finalize script to regenerate the dashboard and publish to Jekyll:
 
 ```bash
-bash ~/.claude/skills/weekly-review/scripts/publish_to_jekyll.sh REVIEW_DIR
+bash ~/.claude/skills/weekly-review/scripts/finalize_review.sh REVIEW_DIR
 ```
 
 This will:
+- Regenerate the HTML dashboard with your synthesized content
 - Copy the synthesized review.md content to the Jekyll post
 - Update the summary.json in Jekyll's _data directory
 - Copy charts to Jekyll assets
 - Start the Jekyll server (if not already running)
 - Open the review in your browser
+
+**IMPORTANT**: You MUST run this step after filling all placeholders. Do not skip it.
 
 ## Troubleshooting
 
@@ -217,7 +210,7 @@ If empty, charts generation may have silently failed. Check for Python errors.
 
 ### Dashboard shows placeholder text
 
-**Cause:** Step 3 (Edit placeholders) was skipped or Step 4 (Regenerate dashboard) wasn't run.
+**Cause:** Step 3 (Edit placeholders) was skipped or Step 4 (Finalize and publish) wasn't run.
 
 **Fix:**
 1. Verify review.md has real content (not placeholder text)
