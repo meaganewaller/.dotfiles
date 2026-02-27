@@ -112,6 +112,24 @@ fi
   echo "_Claude will flag large-change-without-tradeoff, reversals, dependency churn here._"
   echo "<!-- END:DISCIPLINE_FLAGS -->"
   echo
+  echo "## 🎯 Cue Engagement"
+  echo
+  CUE_TOTAL=$(jq -r '.cue_engagement.total_fires // 0' "$SUMMARY_JSON")
+  CUE_UNIQUE=$(jq -r '.cue_engagement.unique_cues_fired // 0' "$SUMMARY_JSON")
+  echo "**Total fires:** $CUE_TOTAL | **Unique cues:** $CUE_UNIQUE"
+  echo
+  echo "### By Cue"
+  jq -r '.cue_engagement.by_cue[]? | "- **\(.cue)**: \(.count)"' "$SUMMARY_JSON" || echo "_(No cue data)_"
+  echo
+  echo "### By Trigger Type"
+  jq -r '.cue_engagement.by_trigger[]? | "- \(.trigger): \(.count)"' "$SUMMARY_JSON" || echo "_(No trigger data)_"
+  echo
+  echo "### Analysis"
+  echo
+  echo "<!-- PLACEHOLDER:CUE_ENGAGEMENT -->"
+  echo "_Claude will analyze cue effectiveness, dormant cues, and trigger patterns here._"
+  echo "<!-- END:CUE_ENGAGEMENT -->"
+  echo
   echo "## 📁 Files Modified"
   echo
   jq -r '.top_files_modified[]? | "- `\(.)`"' "$SUMMARY_JSON" | head -15 || echo "_(No files data)_"

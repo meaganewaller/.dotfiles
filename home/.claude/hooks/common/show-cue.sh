@@ -2,10 +2,12 @@
 # show-cue.sh - Output cue content with marker gating and macro support.
 #
 # Usage:
-#   show-cue.sh <cue_dir> [session_id]
+#   show-cue.sh <cue_dir> [session_id] [trigger_type]
 #
 # If session_id is provided, creates a marker file to prevent showing the
 # same cue twice in one session.
+#
+# trigger_type: Optional context for how cue was triggered (prompt, bash, file)
 #
 # Macro support:
 #   If the cue directory contains a macro.sh and the frontmatter has
@@ -14,11 +16,14 @@
 #
 # Output: cue content (with macro output if applicable), or nothing if
 #         already shown this session.
+#
+# Emits: cue_fired event to dev-os-events.jsonl for engagement tracking
 
 set -euo pipefail
 
 CUE_DIR="${1:-}"
-SESSION_ID="${2:-}"
+SESSION_ID="${2:-${SESSION_ID:-}}"  # Arg takes precedence, then env var
+TRIGGER_TYPE="${3:-unknown}"
 
 [[ -z "$CUE_DIR" ]] && exit 0
 [[ ! -d "$CUE_DIR" ]] && exit 0
@@ -100,4 +105,21 @@ echo "$OUTPUT"
 # Create marker after successful output
 if [[ -n "$SESSION_ID" ]]; then
   touch "$MARKER" 2>/dev/null || true
+fi
+
+# Emit cue_fired event for engagement tracking
+EVENTS_LOG="${CLAUDE_EVENTS_LOG:-$HOME/.claude/dev-os-events.jsonl}"
+if [[ -w "$(dirname "$EVENTS_LOG")" ]] || [[ -w "$EVENTS_LOG" ]]; then
+  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  HAS_MACRO="false"
+  [[ -n "$MACRO_MODE" ]] && HAS_MACRO="true"
+  jq -cn \
+    --arg ts "$TIMESTAMP" \
+    --arg sid "${SESSION_ID:-unknown}" \
+    --arg type "cue_fired" \
+    --arg cue "$CUE_ID" \
+    --arg trigger "$TRIGGER_TYPE" \
+    --argjson has_macro "$HAS_MACRO" \
+    '{timestamp: $ts, session_id: $sid, event_type: $type, payload: {cue_id: $cue, trigger_type: $trigger, has_macro: $has_macro}}' \
+    >> "$EVENTS_LOG" 2>/dev/null || true
 fi

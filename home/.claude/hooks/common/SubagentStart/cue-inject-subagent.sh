@@ -25,9 +25,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHOW_CUE="$SCRIPT_DIR/show-cue.sh"
 
 # For subagents, we don't use session markers (they get fresh context)
-# Pass empty session_id to show-cue.sh to skip marker check
+# Pass empty string for session marker, but pass session_id for event logging
 if [[ -x "$SHOW_CUE" ]]; then
-  body=$("$SHOW_CUE" "$CLAIMED" "" 2>/dev/null || true)
+  # Pass session_id for event tracking, trigger_type "subagent"
+  body=$(SESSION_ID="$SESSION_ID" "$SHOW_CUE" "$CLAIMED" "" "subagent" 2>/dev/null || true)
 else
   body=$(awk '/^---$/{c++;next} c>=2' "${CLAIMED}cue.md" 2>/dev/null || true)
 fi

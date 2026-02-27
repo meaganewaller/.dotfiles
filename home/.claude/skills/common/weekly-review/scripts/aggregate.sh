@@ -158,6 +158,8 @@ failures = 0
 tradeoffs = 0
 files_modified = set()
 skills_used = Counter()
+cues_fired = Counter()
+cue_triggers = Counter()
 
 for e in events:
     et = e.get("event_type")
@@ -212,6 +214,12 @@ for e in events:
     if et == "dependency_change":
         dependency_changes += 1
 
+    if et == "cue_fired":
+        cue_id = payload.get("cue_id", "unknown")
+        trigger_type = payload.get("trigger_type", "unknown")
+        cues_fired[cue_id] += 1
+        cue_triggers[trigger_type] += 1
+
 total_tests = sum(test_results.values())
 pass_tests = test_results.get("passed", 0)
 test_stability_rate = (pass_tests / total_tests) if total_tests else None
@@ -263,7 +271,13 @@ summary = {
     "top_friction_subdomains": [{"subdomain": d, "count": c} for d, c in friction_subdomains.most_common(10)],
     "top_principles_invoked": [{"principle": p, "count": c} for p, c in principles.most_common(10)],
     "top_skills_used": [{"skill": s, "count": c} for s, c in skills_used.most_common(10)],
-    "top_files_modified": sorted(files_modified)[:20]
+    "top_files_modified": sorted(files_modified)[:20],
+    "cue_engagement": {
+        "total_fires": sum(cues_fired.values()),
+        "unique_cues_fired": len(cues_fired),
+        "by_cue": [{"cue": c, "count": n} for c, n in cues_fired.most_common(10)],
+        "by_trigger": [{"trigger": t, "count": n} for t, n in cue_triggers.most_common()]
+    }
 }
 
 with open(out_path, "w", encoding="utf-8") as out:

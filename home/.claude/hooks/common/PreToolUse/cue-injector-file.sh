@@ -21,7 +21,7 @@ SHOW_CUE="$SCRIPT_DIR/show-cue.sh"
 CONTEXT=""
 while IFS= read -r cue_dir; do
   [[ -z "$cue_dir" ]] && continue
-  body=$("$SHOW_CUE" "$cue_dir" "$SESSION_ID" 2>/dev/null || true)
+  body=$("$SHOW_CUE" "$cue_dir" "$SESSION_ID" "file" 2>/dev/null || true)
   if [[ -n "$body" ]]; then
     CONTEXT="${CONTEXT}${body}
 

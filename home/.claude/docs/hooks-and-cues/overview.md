@@ -143,6 +143,26 @@ Cues inject guidance when triggers match. They're "compiled policy" - governance
 
 Each cue fires at most once per session. Markers in `/tmp/.claude-devos-cue-*` track fired cues. `clear-cue-markers.sh` resets on SessionStart.
 
+### Engagement Tracking
+
+When a cue fires, `show-cue.sh` emits a `cue_fired` event to `dev-os-events.jsonl`:
+
+```json
+{
+  "event_type": "cue_fired",
+  "payload": {
+    "cue_id": "commit",
+    "trigger_type": "prompt",
+    "has_macro": false
+  }
+}
+```
+
+The weekly review aggregates this data to show:
+- Which cues are actively providing guidance
+- Trigger patterns (prompt vs bash vs file)
+- Dormant cues that may need better triggers
+
 ## How They Work Together
 
 1. **SessionStart**: Hooks clear markers, inject context, escalate friction

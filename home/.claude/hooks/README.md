@@ -108,7 +108,7 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - **`dev-os-emit.sh`**
   Used by other hooks to append a single JSON line to `.claude/dev-os-events.jsonl`.
   Usage: `echo '<hook stdin>' | ./dev-os-emit.sh <event_type> '<payload json>'`.
-  Event types used: `test_run`, `task_completed`, `worktree_created`, `worktree_removed`, `large_change`, `dependency_change`, `reversal`, `tool_write`, `tool_failure`, `prompt_opinion`. Subagent **SubagentStop** can also write `decision_tradeoff` events to the same file (via the agent, not this script). Output is written to **`$HOME/.claude/dev-os-events.jsonl`**.
+  Event types used: `test_run`, `task_completed`, `worktree_created`, `worktree_removed`, `large_change`, `dependency_change`, `reversal`, `tool_write`, `tool_failure`, `prompt_opinion`, `cue_fired`. Subagent **SubagentStop** can also write `decision_tradeoff` events to the same file (via the agent, not this script). Output is written to **`$HOME/.claude/dev-os-events.jsonl`**.
 
 - **`hook-health.sh`**
   CLI tool to check hook execution health. Reads from `$HOME/.claude/hook-health.jsonl`.
@@ -134,12 +134,13 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
   ```
 
 - **`show-cue.sh`**
-  Outputs cue content with marker gating and macro support.
+  Outputs cue content with marker gating and macro support. Emits `cue_fired` event for engagement tracking.
   ```bash
-  show-cue.sh /path/to/cue/dir [session_id]
+  show-cue.sh /path/to/cue/dir [session_id] [trigger_type]
   ```
   - If `session_id` provided, checks/creates marker to prevent duplicates
   - If cue has `macro: prepend|append` and `macro.sh`, executes and combines output
+  - Emits `cue_fired` event with `{cue_id, trigger_type, has_macro}` payload
   - Strips frontmatter, outputs body (and macro output)
 
 - **`semantic-match.sh`**
