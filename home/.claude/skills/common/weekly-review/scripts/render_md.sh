@@ -132,9 +132,9 @@ fi
   echo
   echo "## 📈 Charts"
   if [[ -d "$CHARTS_DIR" ]]; then
-    [[ -f "$CHARTS_DIR/events_by_type.png" ]] && echo "![Events by Type](charts/events_by_type.png)"
-    [[ -f "$CHARTS_DIR/friction_domains.png" ]] && echo "![Friction Domains](charts/friction_domains.png)"
-    [[ -f "$CHARTS_DIR/principles_invoked.png" ]] && echo "![Principles Invoked](charts/principles_invoked.png)"
+    [[ -f "$CHARTS_DIR/events_by_type.png" ]] && echo "![Events by Type](/assets/charts/$WEEK_START/events_by_type.png)"
+    [[ -f "$CHARTS_DIR/friction_domains.png" ]] && echo "![Friction Domains](/assets/charts/$WEEK_START/friction_domains.png)"
+    [[ -f "$CHARTS_DIR/principles_invoked.png" ]] && echo "![Principles Invoked](/assets/charts/$WEEK_START/principles_invoked.png)"
   else
     echo "_(Charts not generated - matplotlib not installed)_"
   fi
