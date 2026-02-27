@@ -131,6 +131,9 @@ with open(stream_path, "r", encoding="utf-8") as f:
             continue
         if t >= since:
             session_id = e.get("session_id", "")
+            # Skip test sessions and events without valid session IDs
+            if not session_id or session_id == "unknown" or session_id.startswith("test"):
+                continue
             if session_id in session_map:
                 e["_project"] = session_map[session_id]
             else:
