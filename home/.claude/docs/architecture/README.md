@@ -1,5 +1,7 @@
 # Architecture Decision Records
 
+> **Audience**: Contributors, future-self understanding past decisions
+
 This directory contains Architecture Decision Records (ADRs) for the Claude Code configuration system.
 
 ## What is an ADR?
