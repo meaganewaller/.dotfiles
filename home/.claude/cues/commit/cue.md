@@ -7,7 +7,7 @@ description: Git commit workflow, version control, and change management
 vocabulary: commit push amend rebase squash merge changelog version
 provenance:
   policy:
-    - uri: home/.claude/governance/policies/code-lifecycle.md
+    - uri: governance/policies/code-lifecycle.md
       type: governance-doc
   controls:
     - id: ENG-COMMIT-001

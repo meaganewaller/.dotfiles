@@ -10,7 +10,23 @@ set -euo pipefail
 #   tradeoff --edit             # Edit most recent tradeoff
 
 JOURNAL_DIR="${TRADEOFF_JOURNAL:-$HOME/.claude/decision-journal}"
+EMIT_SCRIPT="$HOME/.claude/hooks/dev-os-emit.sh"
 mkdir -p "$JOURNAL_DIR"
+
+# Emit decision_tradeoff event to dev-os-events.jsonl
+emit_tradeoff_event() {
+  local summary="$1"
+  local context="${2:-cli}"
+
+  if [[ -x "$EMIT_SCRIPT" ]]; then
+    local payload
+    payload=$(jq -n \
+      --arg summary "$summary" \
+      --arg context "$context" \
+      '{decision_summary: $summary, source: $context}')
+    echo '{}' | "$EMIT_SCRIPT" decision_tradeoff "$payload" 2>/dev/null || true
+  fi
+}
 
 # Colors
 BLUE='\033[0;34m'
@@ -94,6 +110,7 @@ create_tradeoff() {
 $note
 EOF
     echo -e "${GREEN}✓ Saved: $entry_file${NC}"
+    emit_tradeoff_event "$note" "cli-quick"
   else
     # Interactive - create template and open editor
     cat > "$entry_file" << EOF
@@ -128,6 +145,10 @@ EOF
       echo -e "${YELLOW}⚠ Entry appears empty but saved: $entry_file${NC}"
     else
       echo -e "${GREEN}✓ Saved: $entry_file${NC}"
+      # Extract first non-comment line after "## What I chose to do" for summary
+      local summary
+      summary=$(grep -A5 "^## What I chose to do" "$entry_file" 2>/dev/null | grep -v "^##" | grep -v "^<!--" | grep -v "^$" | head -1 | cut -c1-100 || echo "Interactive tradeoff")
+      emit_tradeoff_event "${summary:-Interactive tradeoff}" "cli-interactive"
     fi
   fi
 }

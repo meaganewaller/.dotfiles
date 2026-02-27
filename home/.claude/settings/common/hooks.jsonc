@@ -62,9 +62,8 @@
                         "command": "\"$HOME\"/.claude/hooks/Stop/pending-tradeoff-blocker.sh"
                     },
                     {
-                        "type": "prompt",
-                        "prompt": "You must respond with ONLY a JSON object, no other text.\n\nEvaluate whether this session produced meaningful leverage.\n\nContext: $ARGUMENTS\n\nAllow stopping if ANY of these occurred:\n- A reusable abstraction was created\n- A decision was documented\n- A measurable improvement was made\n- A clear lesson was extracted\n\nRespond with EXACTLY ONE of these JSON objects (no markdown, no explanation, no other text):\n\nIf stopping is allowed:\n{\"ok\":true}\n\nIf stopping should be blocked:\n{\"ok\":false,\"reason\":\"Capture one insight from this session before stopping.\"}",
-                        "timeout": 30
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/Stop/leverage-evaluator.sh"
                     }
                 ]
             }

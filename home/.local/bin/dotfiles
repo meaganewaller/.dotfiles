@@ -250,14 +250,14 @@ doctor() {
   section "Governance"
   # ─────────────────────────────────────────────────────────────
 
-  local gov_script="$DOTFILES_ROOT/home/.claude/governance/bin/governance.sh"
+  local gov_script="$DOTFILES_ROOT/governance/bin/governance.sh"
   if [[ -x "$gov_script" ]]; then
     # Check governance coverage
     local manifest coverage with_prov total_cues
-    manifest=$(DOTFILES_ROOT="$DOTFILES_ROOT" "$gov_script" --json 2>/dev/null || echo '{}')
-    coverage=$(echo "$manifest" | jq -r '.stats.coverage_percent // 0' 2>/dev/null || echo "0")
-    with_prov=$(echo "$manifest" | jq -r '.stats.with_provenance // 0' 2>/dev/null || echo "0")
-    total_cues=$(echo "$manifest" | jq -r '.stats.total_cues // 0' 2>/dev/null || echo "0")
+    manifest=$(REPO_ROOT="$DOTFILES_ROOT" "$gov_script" --json 2>/dev/null || echo '{}')
+    coverage=$(echo "$manifest" | jq -r '.coverage_percent // 0' 2>/dev/null || echo "0")
+    with_prov=$(echo "$manifest" | jq -r '.cues_with_provenance // 0' 2>/dev/null || echo "0")
+    total_cues=$(echo "$manifest" | jq -r '.total_cues // 0' 2>/dev/null || echo "0")
 
     if [[ "$total_cues" -gt 0 ]]; then
       if [[ "$coverage" == "100" || "$coverage" == "100.0" ]]; then
@@ -276,7 +276,7 @@ doctor() {
 
     # Check for stale provenance
     local stale_count
-    stale_count=$(DOTFILES_ROOT="$DOTFILES_ROOT" "$gov_script" --stale 90 --json 2>/dev/null | jq '.stale | length' 2>/dev/null || echo "0")
+    stale_count=$(REPO_ROOT="$DOTFILES_ROOT" "$gov_script" --stale 90 --json 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
     if [[ "$stale_count" -gt 0 ]]; then
       log_check warn "$stale_count cue(s) have stale provenance (>90 days)"
     else
@@ -411,13 +411,13 @@ cmd_install() {
 }
 
 cmd_governance() {
-  local gov_script="$DOTFILES_ROOT/home/.claude/governance/bin/governance.sh"
+  local gov_script="$DOTFILES_ROOT/governance/bin/governance.sh"
   if [[ ! -x "$gov_script" ]]; then
     echo -e "${RED}Governance CLI not found${NC}"
     echo "Expected at: $gov_script"
     exit 1
   fi
-  DOTFILES_ROOT="$DOTFILES_ROOT" exec "$gov_script" "$@"
+  REPO_ROOT="$DOTFILES_ROOT" exec "$gov_script" "$@"
 }
 
 # Parse global options

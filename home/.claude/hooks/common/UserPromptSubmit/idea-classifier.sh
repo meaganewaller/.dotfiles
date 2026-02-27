@@ -21,18 +21,8 @@ VAULT="$HOME/.claude/idea-vault.md"
 
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M")
 
-PAYLOAD=$(jq -n \
-  --arg prompt "$PROMPT" \
-  --arg tags "$TAG_STRING" \
-  '{
-    prompt: $prompt,
-    tags: $tags
-  }')
-
-echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" prompt_opinion "$PAYLOAD"
-
 # ----------------------------------------
-# Tag detection
+# Tag detection (must come before payload creation)
 # ----------------------------------------
 
 TAGS=()
@@ -65,7 +55,23 @@ fi
 TAG_STRING=$(printf "%s " "${TAGS[@]}")
 
 # ----------------------------------------
-# Append entry
+# Emit event
+# ----------------------------------------
+
+PAYLOAD=$(jq -n \
+  --arg prompt "$PROMPT" \
+  --arg tags "$TAG_STRING" \
+  '{
+    prompt: $prompt,
+    tags: $tags
+  }')
+
+if [[ -x "$HOME/.claude/hooks/dev-os-emit.sh" ]]; then
+  echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" prompt_opinion "$PAYLOAD" 2>/dev/null || true
+fi
+
+# ----------------------------------------
+# Append entry to vault
 # ----------------------------------------
 
 {

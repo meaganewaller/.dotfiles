@@ -131,9 +131,12 @@ with open(stream_path, "r", encoding="utf-8") as f:
             continue
         if t >= since:
             session_id = e.get("session_id", "")
+            event_type = e.get("event_type", "")
             # Skip test sessions and events without valid session IDs
-            if not session_id or session_id == "unknown" or session_id.startswith("test"):
-                continue
+            # But allow decision_tradeoff events (can come from CLI without session)
+            if event_type != "decision_tradeoff":
+                if not session_id or session_id == "unknown" or session_id.startswith("test"):
+                    continue
             if session_id in session_map:
                 e["_project"] = session_map[session_id]
             else:
@@ -145,7 +148,7 @@ by_type = Counter(e.get("event_type", "unknown") for e in events)
 # Per-project aggregations
 project_stats = defaultdict(lambda: {
     "events": 0, "writes": 0, "failures": 0, "tradeoffs": 0,
-    "large_changes": 0, "reversals": 0, "sessions": set()
+    "large_change_files": set(), "reversals": 0, "sessions": set()
 })
 
 # Global aggregations
@@ -153,7 +156,7 @@ friction_domains = Counter()
 friction_subdomains = Counter()
 principles = Counter()
 test_results = Counter()
-large_changes = 0
+large_change_files = set()  # Track unique files, not event count
 reversals = 0
 dependency_changes = 0
 writes = 0
@@ -207,8 +210,10 @@ for e in events:
             test_results[r] += 1
 
     if et == "large_change":
-        large_changes += 1
-        project_stats[project]["large_changes"] += 1
+        f = payload.get("file_path", "")
+        if f:
+            large_change_files.add(f)
+            project_stats[project]["large_change_files"].add(f)
 
     if et == "reversal":
         reversals += 1
@@ -238,7 +243,7 @@ for proj, stats in sorted(project_stats.items(), key=lambda x: -x[1]["events"]):
         "writes": stats["writes"],
         "failures": stats["failures"],
         "tradeoffs": stats["tradeoffs"],
-        "large_changes": stats["large_changes"],
+        "large_changes": len(stats["large_change_files"]),
         "reversals": stats["reversals"]
     })
 
@@ -256,7 +261,7 @@ summary = {
         "projects_touched": len(project_stats),
         "writes": writes,
         "failures": failures,
-        "large_changes": large_changes,
+        "large_changes": len(large_change_files),
         "reversals": reversals,
         "decisions_documented": tradeoffs,
         "test_runs": total_tests,

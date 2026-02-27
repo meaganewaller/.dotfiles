@@ -6,7 +6,7 @@ description: Environment variables, secrets, API keys, and configuration managem
 vocabulary: secret password token credential apikey api_key env environment config
 provenance:
   policy:
-    - uri: home/.claude/governance/policies/secrets-management.md
+    - uri: governance/policies/secrets-management.md
       type: governance-doc
   controls:
     - id: ENG-SECRETS-001

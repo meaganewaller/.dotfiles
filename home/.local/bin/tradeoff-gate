@@ -11,6 +11,24 @@ set -euo pipefail
 
 THRESHOLD="${TRADEOFF_THRESHOLD:-50}"
 JOURNAL_DIR="${TRADEOFF_JOURNAL:-$HOME/.claude/decision-journal}"
+EMIT_SCRIPT="$HOME/.claude/hooks/dev-os-emit.sh"
+
+# Emit decision_tradeoff event to dev-os-events.jsonl
+emit_tradeoff_event() {
+  local summary="$1"
+  local lines="$2"
+  local files="$3"
+
+  if [[ -x "$EMIT_SCRIPT" ]]; then
+    local payload
+    payload=$(jq -n \
+      --arg summary "$summary" \
+      --arg lines "$lines" \
+      --arg files "$files" \
+      '{decision_summary: $summary, lines_changed: ($lines|tonumber), files_changed: ($files|tonumber), source: "pre-commit"}')
+    echo '{}' | "$EMIT_SCRIPT" decision_tradeoff "$payload" 2>/dev/null || true
+  fi
+}
 
 # Skip if explicitly bypassed
 if [[ "${SKIP_TRADEOFF:-}" == "1" ]]; then
@@ -111,6 +129,10 @@ EOF
     if grep -q "^## What I chose to do$" "$ENTRY_FILE" && \
        ! grep -qE "^## What I chose to do\s*$" "$ENTRY_FILE"; then
       echo -e "${GREEN}✓ Tradeoff documented: $ENTRY_FILE${NC}"
+      # Extract summary and emit event
+      local summary
+      summary=$(grep -A5 "^## What I chose to do" "$ENTRY_FILE" 2>/dev/null | grep -v "^##" | grep -v "^<!--" | grep -v "^$" | head -1 | cut -c1-100 || echo "Pre-commit tradeoff")
+      emit_tradeoff_event "${summary:-Pre-commit tradeoff}" "$TOTAL" "$FILE_COUNT"
     else
       echo -e "${YELLOW}⚠ Entry saved but appears empty: $ENTRY_FILE${NC}"
     fi
@@ -140,6 +162,7 @@ $note
 $(echo "$CHANGED_FILES" | sed 's/^/- /')
 EOF
       echo -e "${GREEN}✓ Quick note saved: $ENTRY_FILE${NC}"
+      emit_tradeoff_event "$note" "$TOTAL" "$FILE_COUNT"
     fi
     ;;
 
