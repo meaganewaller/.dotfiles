@@ -190,6 +190,8 @@ merge_hooks() {
   for dir in "$common_dir" "$profile_dir"; do
     [[ -d "$dir" ]] || continue
     while IFS= read -r -d '' f; do
+      # Skip .DS_Store files
+      [[ "$(basename "$f")" == ".DS_Store" ]] && continue
       rel="${f#"$dir"/}"
       rel="${rel#/}"
       dest="$dest_dir/$rel"
@@ -284,9 +286,54 @@ link_governance() {
   log "Linked governance"
 }
 
+link_principles() {
+  local src_dir="$DOTFILES_ROOT/home/.claude/principles"
+  local dest_dir="$HOME/.claude/principles"
+
+  if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
+    log "Would link principles -> $dest_dir"
+    return 0
+  fi
+
+  if [[ ! -d "$src_dir" ]]; then
+    log "No principles directory found at $src_dir"
+    return 0
+  fi
+
+  make_symlink "$src_dir" "$dest_dir"
+  log "Linked principles"
+}
+
+link_decision_journal() {
+  local src_dir="$DOTFILES_ROOT/home/.claude/decision-journal"
+  local dest_dir="$HOME/.claude/decision-journal"
+
+  if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
+    log "Would link decision-journal -> $dest_dir"
+    return 0
+  fi
+
+  if [[ ! -d "$src_dir" ]]; then
+    log "No decision-journal directory found at $src_dir"
+    return 0
+  fi
+
+  # Remove existing directory if it's not a symlink (migrate existing entries)
+  if [[ -d "$dest_dir" && ! -L "$dest_dir" ]]; then
+    log "Migrating existing decision-journal entries..."
+    cp -n "$dest_dir"/*.md "$src_dir/" 2>/dev/null || true
+    rm -rf "$dest_dir"
+  fi
+
+  make_symlink "$src_dir" "$dest_dir"
+  log "Linked decision-journal"
+}
+
 merge_config
 merge_hooks
 merge_skills
 merge_agents
 link_cues
 link_governance
+link_principles
+link_decision_journal
