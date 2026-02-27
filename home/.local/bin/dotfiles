@@ -35,6 +35,7 @@ ${BOLD}COMMANDS${NC}
     lint        Run shellcheck on all scripts
     hooks       Install pre-commit hooks
     install     Install dotfiles
+    governance  Policy provenance governance CLI
     help        Show this help message
 
 ${BOLD}OPTIONS${NC}
@@ -246,6 +247,46 @@ doctor() {
   fi
 
   # ─────────────────────────────────────────────────────────────
+  section "Governance"
+  # ─────────────────────────────────────────────────────────────
+
+  local gov_script="$DOTFILES_ROOT/home/.claude/governance/bin/governance.sh"
+  if [[ -x "$gov_script" ]]; then
+    # Check governance coverage
+    local manifest coverage with_prov total_cues
+    manifest=$(DOTFILES_ROOT="$DOTFILES_ROOT" "$gov_script" --json 2>/dev/null || echo '{}')
+    coverage=$(echo "$manifest" | jq -r '.stats.coverage_percent // 0' 2>/dev/null || echo "0")
+    with_prov=$(echo "$manifest" | jq -r '.stats.with_provenance // 0' 2>/dev/null || echo "0")
+    total_cues=$(echo "$manifest" | jq -r '.stats.total_cues // 0' 2>/dev/null || echo "0")
+
+    if [[ "$total_cues" -gt 0 ]]; then
+      if [[ "$coverage" == "100" || "$coverage" == "100.0" ]]; then
+        log_check ok "provenance coverage: ${with_prov}/${total_cues} cues (${coverage}%)"
+      elif [[ "${coverage%.*}" -ge 80 ]]; then
+        log_check ok "provenance coverage: ${with_prov}/${total_cues} cues (${coverage}%)"
+      elif [[ "${coverage%.*}" -ge 50 ]]; then
+        log_check warn "provenance coverage: ${with_prov}/${total_cues} cues (${coverage}%)"
+      else
+        log_check fail "provenance coverage: ${with_prov}/${total_cues} cues (${coverage}%)"
+        ((errors++)) || true
+      fi
+    else
+      log_check info "no cues found"
+    fi
+
+    # Check for stale provenance
+    local stale_count
+    stale_count=$(DOTFILES_ROOT="$DOTFILES_ROOT" "$gov_script" --stale 90 --json 2>/dev/null | jq '.stale | length' 2>/dev/null || echo "0")
+    if [[ "$stale_count" -gt 0 ]]; then
+      log_check warn "$stale_count cue(s) have stale provenance (>90 days)"
+    else
+      log_check ok "no stale provenance"
+    fi
+  else
+    log_check warn "governance CLI not found"
+  fi
+
+  # ─────────────────────────────────────────────────────────────
   section "Summary"
   # ─────────────────────────────────────────────────────────────
 
@@ -369,6 +410,16 @@ cmd_install() {
   "$DOTFILES_ROOT/install.sh" --profile "$PROFILE"
 }
 
+cmd_governance() {
+  local gov_script="$DOTFILES_ROOT/home/.claude/governance/bin/governance.sh"
+  if [[ ! -x "$gov_script" ]]; then
+    echo -e "${RED}Governance CLI not found${NC}"
+    echo "Expected at: $gov_script"
+    exit 1
+  fi
+  DOTFILES_ROOT="$DOTFILES_ROOT" exec "$gov_script" "$@"
+}
+
 # Parse global options
 DRY_RUN=0
 while [[ $# -gt 0 ]]; do
@@ -412,6 +463,9 @@ case "$cmd" in
     ;;
   hooks)
     cmd_hooks
+    ;;
+  governance)
+    cmd_governance "$@"
     ;;
   help|--help|-h)
     usage

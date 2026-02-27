@@ -242,7 +242,51 @@ merge_agents() {
 }
 
 
+link_cues() {
+  local src_dir="$DOTFILES_ROOT/home/.claude/cues"
+  local dest_dir="$HOME/.claude/cues"
+
+  if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
+    log "Would link cues -> $dest_dir"
+    return 0
+  fi
+
+  if [[ ! -d "$src_dir" ]]; then
+    log "No cues directory found at $src_dir"
+    return 0
+  fi
+
+  mkdir -p "$dest_dir"
+  for cue_dir in "$src_dir"/*/; do
+    [[ -d "$cue_dir" ]] || continue
+    local name
+    name=$(basename "$cue_dir")
+    make_symlink "$cue_dir" "$dest_dir/$name"
+    log "Linked cue $name"
+  done
+}
+
+link_governance() {
+  local src_dir="$DOTFILES_ROOT/home/.claude/governance"
+  local dest_dir="$HOME/.claude/governance"
+
+  if [[ "$CLAUDE_INSTALL_DRY_RUN" -eq 1 ]]; then
+    log "Would link governance -> $dest_dir"
+    return 0
+  fi
+
+  if [[ ! -d "$src_dir" ]]; then
+    log "No governance directory found at $src_dir"
+    return 0
+  fi
+
+  make_symlink "$src_dir" "$dest_dir"
+  log "Linked governance"
+}
+
 merge_config
 merge_hooks
 merge_skills
 merge_agents
+link_cues
+link_governance
