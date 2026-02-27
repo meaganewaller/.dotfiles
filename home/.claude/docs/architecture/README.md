@@ -13,6 +13,8 @@ An ADR captures a significant technical decision along with its context and cons
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [0001](0001-documentation-layer-architecture.md) | Documentation Layer Architecture | Accepted | 2026-02-26 |
+| [0002](0002-tradeoff-gate-pattern.md) | Tradeoff Gate Pattern | Accepted | 2026-02-27 |
+| [0003](0003-principle-surfacing-architecture.md) | Principle Surfacing Architecture | Accepted | 2026-02-27 |
 
 ## Status Definitions
 

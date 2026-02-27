@@ -63,7 +63,7 @@ if (( LINES > 250 )); then
     --arg file "$FILE" \
     --arg lines "$LINES" \
     '{
-      systemMessage: ("⚠️ LARGE CHANGE DETECTED: " + $file + " (" + $lines + " lines)\n\nYou MUST document the tradeoffs for this change. Respond with:\n\n**Tradeoffs:**\n- [tradeoff 1: X vs Y]\n- [tradeoff 2: ...]\n\n**Options Considered:**\n- [option 1]\n- [option 2]\n\n**Principles Applied:**\n- [principle 1]\n- [principle 2]\n\nThis is a discipline requirement. Large changes without documented tradeoffs indicate implicit decision-making.")
+      systemMessage: ("⚠️ LARGE CHANGE DETECTED: " + $file + " (" + $lines + " lines)\n\nYou MUST document the tradeoffs for this change. Respond with:\n\n**Tradeoffs:**\n- [tradeoff 1: X vs Y]\n- [tradeoff 2: ...]\n\n**Options Considered:**\n- [option 1]\n- [option 2]\n\n**Principles Applied:** (see ~/.claude/principles/career-matrix.md)\n- [e.g., Making Principled Choices, Simplifying For Change, Norming On Conventions]\n\nThis is a discipline requirement. Large changes without documented tradeoffs indicate implicit decision-making.")
     }'
 fi
 

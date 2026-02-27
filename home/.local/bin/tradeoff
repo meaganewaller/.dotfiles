@@ -115,6 +115,11 @@ EOF
 ## Revisit if
 
 <!-- Under what conditions should this decision be reconsidered? -->
+
+## Principles Applied
+
+<!-- Which career matrix behaviors guided this decision? See ~/.claude/principles/career-matrix.md -->
+<!-- Examples: Making Principled Choices, Simplifying For Change, Norming On Conventions -->
 EOF
     ${EDITOR:-vi} "$entry_file"
 
