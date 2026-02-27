@@ -159,6 +159,15 @@
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/layering-guard.sh"
                     }
                 ]
+            },
+            {
+                "matcher": "Read",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/common/PreToolUse/large-file-guard.sh"
+                    }
+                ]
             }
         ],
         "TaskCompleted": [

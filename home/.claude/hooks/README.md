@@ -85,7 +85,7 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 |--------------------|-----------|----------------|
 | **SessionStart**   | `clear-cue-markers.sh`, `session-context-injector.sh`, `friction-escalator.sh`, `hook-health-reporter.sh` | Clear cue/task markers; inject recent impact, friction, journal, and `core.md`; friction escalator; hook health. |
 | **UserPromptSubmit** | `cue-injector-prompt.sh`, `state-triggers.sh`, `idea-classifier.sh` | Match prompt (and last-response topics) to cues; session-start / context-threshold state triggers; idea vault. |
-| **PreToolUse**     | `mark-tasks-active.sh` (TaskCreate), `cue-task-stash.sh` (Task), `cue-injector-bash.sh` (Bash), `cue-injector-file.sh` + `layering-guard.sh` (Write\|Edit) | TaskCreate: set tasks-active marker. Task: stash cues for subagent. Bash: inject cues for command. Write/Edit: inject cues for file path, then layering guard. |
+| **PreToolUse**     | `mark-tasks-active.sh` (TaskCreate), `cue-task-stash.sh` (Task), `cue-injector-bash.sh` (Bash), `cue-injector-file.sh` + `layering-guard.sh` (Write\|Edit), `large-file-guard.sh` (Read) | **TaskCreate**: set tasks-active marker | **Task**: stash cues for subagent. Bash: inject cues for command. Write/Edit: inject cues for file path, then layering guard. Read: warn about large files needing chunked reads. |
 | **PostToolUse**    | `impact-extractor.sh`, `large-diff-escalator.sh`, `dependency-change-detector.sh`, `reversal-detector.sh`, `async-test-runner.sh` | After Write/Edit: log change type to impact log; if diff >250 lines emit `large_change` and prompt to summarize risk; if dependency file changed emit `dependency_change`; if large net removal (reversal) emit `reversal`; run tests and emit `test_run` (async). |
 | **PostToolUseFailure** | `skill-gap-detector.sh` | After tool failure: classify and append to `.claude/skill-friction-log.jsonl`. |
 | **SubagentStart**  | `cue-inject-subagent.sh` | Inject stashed cue content into subagent context. |
@@ -104,6 +104,8 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
   - Safe I/O: `safe_tail`, `safe_append`, `safe_emit`
   - Resource guards: `guard_diff_size`, `guard_file_size`, `guard_log_size`
   - **Hook health monitoring**: `hook_register`, `hook_success`, `hook_failure`, `hook_health_summary`
+  - **Chunked file operations**: `is_large_file`, `file_line_count`, `read_file_chunked`, `read_lines`, `get_chunk_params`
+  - **Progress indicators**: `show_progress`, `process_with_progress`, `process_files_batched`
 
 - **`dev-os-emit.sh`**
   Used by other hooks to append a single JSON line to `.claude/dev-os-events.jsonl`.

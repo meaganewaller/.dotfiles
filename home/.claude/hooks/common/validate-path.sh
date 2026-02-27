@@ -352,3 +352,178 @@ with_timeout() {
     "$@"
   fi
 }
+
+# ============================================================================
+# CHUNKED FILE OPERATIONS
+# ============================================================================
+
+# Default chunk size for large file operations
+RESOURCE_CHUNK_LINES="${RESOURCE_CHUNK_LINES:-1000}"
+RESOURCE_LARGE_FILE_THRESHOLD="${RESOURCE_LARGE_FILE_THRESHOLD:-1000}"
+
+# Check if file is "large" (over threshold lines)
+# Usage: if is_large_file "/path/to/file"; then use chunked reads; fi
+is_large_file() {
+  local path="$1"
+  local threshold="${2:-$RESOURCE_LARGE_FILE_THRESHOLD}"
+
+  [[ ! -f "$path" ]] && return 1
+
+  local line_count
+  line_count=$(wc -l < "$path" 2>/dev/null | tr -d ' ')
+  (( line_count > threshold ))
+}
+
+# Get file line count
+# Usage: lines=$(file_line_count "/path/to/file")
+file_line_count() {
+  local path="$1"
+  [[ -f "$path" ]] && wc -l < "$path" 2>/dev/null | tr -d ' ' || echo "0"
+}
+
+# Read file in chunks, calling processor for each chunk
+# Usage: read_file_chunked "/path/to/file" 1000 process_chunk_func
+# Processor receives: chunk_content, chunk_number, start_line, end_line
+read_file_chunked() {
+  local path="$1"
+  local chunk_size="${2:-$RESOURCE_CHUNK_LINES}"
+  local processor="${3:-cat}"
+
+  [[ ! -f "$path" ]] && return 1
+
+  local total_lines chunk_num=0 start_line=1
+  total_lines=$(wc -l < "$path" | tr -d ' ')
+
+  while (( start_line <= total_lines )); do
+    local end_line=$((start_line + chunk_size - 1))
+    (( end_line > total_lines )) && end_line=$total_lines
+
+    local chunk
+    chunk=$(sed -n "${start_line},${end_line}p" "$path")
+
+    ((chunk_num++))
+    $processor "$chunk" "$chunk_num" "$start_line" "$end_line"
+
+    start_line=$((end_line + 1))
+  done
+}
+
+# Read specific line range from file
+# Usage: content=$(read_lines "/path/to/file" 100 200)
+read_lines() {
+  local path="$1"
+  local start="${2:-1}"
+  local end="${3:-}"
+
+  [[ ! -f "$path" ]] && return 1
+
+  if [[ -n "$end" ]]; then
+    sed -n "${start},${end}p" "$path"
+  else
+    sed -n "${start}p" "$path"
+  fi
+}
+
+# ============================================================================
+# PROGRESS INDICATORS
+# ============================================================================
+
+# Show progress for batch operations (writes to stderr)
+# Usage: show_progress 5 20 "Processing files"
+show_progress() {
+  local current="$1"
+  local total="$2"
+  local message="${3:-Processing}"
+  local width="${4:-30}"
+
+  local pct=$((current * 100 / total))
+  local filled=$((current * width / total))
+  local empty=$((width - filled))
+
+  local bar=""
+  for ((i=0; i<filled; i++)); do bar+="█"; done
+  for ((i=0; i<empty; i++)); do bar+="░"; done
+
+  printf '\r%s [%s] %d/%d (%d%%)' "$message" "$bar" "$current" "$total" "$pct" >&2
+
+  # Newline at completion
+  (( current == total )) && echo >&2
+}
+
+# Process items with progress indicator
+# Usage: process_with_progress "item1 item2 ..." process_func "Processing"
+process_with_progress() {
+  local items="$1"
+  local processor="$2"
+  local message="${3:-Processing}"
+
+  # Convert to array
+  local -a item_array
+  read -ra item_array <<< "$items"
+  local total=${#item_array[@]}
+
+  (( total == 0 )) && return 0
+
+  local current=0
+  for item in "${item_array[@]}"; do
+    ((current++))
+    show_progress "$current" "$total" "$message"
+    $processor "$item"
+  done
+}
+
+# Process files in batches with progress
+# Usage: process_files_batched "file1 file2 ..." 10 process_func "Processing"
+process_files_batched() {
+  local files="$1"
+  local batch_size="${2:-10}"
+  local processor="$3"
+  local message="${4:-Processing files}"
+
+  local -a file_array
+  read -ra file_array <<< "$files"
+  local total=${#file_array[@]}
+
+  (( total == 0 )) && return 0
+
+  local current=0 batch_num=0
+  local -a batch=()
+
+  for file in "${file_array[@]}"; do
+    batch+=("$file")
+    ((current++))
+
+    if (( ${#batch[@]} >= batch_size )) || (( current == total )); then
+      ((batch_num++))
+      show_progress "$current" "$total" "$message (batch $batch_num)"
+      $processor "${batch[*]}"
+      batch=()
+    fi
+  done
+}
+
+# ============================================================================
+# FILE OPERATION HELPERS
+# ============================================================================
+
+# Get recommended chunk parameters for a file
+# Usage: eval $(get_chunk_params "/path/to/file")
+#        echo "Lines: $total_lines, Chunks: $num_chunks, Size: $chunk_size"
+get_chunk_params() {
+  local path="$1"
+  local preferred_chunk="${2:-$RESOURCE_CHUNK_LINES}"
+
+  local total_lines=0 num_chunks=1 chunk_size="$preferred_chunk"
+
+  if [[ -f "$path" ]]; then
+    total_lines=$(wc -l < "$path" | tr -d ' ')
+    if (( total_lines > preferred_chunk )); then
+      num_chunks=$(( (total_lines + preferred_chunk - 1) / preferred_chunk ))
+    else
+      chunk_size=$total_lines
+      num_chunks=1
+    fi
+  fi
+
+  echo "total_lines=$total_lines num_chunks=$num_chunks chunk_size=$chunk_size"
+}
