@@ -52,8 +52,9 @@ echo "✓ Published summary: $JEKYLL_SUMMARY" >&2
 if [[ -f "$REVIEW_MD" ]]; then
   # Check if Jekyll review exists
   if [[ -f "$JEKYLL_REVIEW" ]]; then
-    # Extract frontmatter from existing review, append new content
-    FRONTMATTER=$(sed -n '1,/^---$/p' "$JEKYLL_REVIEW" | head -n -1)
+    # Extract frontmatter from existing review (lines between first and second ---)
+    # BSD-compatible: use awk instead of head -n -1
+    FRONTMATTER=$(awk '/^---$/{p++} p==1' "$JEKYLL_REVIEW")
     if [[ -z "$FRONTMATTER" ]]; then
       # No frontmatter found, create it
       FRONTMATTER="---

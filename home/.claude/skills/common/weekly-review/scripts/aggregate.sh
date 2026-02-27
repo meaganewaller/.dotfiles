@@ -32,10 +32,10 @@ fi
 
 mkdir -p "$OUT_DIR_BASE"
 
-POSTS_DIR="$JEKYLL_ROOT/_posts"
+REVIEWS_DIR="$JEKYLL_ROOT/_reviews"
 DATA_DIR="$JEKYLL_ROOT/_data/dev_os"
 
-mkdir -p "$POSTS_DIR"
+mkdir -p "$REVIEWS_DIR"
 mkdir -p "$DATA_DIR"
 
 # ============================================================================
@@ -292,7 +292,7 @@ echo "✓ Wrote local summary: $SUMMARY_JSON" >&2
 # ============================================================================
 
 JEKYLL_SUMMARY="$DATA_DIR/${WEEK_START}-summary.json"
-JEKYLL_POST="$POSTS_DIR/${WEEK_START}-weekly-review.md"
+JEKYLL_REVIEW="$REVIEWS_DIR/${WEEK_START}-weekly-review.md"
 
 # Copy summary JSON (overwrites safely)
 cp "$SUMMARY_JSON" "$JEKYLL_SUMMARY"
@@ -302,8 +302,8 @@ echo "✓ Published summary to Jekyll: $JEKYLL_SUMMARY" >&2
 # FR-3: Create post stub if missing
 # ============================================================================
 
-if [[ ! -f "$JEKYLL_POST" ]]; then
-  cat > "$JEKYLL_POST" <<EOF
+if [[ ! -f "$JEKYLL_REVIEW" ]]; then
+  cat > "$JEKYLL_REVIEW" <<EOF
 ---
 layout: review
 title: "Weekly Engineering Review — ${WEEK_START}"
@@ -335,9 +335,9 @@ _(Generated from summary data.)_
 
 -
 EOF
-  echo "✓ Created post: $JEKYLL_POST" >&2
+  echo "✓ Created review: $JEKYLL_REVIEW" >&2
 else
-  echo "• Skipped: $JEKYLL_POST already exists" >&2
+  echo "• Skipped: $JEKYLL_REVIEW already exists" >&2
 fi
 
 # Print output directory (for consumers)

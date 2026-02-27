@@ -19,7 +19,6 @@ WEEK_END=$(jq -r '.week.end // .window.until // "unknown"' "$SUMMARY_JSON")
 EVENTS_TOTAL=$(jq -r '.totals.events // .counts.events_total // 0' "$SUMMARY_JSON")
 PROJECTS=$(jq -r '.totals.projects_touched // .counts.projects_touched // 0' "$SUMMARY_JSON")
 SESSIONS=$(jq -r '.totals.sessions // .counts.sessions_total // 0' "$SUMMARY_JSON")
-FILES_MOD=$(jq -r '.totals.files_modified // .counts.files_modified // 0' "$SUMMARY_JSON")
 WRITES=$(jq -r '.totals.writes // .counts.writes // 0' "$SUMMARY_JSON")
 FAILURES=$(jq -r '.totals.failures // .counts.failures // 0' "$SUMMARY_JSON")
 TRADEOFFS=$(jq -r '.totals.decisions_documented // .counts.tradeoff_events // 0' "$SUMMARY_JSON")
@@ -65,7 +64,6 @@ fi
   echo "| Projects touched | $PROJECTS |"
   echo "| Sessions | $SESSIONS |"
   echo "| Total events | $EVENTS_TOTAL |"
-  echo "| Files modified | $FILES_MOD |"
   echo "| Writes | $WRITES |"
   echo "| Failures/friction | $FAILURES ($FAILURE_PCT%) |"
   echo "| Decisions documented | $TRADEOFFS |"
@@ -131,10 +129,6 @@ fi
   echo "<!-- PLACEHOLDER:CUE_ENGAGEMENT -->"
   echo "_Claude will analyze cue effectiveness, dormant cues, and trigger patterns here._"
   echo "<!-- END:CUE_ENGAGEMENT -->"
-  echo
-  echo "## 📁 Files Modified"
-  echo
-  jq -r '.top_files_modified[]? | "- `\(.)`"' "$SUMMARY_JSON" | head -15 || echo "_(No files data)_"
   echo
   echo "## 📈 Charts"
   if [[ -d "$CHARTS_DIR" ]]; then
