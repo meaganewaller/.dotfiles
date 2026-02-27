@@ -5,7 +5,7 @@ set -euo pipefail
 
 # Find ADR directory
 ADR_DIR=""
-for candidate in "docs/architecture/decisions" "docs/adr" "adr" "decisions"; do
+for candidate in "docs/architecture/decisions" "docs/architecture" "docs/adr" "adr" "decisions"; do
   if [[ -d "$candidate" ]]; then
     ADR_DIR="$candidate"
     break
@@ -39,10 +39,19 @@ for file in "$ADR_DIR"/*.md; do
   fi
 done
 
-# Count by status if we can grep for it
-accepted=$(grep -l "^status: accepted" "$ADR_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-proposed=$(grep -l "^status: proposed" "$ADR_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ' || echo "0")
-superseded=$(grep -l "^status: superseded" "$ADR_DIR"/*.md 2>/dev/null | wc -l | tr -d ' ' || echo "0")
+# Count by status (iterate to avoid pipefail issues)
+count_by_status() {
+  local status="$1" count=0
+  for f in "$ADR_DIR"/*.md; do
+    [[ -f "$f" ]] || continue
+    [[ "$(basename "$f")" == "README.md" ]] && continue
+    grep -q "^status: $status" "$f" 2>/dev/null && ((count++)) || true
+  done
+  echo "$count"
+}
+accepted=$(count_by_status "accepted")
+proposed=$(count_by_status "proposed")
+superseded=$(count_by_status "superseded")
 
 echo "**Project ADRs**: $total total in \`$ADR_DIR\`"
 if [[ "$proposed" -gt 0 ]]; then
