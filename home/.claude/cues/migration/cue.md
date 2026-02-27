@@ -2,7 +2,9 @@
 # When prompt or file path suggests migrations.
 pattern: migration|migrate|schema
 files: db/migrate|migrations?/
-scope: agent
+scope: agent, subagent
+description: Database migrations, schema changes, and data transformations
+vocabulary: migration migrate schema database table column index alter rollback
 provenance:
   policy:
     - uri: home/.claude/governance/policies/data-migrations.md

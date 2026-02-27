@@ -12,10 +12,21 @@
 # Output: one path per line to cue directories that matched (e.g. ~/.claude/cues/commit).
 #
 # Cues live in ~/.claude/cues/<name>/cue.md with optional frontmatter:
-#   pattern:  regex for prompt
-#   commands: regex for bash command
-#   files:    regex for file path
-#   scope:    agent (default) | teammate | subagent (v1: we only consider agent)
+#   pattern:      regex for prompt
+#   commands:     regex for bash command
+#   files:        regex for file path
+#   scope:        agent | subagent | agent, subagent (default: agent)
+#   description:  semantic description for NCD matching (fallback when regex misses)
+#   vocabulary:   domain keywords to improve semantic matching
+#
+# Matching priority:
+#   1. Regex match (pattern/commands/files)
+#   2. Semantic match via gzip NCD (if description: field exists)
+#
+# Environment:
+#   CUE_SCOPE_FILTER: space-separated scopes to match (default: "agent")
+#   CUE_SEMANTIC:     set to "1" to enable semantic matching (default: 1)
+#   NCD_THRESHOLD:    similarity threshold for NCD (default: 0.58)
 
 set -euo pipefail
 
@@ -76,6 +87,18 @@ match_regex() {
   return 1
 }
 
+# Test subject against description using semantic matching (gzip NCD).
+# Returns 0 if semantically similar.
+SEMANTIC_MATCH="$SCRIPT_DIR/semantic-match.sh"
+match_semantic() {
+  local subject="$1"
+  local description="$2"
+  local vocabulary="$3"
+  [[ -z "$description" ]] && return 1
+  [[ ! -x "$SEMANTIC_MATCH" ]] && return 1
+  "$SEMANTIC_MATCH" "$subject" "$description" "$vocabulary" 2>/dev/null
+}
+
 matched=()
 for root in "${CUE_ROOTS[@]}"; do
   [[ ! -d "$root" ]] && continue
@@ -89,16 +112,39 @@ for root in "${CUE_ROOTS[@]}"; do
     files=$(get_frontmatter "$cue_md" "files")
     scope=$(get_frontmatter "$cue_md" "scope")
     scope="${scope:-agent}"
-    [[ "$scope" != "agent" ]] && continue
+
+    # Check if cue's scope matches any of the required scopes
+    # CUE_SCOPE_FILTER defaults to "agent" for backward compatibility
+    scope_filter="${CUE_SCOPE_FILTER:-agent}"
+    scope_match=0
+    for required_scope in $scope_filter; do
+      # Handle "agent, subagent" format (with comma)
+      if [[ "$scope" == *"$required_scope"* ]]; then
+        scope_match=1
+        break
+      fi
+    done
+    [[ $scope_match -eq 0 ]] && continue
+
+    # Extract semantic fields for fallback matching
+    description=$(get_frontmatter "$cue_md" "description")
+    vocabulary=$(get_frontmatter "$cue_md" "vocabulary")
+    semantic_enabled="${CUE_SEMANTIC:-1}"
 
     case "$MODE" in
       prompt)
-        match_regex "$SUBJECT" "$pattern" && matched+=("$cue_dir")
+        if match_regex "$SUBJECT" "$pattern"; then
+          matched+=("$cue_dir")
+        elif [[ "$semantic_enabled" == "1" ]] && match_semantic "$SUBJECT" "$description" "$vocabulary"; then
+          matched+=("$cue_dir")
+        fi
         ;;
       command)
         if match_regex "$SUBJECT" "$commands"; then
           matched+=("$cue_dir")
         elif match_regex "$SUBJECT" "$pattern"; then
+          matched+=("$cue_dir")
+        elif [[ "$semantic_enabled" == "1" ]] && match_semantic "$SUBJECT" "$description" "$vocabulary"; then
           matched+=("$cue_dir")
         fi
         ;;

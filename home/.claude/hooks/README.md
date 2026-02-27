@@ -13,7 +13,9 @@ hooks/
     ├── hook-health.sh        # CLI: check hook execution health
     ├── worktree-create-log.sh # log worktree creation (e.g. from git hook or script)
     ├── worktree-remove-log.sh # log worktree removal
-    ├── match-cues.sh            # shared: find cues matching prompt/command/file (used by cue injectors)
+    ├── match-cues.sh         # find cues by regex + semantic matching
+    ├── show-cue.sh           # output cue with marker gating + macro support
+    ├── semantic-match.sh     # gzip NCD similarity matching
     ├── SessionStart/
     │   ├── clear-cue-markers.sh
     │   ├── session-context-injector.sh
@@ -63,7 +65,19 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 
 **Stop** runs a command first (`hard-stop-test-blocker.sh`), then a prompt gate. **SubagentStop** is defined entirely in the JSON (agent only).
 
-**Paths:** Some hooks use the **project** `.claude/` (e.g. `session-context-injector` reads from the repo’s `.claude/`). Others use **`$HOME/.claude/`** for logs and outputs (e.g. `impact-log.jsonl`, `skill-friction-log.jsonl`, `dev-os-events.jsonl`, `learning-targets/`). **Cues** live in `~/.claude/cues/<name>/cue.md` (and optionally `$PROJECT/.claude/cues/`); they are declarative guidance that fires when the user prompt, a bash command, or a file path matches regexes in the cue’s frontmatter (`pattern:`, `commands:`, `files:`). Once-per-session gating uses markers under `/tmp/.claude-devos-cue-*`; `clear-cue-markers.sh` resets them on SessionStart.
+**Paths:** Some hooks use the **project** `.claude/` (e.g. `session-context-injector` reads from the repo’s `.claude/`). Others use **`$HOME/.claude/`** for logs and outputs (e.g. `impact-log.jsonl`, `skill-friction-log.jsonl`, `dev-os-events.jsonl`, `learning-targets/`).
+
+**Cues** live in `~/.claude/cues/<name>/cue.md` (and optionally `$PROJECT/.claude/cues/`). They are declarative guidance that fires when triggers match. Matching is done by `match-cues.sh` in priority order:
+
+1. **Regex match**: `pattern:` (prompts), `commands:` (bash), `files:` (file paths)
+2. **Vocabulary match**: Any word in `vocabulary:` field appears in query
+3. **Semantic match**: Gzip NCD similarity to `description:` field (threshold: 0.65)
+
+**Scope filtering**: Cues declare `scope: agent`, `scope: subagent`, or `scope: agent, subagent`. The `CUE_SCOPE_FILTER` env var controls which scopes to match.
+
+**Macros**: Cues with `macro: prepend|append` and a `macro.sh` script get dynamic content injected before/after the cue body.
+
+**Once-per-session gating**: Markers under `/tmp/.claude-devos-cue-*` prevent duplicate injection; `clear-cue-markers.sh` resets on SessionStart. `show-cue.sh` handles marker checking, macro execution, and content output.
 
 ## Event → script summary
 
@@ -108,6 +122,34 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 
 - **`worktree-create-log.sh`** / **`worktree-remove-log.sh`**
   Emit `worktree_created` / `worktree_removed` via `dev-os-emit.sh` then run the real worktree add/remove. Intended to be used as the actual worktree add/remove command (e.g. from a wrapper or git hook) so experiments are logged.
+
+- **`match-cues.sh`**
+  Finds cues matching a subject (prompt, command, or file path). Supports:
+  - Regex matching via `pattern:`, `commands:`, `files:` frontmatter
+  - Scope filtering via `CUE_SCOPE_FILTER` env var (default: "agent")
+  - Semantic matching via `description:` and `vocabulary:` fields
+  ```bash
+  match-cues.sh prompt "commit my changes"
+  CUE_SCOPE_FILTER="subagent" match-cues.sh prompt "review code"
+  ```
+
+- **`show-cue.sh`**
+  Outputs cue content with marker gating and macro support.
+  ```bash
+  show-cue.sh /path/to/cue/dir [session_id]
+  ```
+  - If `session_id` provided, checks/creates marker to prevent duplicates
+  - If cue has `macro: prepend|append` and `macro.sh`, executes and combines output
+  - Strips frontmatter, outputs body (and macro output)
+
+- **`semantic-match.sh`**
+  Gzip NCD (Normalized Compression Distance) similarity matching.
+  ```bash
+  semantic-match.sh "query text" "description text" "vocabulary words"
+  ```
+  - Returns 0 (match) if NCD < threshold (default 0.65)
+  - First checks if any vocabulary word appears in query (fast path)
+  - Falls back to gzip compression similarity for longer queries
 
 ## Input/output
 

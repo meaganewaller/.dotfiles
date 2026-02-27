@@ -2,7 +2,9 @@
 # When user prompt or bash command matches, show this cue.
 pattern: commit|push|amend
 commands: git\s+(commit|push)
-scope: agent
+scope: agent, subagent
+description: Git commit workflow, version control, and change management
+vocabulary: commit push amend rebase squash merge changelog version
 provenance:
   policy:
     - uri: home/.claude/governance/policies/code-lifecycle.md

@@ -69,20 +69,15 @@ governance/
 ## Quick Start
 
 ```bash
-# Coverage report (default)
-governance/bin/governance.sh
-
-# Trace a specific cue
-governance/bin/governance.sh --trace commit
-
-# Find cues without provenance
-governance/bin/governance.sh --gaps
-
-# Validate all provenance metadata
-governance/bin/governance.sh --lint
-
-# Via dotfiles CLI
+# Via dotfiles CLI (recommended)
+dotfiles governance              # Coverage report
+dotfiles governance --trace commit
 dotfiles governance --gaps
+dotfiles governance --lint
+
+# Direct script access
+~/.claude/governance/bin/governance.sh
+~/.claude/governance/bin/governance.sh --trace commit
 ```
 
 ## Provenance Format
@@ -96,7 +91,7 @@ commands: git\s+(commit|push)
 scope: agent
 provenance:
   policy:
-    - uri: governance/policies/code-lifecycle.md
+    - uri: home/.claude/governance/policies/code-lifecycle.md
       type: governance-doc
   controls:
     - id: ENG-COMMIT-001

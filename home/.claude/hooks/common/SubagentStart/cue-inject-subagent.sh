@@ -21,7 +21,16 @@ done
 
 [[ -z "$CLAIMED" ]] && exit 0
 
-body=$(awk '/^---$/{c++;next} c>=2' "${CLAIMED}cue.md" 2>/dev/null || true)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SHOW_CUE="$SCRIPT_DIR/show-cue.sh"
+
+# For subagents, we don't use session markers (they get fresh context)
+# Pass empty session_id to show-cue.sh to skip marker check
+if [[ -x "$SHOW_CUE" ]]; then
+  body=$("$SHOW_CUE" "$CLAIMED" "" 2>/dev/null || true)
+else
+  body=$(awk '/^---$/{c++;next} c>=2' "${CLAIMED}cue.md" 2>/dev/null || true)
+fi
 [[ -z "$body" ]] && exit 0
 
 jq -n \

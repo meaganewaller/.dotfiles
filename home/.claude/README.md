@@ -253,6 +253,133 @@ The skill agent fills placeholders with:
 
 ---
 
+## Cues: Context-Aware Guidance
+
+Cues are declarative guidance that automatically injects into context when triggers match. They're "compiled policy" - human-readable policy documents compressed into agent directives.
+
+### How Cues Work
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            Cue Trigger Flow                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   User Prompt ──▶ pattern: regex ──┐                                        │
+│   Bash Command ─▶ commands: regex ─┼──▶ match-cues.sh ──▶ show-cue.sh      │
+│   File Path ────▶ files: regex ────┘         │                │             │
+│                                              │                ▼             │
+│                  vocabulary: keywords ───────┼──▶ Semantic   Macro         │
+│                  description: text ──────────┘    Match      Execution     │
+│                                                     │            │          │
+│                                                     └─────┬──────┘          │
+│                                                           ▼                 │
+│                                              hookSpecificOutput.context     │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Cue Location
+
+```
+~/.claude/cues/              # Global cues (via install.sh)
+$PROJECT/.claude/cues/       # Project-local cues (override global)
+```
+
+### Cue Format
+
+```yaml
+---
+# Trigger matching (regex)
+pattern: commit|push|amend           # Match user prompts
+commands: git\s+(commit|push)        # Match bash commands
+files: \.env$|\.env\.local$          # Match file paths
+
+# Scope control
+scope: agent, subagent               # Where cue fires (agent|subagent|both)
+
+# Semantic matching (fallback when regex misses)
+description: Git commit workflow and version control
+vocabulary: commit push amend rebase merge changelog
+
+# Dynamic content (optional)
+macro: prepend                       # Run macro.sh before/after content
+
+# Governance traceability (optional)
+provenance:
+  policy:
+    - uri: home/.claude/governance/policies/code-lifecycle.md
+  controls:
+    - id: ENG-COMMIT-001
+      name: Structured Change Records
+      justifications:
+        - Conventional commits classify changes
+  verified: 2026-02-26
+  rationale: Why this cue exists
+---
+
+# Cue Title
+
+- Guidance directive 1
+- Guidance directive 2
+```
+
+### Matching Priority
+
+1. **Regex match** - `pattern:`, `commands:`, or `files:` fields
+2. **Vocabulary match** - Any word in `vocabulary:` appears in query
+3. **Semantic match** - Gzip NCD similarity to `description:`
+
+### Scope Filtering
+
+| Scope | Fires For |
+|-------|-----------|
+| `agent` | Main agent only (default) |
+| `subagent` | Spawned subagents only |
+| `agent, subagent` | Both contexts |
+
+Subagent injection uses a two-phase stash pattern:
+1. `cue-task-stash.sh` stashes matching cues when Task tool is called
+2. `cue-inject-subagent.sh` injects stashed cues when subagent starts
+
+### Macros
+
+Cues can include dynamic content via `macro.sh`:
+
+```bash
+# cues/github/macro.sh
+#!/usr/bin/env bash
+contributors=$(git shortlog -sn 2>/dev/null | wc -l)
+if [[ $contributors -gt 1 ]]; then
+  echo "**Team project** ($contributors contributors) - PRs recommended"
+fi
+```
+
+With `macro: prepend`, the script output appears before cue content.
+With `macro: append`, it appears after.
+
+### Once-Per-Session Gating
+
+Each cue fires at most once per session. Markers in `/tmp/.claude-devos-cue-*` track which cues have fired. `clear-cue-markers.sh` resets them on SessionStart.
+
+### Governance Integration
+
+Cues support provenance metadata for policy traceability:
+
+```bash
+# Check governance coverage
+dotfiles governance
+
+# Trace a specific cue
+dotfiles governance --trace commit
+
+# Find gaps
+dotfiles governance --gaps
+```
+
+See `governance/README.md` for full documentation.
+
+---
+
 ## Skills
 
 See `skills/README.md` for the full catalog of 16 skills.

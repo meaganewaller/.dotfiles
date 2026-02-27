@@ -58,6 +58,13 @@ This document describes the structure and design of this dotfiles repository.
 │   │   ├── skills/                 # Custom skills (16 total)
 │   │   ├── settings/               # Profile-merged settings
 │   │   ├── agents/                 # Custom agent definitions
+│   │   ├── cues/                   # Context-aware guidance (pattern-triggered)
+│   │   │   ├── commit/cue.md       # Git commit guidance
+│   │   │   ├── env/cue.md          # Secrets/env handling
+│   │   │   └── migration/cue.md    # Database migration guidance
+│   │   ├── governance/             # Policy traceability system
+│   │   │   ├── bin/                # governance.sh CLI + scanners
+│   │   │   └── policies/           # Human-readable policy docs
 │   │   ├── docs/                   # Blog drafts, notes
 │   │   └── install.sh              # Claude-specific installer
 │   │

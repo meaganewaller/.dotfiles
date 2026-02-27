@@ -1,7 +1,9 @@
 ---
 # When editing env or config files, show this cue.
 files: \.env$|\.env\.local$|\.env\.example$
-scope: agent
+scope: agent, subagent
+description: Environment variables, secrets, API keys, and configuration management
+vocabulary: secret password token credential apikey api_key env environment config
 provenance:
   policy:
     - uri: home/.claude/governance/policies/secrets-management.md

@@ -18,10 +18,11 @@ MATCH_CUES="$SCRIPT_DIR/match-cues.sh"
 STASH_DIR="/tmp/.claude-devos-subagent-stash-${SESSION_ID}"
 mkdir -p "$STASH_DIR" 2>/dev/null || exit 0
 
+# Only stash cues that have scope: subagent (or scope: agent, subagent)
 while IFS= read -r cue_dir; do
   [[ -z "$cue_dir" ]] && continue
   cue_id=$(basename "${cue_dir%/}")
   echo "$cue_dir" > "${STASH_DIR}/${cue_id}"
-done < <("$MATCH_CUES" prompt "$TASK_PROMPT" 2>/dev/null || true)
+done < <(CUE_SCOPE_FILTER="subagent" "$MATCH_CUES" prompt "$TASK_PROMPT" 2>/dev/null || true)
 
 exit 0

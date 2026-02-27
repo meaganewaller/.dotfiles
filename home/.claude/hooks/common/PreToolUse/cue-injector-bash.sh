@@ -14,22 +14,18 @@ CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""')
 
 MATCH_CUES="$SCRIPT_DIR/match-cues.sh"
+SHOW_CUE="$SCRIPT_DIR/show-cue.sh"
 [[ ! -x "$MATCH_CUES" ]] && exit 0
+[[ ! -x "$SHOW_CUE" ]] && exit 0
 
 CONTEXT=""
 while IFS= read -r cue_dir; do
   [[ -z "$cue_dir" ]] && continue
-  cue_id=$(basename "${cue_dir%/}")
-  if [[ -n "$SESSION_ID" ]]; then
-    marker="/tmp/.claude-devos-cue-${cue_id}-${SESSION_ID}"
-    [[ -f "$marker" ]] && continue
-  fi
-  body=$(awk '/^---$/{c++;next} c>=2' "${cue_dir}cue.md" 2>/dev/null || true)
+  body=$("$SHOW_CUE" "$cue_dir" "$SESSION_ID" 2>/dev/null || true)
   if [[ -n "$body" ]]; then
     CONTEXT="${CONTEXT}${body}
 
 "
-    [[ -n "$SESSION_ID" ]] && touch "$marker" 2>/dev/null || true
   fi
 done < <("$MATCH_CUES" command "$CMD" 2>/dev/null || true)
 
