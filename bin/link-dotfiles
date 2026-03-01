@@ -82,6 +82,7 @@ run ".local/bin/tradeoff-gate"
 run ".config/git/hooks"
 
 run ".config/mise"
+run ".config/.codex/config.toml"
 
 run ".tmux.conf"
 run ".tmux/settings.conf"

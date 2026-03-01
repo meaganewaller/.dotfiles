@@ -19,6 +19,7 @@ curl -fsSL https://raw.githubusercontent.com/meaganewaller/.dotfiles/main/bootst
 ├── home/           # Symlinked into $HOME
 │   ├── .config/    # XDG configs (fish, nvim, wezterm, theme)
 │   ├── .claude/    # Claude Code (hooks, skills, settings)
+│   ├── .config/.codex/ # Codex config + DevOS scaffold (allowlist-managed)
 │   └── .*          # Shell, git, ssh configs
 ├── bin/            # link-dotfiles, make-symlink
 ├── lib/            # Shared shell functions
@@ -34,6 +35,7 @@ See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the full system design.
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, directory structure, profile system |
 | [home/.claude/README.md](./home/.claude/README.md) | Claude Code config, Dev OS telemetry |
 | [home/.claude/skills/README.md](./home/.claude/skills/README.md) | Catalog of 16 custom skills |
+| [home/.config/.codex/README.md](./home/.config/.codex/README.md) | Codex config + allowlist boundaries |
 | [.mise-tasks/README.md](./.mise-tasks/README.md) | mise task reference |
 
 ## daily workflow
@@ -46,7 +48,9 @@ mise run core:install [profile]   # full install (link + brew)
 mise tasks         # list tasks
 ```
 
-Theme: `theme set <name>`, `theme dark`, `theme light`, etc. Claude Code: `mise run claude` (or `--profile=personal`).
+Theme: `theme set <name>`, `theme dark`, `theme light`, etc.
+Claude Code: `mise run claude` (or `--profile=personal`).
+Codex config sync (allowlist): `mise run codex` or preview with `mise run codex:dry-run`.
 
 ## profiles
 

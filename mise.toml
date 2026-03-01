@@ -40,3 +40,15 @@ run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE"
 [tasks."claude:dry-run"]
 description = "Preview Claude Code install (dry run)"
 run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE --dry-run"
+
+[tasks.codex]
+description = "Sync allowlisted Codex config (config.toml + DevOS assets)"
+run = "./home/.config/.codex/install.sh --profile ${DOTFILES_PROFILE:-work}"
+
+[tasks."codex:refresh"]
+description = "Re-run Codex allowlisted sync after editing config/DevOS assets"
+run = "./home/.config/.codex/install.sh --profile ${DOTFILES_PROFILE:-work}"
+
+[tasks."codex:dry-run"]
+description = "Preview Codex allowlisted sync (dry run)"
+run = "./home/.config/.codex/install.sh --profile ${DOTFILES_PROFILE:-work} --dry-run"

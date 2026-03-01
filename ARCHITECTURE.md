@@ -51,7 +51,8 @@ This document describes the structure and design of this dotfiles repository.
 │   │   ├── mise/                   # mise (runtime manager) config
 │   │   ├── zsh/                    # Zsh plugins/completions
 │   │   ├── karabiner/              # Keyboard customization (macOS)
-│   │   └── sketchybar/             # Status bar (macOS)
+│   │   ├── sketchybar/             # Status bar (macOS)
+│   │   └── .codex/                 # Codex config (allowlist-managed)
 │   │
 │   ├── .claude/                    # Claude Code configuration
 │   │   ├── hooks/                  # Dev OS telemetry hooks
@@ -255,6 +256,9 @@ mise run core:install
 # Claude Code settings refresh
 mise run claude
 
+# Codex config sync (allowlist only)
+mise run codex
+
 # List all mise tasks
 mise tasks
 ```
@@ -324,4 +328,14 @@ mise run claude:refresh
 
 # Or manually
 ./home/.claude/install.sh --profile $DOTFILES_PROFILE
+```
+
+### Codex config not updating
+
+```bash
+# Re-run Codex installer (allowlist only)
+mise run codex:refresh
+
+# Preview planned changes
+mise run codex:dry-run
 ```
