@@ -7,6 +7,7 @@ Codex configuration managed by dotfiles using an explicit allowlist.
 - `config.toml`
 - `AGENTS.md` (optional)
 - `devos/**` (repo-owned DevOS docs/skills/cues/governance assets)
+- `~/.local/bin/codex-tradeoff` (via dotfiles linker)
 
 ## Unmanaged (never symlinked)
 
@@ -21,4 +22,7 @@ mise run codex
 
 # Preview without changing files
 mise run codex:dry-run
+
+# Capture a Codex tradeoff decision
+codex-tradeoff "Chose X over Y because Z"
 ```

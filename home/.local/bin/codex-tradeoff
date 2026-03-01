@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# codex-tradeoff - Codex-native tradeoff journaling
+#
+# Usage:
+#   codex-tradeoff                    # Interactive template
+#   codex-tradeoff "quick note"       # One-liner
+#   codex-tradeoff --list             # List recent
+#   codex-tradeoff --edit             # Edit latest
+
+JOURNAL_DIR="${CODEX_TRADEOFF_JOURNAL:-$HOME/.config/.codex/devos/decision-journal}"
+mkdir -p "$JOURNAL_DIR"
+
+show_help() {
+  cat << 'HELP'
+codex-tradeoff - Codex decision journal helper
+
+Usage:
+  codex-tradeoff                    Interactive entry
+  codex-tradeoff "note"             Quick one-liner
+  codex-tradeoff --list, -l         List recent entries
+  codex-tradeoff --edit, -e         Edit most recent entry
+  codex-tradeoff --help, -h         Show help
+
+Environment:
+  CODEX_TRADEOFF_JOURNAL    Override journal directory
+  EDITOR                    Editor for interactive mode (default: vi)
+HELP
+}
+
+list_entries() {
+  local count="${1:-10}"
+  if ! ls "$JOURNAL_DIR"/*-tradeoff.md >/dev/null 2>&1; then
+    echo "No Codex tradeoff entries yet."
+    return
+  fi
+
+  echo "Recent Codex tradeoffs:"
+  ls -t "$JOURNAL_DIR"/*-tradeoff.md 2>/dev/null | head -n "$count"
+}
+
+edit_recent() {
+  local recent
+  recent=$(ls -t "$JOURNAL_DIR"/*-tradeoff.md 2>/dev/null | head -1 || true)
+  if [[ -z "$recent" ]]; then
+    echo "No entries to edit."
+    exit 1
+  fi
+  "${EDITOR:-vi}" "$recent"
+}
+
+create_entry() {
+  local note="${1:-}"
+  local timestamp branch entry_file
+
+  timestamp=$(date +%Y-%m-%d-%H%M)
+  branch=$(git branch --show-current 2>/dev/null || echo "n/a")
+  entry_file="$JOURNAL_DIR/$timestamp-tradeoff.md"
+
+  if [[ -n "$note" ]]; then
+    cat > "$entry_file" <<NOTE
+# Tradeoff: $(date +%Y-%m-%d)
+
+**Branch:** $branch
+**Context:** CLI capture
+
+## Note
+
+$note
+NOTE
+    echo "Saved: $entry_file"
+    return
+  fi
+
+  cat > "$entry_file" <<TEMPLATE
+# Tradeoff: $(date +%Y-%m-%d)
+
+**Branch:** $branch
+**Context:** $(pwd | sed "s|$HOME|~|")
+
+## What I chose to do
+
+
+## What I chose NOT to do
+
+
+## Why
+
+
+## Revisit if
+
+
+## Principles Applied
+
+<!-- Example: Making Principled Choices, Simplifying For Change -->
+TEMPLATE
+
+  "${EDITOR:-vi}" "$entry_file"
+  echo "Saved: $entry_file"
+}
+
+case "${1:-}" in
+  --help|-h)
+    show_help
+    ;;
+  --list|-l)
+    list_entries "${2:-10}"
+    ;;
+  --edit|-e)
+    edit_recent
+    ;;
+  "")
+    create_entry
+    ;;
+  *)
+    create_entry "$*"
+    ;;
+esac

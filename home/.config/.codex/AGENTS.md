@@ -3,12 +3,25 @@
 ## Intent
 Codex should operate with a DevOS mindset: explicit decisions, traceable tradeoffs, and policy-aware execution.
 
-## Operating Rules
+## Core Rules
 - Prefer reversible changes and validate before broad edits.
-- Capture non-obvious tradeoffs in the decision journal.
-- Keep governance checks linked to concrete policies.
+- Keep rationale explicit when selecting among alternatives.
 - Treat Codex runtime/auth/state files as local machine state, not repo-managed config.
 
-## Sources
-- DevOS artifacts live under `devos/`.
-- This file is repository-managed and safe to version.
+## Cue Injection (Codex)
+When a trigger matches, load the corresponding cue and follow it:
+- commit/push/amend/rebase language or `git commit|push`: `~/.config/.codex/devos/cues/commit.md`
+- env/secrets/config language or `.env*` files: `~/.config/.codex/devos/cues/env.md`
+- migration/schema/database language or migration paths: `~/.config/.codex/devos/cues/migration.md`
+- decision/tradeoff language: `~/.config/.codex/devos/cues/principles.md`
+
+## Decision Journal
+For non-trivial tradeoffs, add a journal entry in:
+- `~/.config/.codex/devos/decision-journal/`
+
+CLI:
+- `codex-tradeoff "one-line summary"`
+- `codex-tradeoff` (interactive template)
+
+## Source of Truth
+- Repo-managed DevOS assets: `~/.config/.codex/devos/`

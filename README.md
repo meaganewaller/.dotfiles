@@ -82,6 +82,14 @@ tradeoff --list                        # View recent
 
 The global hooks also delegate to local repo hooks (`.git/hooks/pre-commit.local` or `pre-commit` framework).
 
+Codex DevOS decision journal helper:
+
+```bash
+codex-tradeoff "Chose X over Y because Z"   # one-liner
+codex-tradeoff                              # interactive template
+codex-tradeoff --list                       # recent entries
+```
+
 ## making changes
 
 - Edit dotfiles under `home/`.

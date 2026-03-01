@@ -78,6 +78,7 @@ run ".local/bin/theme"
 run ".local/bin/dotfiles"
 run ".local/bin/tradeoff"
 run ".local/bin/tradeoff-gate"
+run ".local/bin/codex-tradeoff"
 
 run ".config/git/hooks"
 
