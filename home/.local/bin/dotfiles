@@ -250,7 +250,7 @@ doctor() {
   section "Governance"
   # ─────────────────────────────────────────────────────────────
 
-  local gov_script="$DOTFILES_ROOT/governance/bin/governance.sh"
+  local gov_script="$DOTFILES_ROOT/home/.claude/governance/bin/governance.sh"
   if [[ -x "$gov_script" ]]; then
     # Check governance coverage
     local manifest coverage with_prov total_cues
@@ -411,7 +411,7 @@ cmd_install() {
 }
 
 cmd_governance() {
-  local gov_script="$DOTFILES_ROOT/governance/bin/governance.sh"
+  local gov_script="$DOTFILES_ROOT/home/.claude/governance/bin/governance.sh"
   if [[ ! -x "$gov_script" ]]; then
     echo -e "${RED}Governance CLI not found${NC}"
     echo "Expected at: $gov_script"

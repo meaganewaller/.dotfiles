@@ -7,7 +7,7 @@ description: Database migrations, schema changes, and data transformations
 vocabulary: migration migrate schema database table column index alter rollback
 provenance:
   policy:
-    - uri: governance/policies/data-migrations.md
+    - uri: home/.claude/governance/policies/data-migrations.md
       type: governance-doc
   controls:
     - id: ENG-MIGRATE-001
