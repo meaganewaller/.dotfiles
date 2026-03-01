@@ -36,6 +36,7 @@ ${BOLD}COMMANDS${NC}
     hooks       Install pre-commit hooks
     install     Install dotfiles
     governance  Policy provenance governance CLI
+    codex-governance  Codex DevOS provenance governance CLI
     help        Show this help message
 
 ${BOLD}OPTIONS${NC}
@@ -420,6 +421,16 @@ cmd_governance() {
   REPO_ROOT="$DOTFILES_ROOT" exec "$gov_script" "$@"
 }
 
+cmd_codex_governance() {
+  local gov_script="$DOTFILES_ROOT/home/.config/.codex/devos/governance/bin/governance.sh"
+  if [[ ! -x "$gov_script" ]]; then
+    echo -e "${RED}Codex governance CLI not found${NC}"
+    echo "Expected at: $gov_script"
+    exit 1
+  fi
+  DOTFILES_ROOT="$DOTFILES_ROOT" exec "$gov_script" "$@"
+}
+
 # Parse global options
 DRY_RUN=0
 while [[ $# -gt 0 ]]; do
@@ -466,6 +477,9 @@ case "$cmd" in
     ;;
   governance)
     cmd_governance "$@"
+    ;;
+  codex-governance)
+    cmd_codex_governance "$@"
     ;;
   help|--help|-h)
     usage

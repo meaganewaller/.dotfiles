@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/github/meaganewaller/.dotfiles}"
+SCRIPT="$DOTFILES_ROOT/home/.config/.codex/devos/governance/bin/governance.sh"
+
+if [[ ! -x "$SCRIPT" ]]; then
+  echo "Missing governance script: $SCRIPT" >&2
+  exit 1
+fi
+
+DOTFILES_ROOT="$DOTFILES_ROOT" exec "$SCRIPT" "$@"

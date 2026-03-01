@@ -62,22 +62,25 @@ This repo includes global git hooks that run for **all repositories**:
 
 ```
 ~/.config/git/hooks/pre-commit   # Global hook dispatcher
-~/.local/bin/tradeoff-gate       # Prompts for tradeoff docs on large changes
-~/.local/bin/tradeoff            # CLI for manual tradeoff capture
+~/.local/bin/codex-tradeoff-gate # Codex tradeoff gate (default backend)
+~/.local/bin/tradeoff-gate       # Claude tradeoff gate (optional backend)
 ```
 
-**Tradeoff Gate**: When you commit changes exceeding 50 lines, you're prompted to document the tradeoff ("What did you choose NOT to do, and why?"). Tradeoffs are saved to `~/.claude/decision-journal/`.
+**Tradeoff Gate**: When staged changes exceed 50 lines, pre-commit prompts for a tradeoff note.
+Default backend is Codex (`TRADEOFF_GATE_BACKEND=codex`), writing to `~/.config/.codex/devos/decision-journal/`.
 
 ```bash
 # Bypass options
 SKIP_TRADEOFF=1 git commit -m "..."   # Skip prompt
 git commit --no-verify                 # Skip all hooks
 TRADEOFF_THRESHOLD=100 git commit      # Raise threshold
+TRADEOFF_GATE_BACKEND=claude git commit -m "..."  # Use Claude gate for one commit
+TRADEOFF_GATE_BACKEND=both git commit -m "..."    # Run both gates
 
 # Manual capture anytime
-tradeoff "chose X over Y because Z"    # Quick one-liner
-tradeoff                               # Opens editor
-tradeoff --list                        # View recent
+codex-tradeoff "chose X over Y because Z"    # Quick one-liner
+codex-tradeoff                               # Opens editor
+codex-tradeoff --list                        # View recent
 ```
 
 The global hooks also delegate to local repo hooks (`.git/hooks/pre-commit.local` or `pre-commit` framework).
@@ -88,6 +91,10 @@ Codex DevOS decision journal helper:
 codex-tradeoff "Chose X over Y because Z"   # one-liner
 codex-tradeoff                              # interactive template
 codex-tradeoff --list                       # recent entries
+codex-weekly-review --mode combined          # build from codex + claude streams
+codex-weekly-review --mode codex             # codex-only weekly review
+codex-weekly-review --mode claude            # claude-only weekly review
+dotfiles codex-governance --lint            # validate cue provenance
 ```
 
 ## making changes

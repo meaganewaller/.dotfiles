@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# codex-tradeoff-gate - Pre-commit prompt for large-change tradeoff notes
+#
+# Triggers when staged changes exceed TRADEOFF_THRESHOLD lines (default: 50)
+# Entries are saved to ~/.config/.codex/devos/decision-journal/
+
+THRESHOLD="${TRADEOFF_THRESHOLD:-50}"
+JOURNAL_DIR="${CODEX_TRADEOFF_JOURNAL:-$HOME/.config/.codex/devos/decision-journal}"
+
+if [[ "${SKIP_TRADEOFF:-}" == "1" ]]; then
+  exit 0
+fi
+
+if [[ ! -t 0 ]]; then
+  exit 0
+fi
+
+DIFF_STATS=$(git diff --cached --numstat 2>/dev/null | awk '{added+=$1; deleted+=$2} END {print added+0, deleted+0}')
+ADDED=$(echo "$DIFF_STATS" | cut -d' ' -f1)
+DELETED=$(echo "$DIFF_STATS" | cut -d' ' -f2)
+TOTAL=$((ADDED + DELETED))
+
+if (( TOTAL < THRESHOLD )); then
+  exit 0
+fi
+
+CHANGED_FILES=$(git diff --cached --name-only | head -10)
+FILE_COUNT=$(git diff --cached --name-only | wc -l | tr -d ' ')
+
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+echo
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}  Large Change Detected: ${TOTAL} lines (+${ADDED}/-${DELETED}) across ${FILE_COUNT} files${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo
+echo -e "${BLUE}Files:${NC}"
+echo "$CHANGED_FILES" | sed 's/^/  /'
+if (( FILE_COUNT > 10 )); then
+  echo "  ... and $((FILE_COUNT - 10)) more"
+fi
+echo
+echo -e "${BLUE}Document the tradeoff (30 seconds):${NC}"
+echo "  What did you choose NOT to do, and why?"
+echo
+echo -e "  Options:"
+echo -e "    ${GREEN}[d]${NC} Document tradeoff (opens editor)"
+echo -e "    ${GREEN}[q]${NC} Quick note (one-liner)"
+echo -e "    ${GREEN}[s]${NC} Skip this time"
+echo -e "    ${GREEN}[n]${NC} Not a tradeoff (trivial change)"
+echo
+
+read -r -p "Choice [d/q/s/n]: " choice
+
+mkdir -p "$JOURNAL_DIR"
+TIMESTAMP=$(date +%Y-%m-%d-%H%M)
+BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+ENTRY_FILE="$JOURNAL_DIR/$TIMESTAMP-tradeoff.md"
+
+case "${choice,,}" in
+  d|doc|document)
+    cat > "$ENTRY_FILE" <<DOC
+# Tradeoff: $(date +%Y-%m-%d)
+
+**Branch:** $BRANCH
+**Files changed:** $FILE_COUNT (+$ADDED/-$DELETED lines)
+
+## What I chose to do
+
+
+## What I chose NOT to do
+
+
+## Why
+
+
+## Revisit if
+
+
+## Principles Applied
+
+
+---
+*Files:*
+$(echo "$CHANGED_FILES" | sed 's/^/- /')
+DOC
+
+    "${EDITOR:-vi}" "$ENTRY_FILE"
+    echo -e "${GREEN}Saved: $ENTRY_FILE${NC}"
+    ;;
+
+  q|quick)
+    echo
+    read -r -p "Quick tradeoff note: " note
+    if [[ -n "$note" ]]; then
+      cat > "$ENTRY_FILE" <<NOTE
+# Tradeoff: $(date +%Y-%m-%d)
+
+**Branch:** $BRANCH
+**Files changed:** $FILE_COUNT (+$ADDED/-$DELETED lines)
+
+## Note
+
+$note
+
+---
+*Files:*
+$(echo "$CHANGED_FILES" | sed 's/^/- /')
+NOTE
+      echo -e "${GREEN}Saved: $ENTRY_FILE${NC}"
+    fi
+    ;;
+
+  s|skip)
+    echo -e "${YELLOW}Skipping tradeoff documentation${NC}"
+    ;;
+
+  n|no|none|trivial)
+    echo -e "${GREEN}Marked as non-tradeoff change${NC}"
+    ;;
+
+  *)
+    echo -e "${YELLOW}Unknown choice, proceeding with commit${NC}"
+    ;;
+esac
+
+exit 0

@@ -8,6 +8,9 @@ Codex configuration managed by dotfiles using an explicit allowlist.
 - `AGENTS.md` (optional)
 - `devos/**` (repo-owned DevOS docs/skills/cues/governance assets)
 - `~/.local/bin/codex-tradeoff` (via dotfiles linker)
+- `~/.local/bin/codex-tradeoff-gate` (pre-commit integration)
+- `~/.local/bin/codex-weekly-review` (weekly review artifact generator)
+- `~/.local/bin/codex-governance` (provenance governance CLI)
 
 ## Unmanaged (never symlinked)
 
@@ -25,4 +28,13 @@ mise run codex:dry-run
 
 # Capture a Codex tradeoff decision
 codex-tradeoff "Chose X over Y because Z"
+
+# Generate weekly review artifacts
+codex-weekly-review --mode combined
+codex-weekly-review --mode codex
+codex-weekly-review --mode claude
+
+# Governance checks
+dotfiles codex-governance
+dotfiles codex-governance --lint
 ```

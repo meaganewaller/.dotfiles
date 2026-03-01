@@ -19,10 +19,37 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 # Global Hooks
 # ============================================================================
 
-# Tradeoff gate - prompt for documentation on large changes
-if [[ -x "$HOME/.local/bin/tradeoff-gate" ]]; then
-  "$HOME/.local/bin/tradeoff-gate" || exit $?
-fi
+# Tradeoff gate backend selection:
+# - codex (default): use codex-tradeoff-gate
+# - claude: use tradeoff-gate
+# - both: run codex then claude
+# - off: skip global tradeoff gate
+TRADEOFF_GATE_BACKEND="${TRADEOFF_GATE_BACKEND:-codex}"
+
+run_gate() {
+  local gate="$1"
+  [[ -x "$gate" ]] || return 0
+  "$gate" || exit $?
+}
+
+case "$TRADEOFF_GATE_BACKEND" in
+  codex)
+    run_gate "$HOME/.local/bin/codex-tradeoff-gate"
+    ;;
+  claude)
+    run_gate "$HOME/.local/bin/tradeoff-gate"
+    ;;
+  both)
+    run_gate "$HOME/.local/bin/codex-tradeoff-gate"
+    run_gate "$HOME/.local/bin/tradeoff-gate"
+    ;;
+  off)
+    ;;
+  *)
+    echo "Unknown TRADEOFF_GATE_BACKEND=$TRADEOFF_GATE_BACKEND (use codex|claude|both|off)" >&2
+    exit 1
+    ;;
+esac
 
 # Add more global hooks here as needed...
 
