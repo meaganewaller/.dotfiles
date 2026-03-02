@@ -48,15 +48,17 @@ ACTUAL_CASKS="$TMP_DIR/actual.casks"
 for layer in $LAYERS; do
   FILE="brewfiles/${layer}.Brewfile"
 
+  echo "→ Processing layer: $layer"
+
   grep -E '^brew ' "$FILE" \
     | awk '{print $2}' \
     | tr -d '"' \
-    >> "$DECLARED_FORMULAE"
+    >> "$DECLARED_FORMULAE" || true
 
   grep -E '^cask ' "$FILE" \
-    | awk '{print $2}' \
-    | tr -d '"' \
-    >> "$DECLARED_CASKS"
+      | awk '{print $2}' \
+      | tr -d '"' \
+      >> "$DECLARED_CASKS" || true
 done
 
 sort -u "$DECLARED_FORMULAE" -o "$DECLARED_FORMULAE"

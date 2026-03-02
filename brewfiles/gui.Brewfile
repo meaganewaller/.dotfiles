@@ -26,4 +26,5 @@ cask "1password-cli"
 cask "little-snitch"
 
 # Window management
-cask "nikitabobko/tap/aerospace"
+tap "nikitabobko/tap"
+cask "aerospace"
