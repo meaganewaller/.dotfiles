@@ -118,6 +118,7 @@ if [[ "$PROFILE" == "personal" ]]; then
   run ".hammerspoon"
   run ".config/karabiner"
   run ".config/sketchybar"
+  run ".aerospace.toml"
 fi
 
 if [[ "$PROFILE" == "server" ]]; then
