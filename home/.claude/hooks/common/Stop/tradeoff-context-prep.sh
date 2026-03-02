@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Blocks stopping if there are pending tradeoffs that haven't been documented
+# Prepares context for the tradeoff auto-capture agent hook
+# Outputs systemMessage with pending tradeoff files for the agent to process
 set -euo pipefail
 
 MARKER_DIR="$HOME/.claude/pending-tradeoffs"
@@ -10,8 +11,9 @@ if [[ ! -d "$MARKER_DIR" ]]; then
   exit 0
 fi
 
-# Check for uncaptured tradeoffs
+# Collect uncaptured tradeoffs
 PENDING_FILES=()
+PENDING_MARKERS=()
 for marker in "$MARKER_DIR"/*.json; do
   [[ -f "$marker" ]] || continue
 
@@ -19,16 +21,25 @@ for marker in "$MARKER_DIR"/*.json; do
   if [[ "$CAPTURED" != "true" ]]; then
     FILE=$(jq -r '.file' "$marker" 2>/dev/null || echo "unknown")
     PENDING_FILES+=("$FILE")
+    PENDING_MARKERS+=("$marker")
   fi
 done
 
 if [[ ${#PENDING_FILES[@]} -gt 0 ]]; then
   FILES_LIST=$(printf '%s, ' "${PENDING_FILES[@]}")
   FILES_LIST="${FILES_LIST%, }"
+  MARKERS_LIST=$(printf '%s, ' "${PENDING_MARKERS[@]}")
+  MARKERS_LIST="${MARKERS_LIST%, }"
 
+  # Output context for the agent hook (never block)
   jq -cn \
-    --arg reason "Cannot stop: ${#PENDING_FILES[@]} large change(s) without documented tradeoffs: $FILES_LIST. Document tradeoffs by appending to ~/.claude/dev-os-events.jsonl with event_type: decision_tradeoff" \
-    '{ok:false, reason:$reason}'
+    --arg files "$FILES_LIST" \
+    --arg markers "$MARKERS_LIST" \
+    --arg count "${#PENDING_FILES[@]}" \
+    '{
+      ok: true,
+      systemMessage: ("Pending tradeoffs for auto-capture: " + $count + " file(s): " + $files + "\nMarker files: " + $markers)
+    }'
   exit 0
 fi
 

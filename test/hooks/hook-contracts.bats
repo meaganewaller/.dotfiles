@@ -75,8 +75,8 @@ teardown() {
   bash -n "$HOOKS_DIR/Stop/hard-stop-test-blocker.sh"
 }
 
-@test "Stop/pending-tradeoff-blocker.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/Stop/pending-tradeoff-blocker.sh"
+@test "Stop/tradeoff-context-prep.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/Stop/tradeoff-context-prep.sh"
 }
 
 @test "PreToolUse/layering-guard.sh has valid syntax" {

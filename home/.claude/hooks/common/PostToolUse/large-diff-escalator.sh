@@ -63,12 +63,12 @@ if (( LINES > 250 )); then
       captured: false
     }' > "$MARKER_FILE"
 
-  # Output directive message
+  # Output advisory message (tradeoffs will be auto-captured at session stop)
   jq -n \
     --arg file "$FILE" \
     --arg lines "$LINES" \
     '{
-      systemMessage: ("⚠️ LARGE CHANGE DETECTED: " + $file + " (" + $lines + " lines)\n\nYou MUST document the tradeoffs for this change. Respond with:\n\n**Tradeoffs:**\n- [tradeoff 1: X vs Y]\n- [tradeoff 2: ...]\n\n**Options Considered:**\n- [option 1]\n- [option 2]\n\n**Principles Applied:** (see ~/.claude/principles/career-matrix.md)\n- [e.g., Making Principled Choices, Simplifying For Change, Norming On Conventions]\n\nThis is a discipline requirement. Large changes without documented tradeoffs indicate implicit decision-making.")
+      systemMessage: ("📝 LARGE CHANGE: " + $file + " (" + $lines + " lines)\n\nTradeoffs will be auto-captured when the session ends. To enrich the capture, consider noting:\n\n**Tradeoffs:** X vs Y decisions you made\n**Options Considered:** Alternatives you evaluated\n**Principles Applied:** (see ~/.claude/principles/career-matrix.md)\n\nInline documentation here helps the auto-capture agent extract richer context.")
     }'
 fi
 

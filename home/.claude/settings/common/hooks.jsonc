@@ -59,7 +59,12 @@
                     },
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/Stop/pending-tradeoff-blocker.sh"
+                        "command": "\"$HOME\"/.claude/hooks/Stop/tradeoff-context-prep.sh"
+                    },
+                    {
+                        "prompt": "You are extracting tradeoff documentation from a session that made large code changes.\n\nHook input JSON:\n$ARGUMENTS\n\nYour task:\n\n1. Check ~/.claude/pending-tradeoffs/ for marker files with captured: false\n2. If no uncaptured markers exist, return: { \"ok\": true }\n\n3. For each uncaptured marker, analyze the session context (last_assistant_message) for:\n   - Why specific implementation approaches were chosen\n   - What alternatives were considered or rejected\n   - Trade-offs made (speed vs safety, flexibility vs simplicity, etc.)\n   - Engineering principles that guided decisions\n\n4. If meaningful tradeoff reasoning is found:\n   - Extract: decision_summary, tradeoffs, options_considered, principles_invoked\n   - Use the Bash tool to append a JSON line to ~/.claude/dev-os-events.jsonl:\n     {\n       \"timestamp\": \"<ISO8601>\",\n       \"event_type\": \"decision_tradeoff\",\n       \"payload\": {\n         \"decision_summary\": \"...\",\n         \"tradeoffs\": [...],\n         \"options_considered\": [...],\n         \"principles_invoked\": [...],\n         \"files_changed\": [...],\n         \"source\": \"auto-capture\"\n       }\n     }\n   - Update each marker file: set captured: true using Bash with jq\n\n5. If no meaningful reasoning found (mechanical change):\n   - Mark the pending tradeoff as captured anyway\n   - Do not emit an event\n\n6. Return: { \"ok\": true }\n\nImportant:\n- ALWAYS return {\"ok\": true} - never block stopping\n- Only emit events for genuine tradeoffs, not mechanical changes\n- Include source: \"auto-capture\" to distinguish from manual capture",
+                        "type": "agent",
+                        "timeout": 60
                     },
                     {
                         "type": "command",
