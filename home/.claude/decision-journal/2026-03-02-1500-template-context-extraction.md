@@ -56,6 +56,13 @@ Files modified:
 - `install_generator_spec.rb` - added `build_context` helper
 - `railtie_spec.rb` - uses `TemplateContext` for template rendering
 
+## Revisit If
+
+- Template grows significantly more complex (consider splitting into multiple context objects)
+- Other generators need similar logic extraction (extract a shared pattern/base class)
+- Sorbet strict typing causes issues with the 10-parameter constructor (consider a builder or config struct)
+- Coverage requirements change (may no longer need this indirection)
+
 ## Reversal Cost
 
 **Medium** - Would require reverting template to use direct instance variables and updating all specs that render templates. Logic would need to move back to generator or template.
