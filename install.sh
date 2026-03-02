@@ -12,6 +12,14 @@ parse_args "$@"
 
 log "Profile: $DOTFILES_PROFILE"
 
+if [[ $DOTFILES_PROFILE == "personal" ]]; then
+  log "Personal profile selected. Setting brewfile layers to: base, gui, creative"
+  export BREW_LAYERS="base gui creative"
+else
+  log "Work profile selected. Setting brewfile layers to: base, gui, dev"
+  export BREW_LAYERS="base gui dev"
+fi
+
 ensure_mise
 mise install
 mise run brew:bootstrap

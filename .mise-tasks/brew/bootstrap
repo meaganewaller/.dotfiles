@@ -71,39 +71,84 @@ sort -u "$DECLARED_CASKS" -o "$DECLARED_CASKS"
 brew leaves | sort -u > "$ACTUAL_FORMULAE"
 brew list --cask | sort -u > "$ACTUAL_CASKS"
 
+echo
+echo "==> Evaluating drift..."
+
 # ----------------------------------------
-# Compare formulae
+# Compute differences (formulae)
 # ----------------------------------------
+
+EXTRA_FORMULAE="$TMP_DIR/extra.formulae"
+MISSING_FORMULAE="$TMP_DIR/missing.formulae"
+
+comm -23 "$ACTUAL_FORMULAE" "$DECLARED_FORMULAE" > "$EXTRA_FORMULAE"
+comm -13 "$ACTUAL_FORMULAE" "$DECLARED_FORMULAE" > "$MISSING_FORMULAE"
+
+# ----------------------------------------
+# Compute differences (casks)
+# ----------------------------------------
+
+EXTRA_CASKS="$TMP_DIR/extra.casks"
+MISSING_CASKS="$TMP_DIR/missing.casks"
+
+comm -23 "$ACTUAL_CASKS" "$DECLARED_CASKS" > "$EXTRA_CASKS"
+comm -13 "$ACTUAL_CASKS" "$DECLARED_CASKS" > "$MISSING_CASKS"
 
 FORMULA_DRIFT=0
 CASK_DRIFT=0
 
-if ! diff -u "$DECLARED_FORMULAE" "$ACTUAL_FORMULAE"; then
+if [[ -s "$EXTRA_FORMULAE" || -s "$MISSING_FORMULAE" ]]; then
   FORMULA_DRIFT=1
 fi
 
-if ! diff -u "$DECLARED_CASKS" "$ACTUAL_CASKS"; then
+if [[ -s "$EXTRA_CASKS" || -s "$MISSING_CASKS" ]]; then
   CASK_DRIFT=1
 fi
 
 echo
 
-if [[ "$FORMULA_DRIFT" -eq 0 ]]; then
-  echo "✓ Formulae match declared state."
+if [[ "$FORMULA_DRIFT" -eq 1 ]]; then
+  echo "⚠️  FORMULA DRIFT DETECTED"
+  echo
+
+  if [[ -s "$EXTRA_FORMULAE" ]]; then
+    echo "  Extra installed (not declared):"
+    sed 's/^/    - /' "$EXTRA_FORMULAE"
+    echo
+  fi
+
+  if [[ -s "$MISSING_FORMULAE" ]]; then
+    echo "  Declared but not installed:"
+    sed 's/^/    - /' "$MISSING_FORMULAE"
+    echo
+  fi
 else
-  echo "⚠️  Formula drift detected."
+  echo "✓ Formulae match declared state."
 fi
 
-if [[ "$CASK_DRIFT" -eq 0 ]]; then
-  echo "✓ Casks match declared state."
+if [[ "$CASK_DRIFT" -eq 1 ]]; then
+  echo "⚠️  CASK DRIFT DETECTED"
+  echo
+
+  if [[ -s "$EXTRA_CASKS" ]]; then
+    echo "  Extra installed (not declared):"
+    sed 's/^/    - /' "$EXTRA_CASKS"
+    echo
+  fi
+
+  if [[ -s "$MISSING_CASKS" ]]; then
+    echo "  Declared but not installed:"
+    sed 's/^/    - /' "$MISSING_CASKS"
+    echo
+  fi
 else
-  echo "⚠️  Cask drift detected."
+  echo "✓ Casks match declared state."
 fi
 
 echo
 
 if [[ "$FORMULA_DRIFT" -ne 0 || "$CASK_DRIFT" -ne 0 ]]; then
-  echo "Drift detected. Your machine has diverged from declared Brewfiles."
+  echo "Drift detected. Machine diverges from declared Brewfiles."
   exit 1
 fi
 
