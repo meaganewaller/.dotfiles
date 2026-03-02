@@ -55,6 +55,10 @@ teardown() {
   bash -n "$HOOKS_DIR/PostToolUse/async-test-runner.sh"
 }
 
+@test "PostToolUse/skill-usage-tracker.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PostToolUse/skill-usage-tracker.sh"
+}
+
 @test "PostToolUseFailure/skill-gap-detector.sh has valid syntax" {
   bash -n "$HOOKS_DIR/PostToolUseFailure/skill-gap-detector.sh"
 }
@@ -93,6 +97,10 @@ teardown() {
 
 @test "PreCompact/pre-compact-snapshot.sh has valid syntax" {
   bash -n "$HOOKS_DIR/PreCompact/pre-compact-snapshot.sh"
+}
+
+@test "PreCompact/context-compact-tracker.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreCompact/context-compact-tracker.sh"
 }
 
 @test "TaskCompleted/task-gate.sh has valid syntax" {

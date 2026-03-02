@@ -33,6 +33,15 @@
                         "async": true
                     }
                 ]
+            },
+            {
+                "matcher": "Skill",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/skill-usage-tracker.sh"
+                    }
+                ]
             }
         ],
         "PostToolUseFailure": [
@@ -191,6 +200,10 @@
         "PreCompact": [
             {
                 "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreCompact/context-compact-tracker.sh"
+                    },
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreCompact/pre-compact-snapshot.sh"

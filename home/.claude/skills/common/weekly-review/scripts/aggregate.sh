@@ -168,6 +168,8 @@ cues_fired = Counter()
 cue_triggers = Counter()
 session_durations = []  # List of (session_id, project, duration_minutes, category)
 duration_categories = Counter()
+skills_invoked = Counter()  # Track skill usage
+context_compacts = []  # Track compaction events
 
 for e in events:
     et = e.get("event_type")
@@ -249,6 +251,19 @@ for e in events:
             })
             duration_categories[duration_cat] += 1
 
+    if et == "skill_invoked":
+        skill_name = payload.get("skill", "unknown")
+        skills_invoked[skill_name] += 1
+
+    if et == "context_compact":
+        context_compacts.append({
+            "session_id": session_id,
+            "project": project,
+            "transcript_bytes": payload.get("transcript_bytes", 0),
+            "message_count": payload.get("message_count", 0),
+            "compaction_number": payload.get("compaction_number", 1)
+        })
+
 total_tests = test_results.get("passed", 0) + test_results.get("failed", 0)
 pass_tests = test_results.get("passed", 0)
 test_stability_rate = (pass_tests / total_tests) if total_tests else None
@@ -328,6 +343,21 @@ summary = {
             {"project": proj, "sessions": len([s for s in session_durations if s["project"] == proj]), "avg_minutes": round(sum(s["duration_minutes"] for s in session_durations if s["project"] == proj) / len([s for s in session_durations if s["project"] == proj]), 1) if [s for s in session_durations if s["project"] == proj] else 0}
             for proj in sorted(set(s["project"] for s in session_durations))
         ]
+    },
+    "skill_usage": {
+        "total_invocations": sum(skills_invoked.values()),
+        "unique_skills": len(skills_invoked),
+        "by_skill": [{"skill": s, "count": n} for s, n in skills_invoked.most_common(15)]
+    },
+    "context_compaction": {
+        "total_compactions": len(context_compacts),
+        "sessions_with_compaction": len(set(c["session_id"] for c in context_compacts)),
+        "avg_compactions_per_session": round(len(context_compacts) / len(set(c["session_id"] for c in context_compacts)), 1) if context_compacts else 0,
+        "total_bytes_compacted": sum(c["transcript_bytes"] for c in context_compacts),
+        "by_project": [
+            {"project": proj, "compactions": len([c for c in context_compacts if c["project"] == proj])}
+            for proj in sorted(set(c["project"] for c in context_compacts))
+        ] if context_compacts else []
     }
 }
 
