@@ -99,12 +99,13 @@ run ".local/bin/codex-governance"
 run ".config/git/hooks"
 
 run ".config/mise"
-run_to ".config/.codex/config.toml" ".codex/config.toml"
+run_to ".codex/config.toml" ".codex/config.toml"
 
 run ".tmux.conf"
 run ".tmux/settings.conf"
 run ".tmux/bindings.conf"
 run ".tmux/style.conf"
+run ".config/atuin/config.toml"
 
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"
