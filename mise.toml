@@ -14,8 +14,11 @@ DOTFILES = "{{config_root}}"
 [tasks.bootstrap]
 run = """
 if command -v brew >/dev/null; then
-    brew bundle --file=bootstrap/Brewfile.common
-    brew bundle --file=bootstrap/Brewfile.${DOTFILES_PROFILE}
+    brew bundle --file=brewfiles/base.Brewfile
+
+    for layer in ${BREW_LAYERS}; do
+        brew bundle --file=brewfiles/${layer}.Brewfile
+    done
 fi
 """
 
