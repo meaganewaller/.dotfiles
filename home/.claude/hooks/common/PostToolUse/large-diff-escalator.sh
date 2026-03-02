@@ -25,7 +25,9 @@ if ! guard_file_size "$FILE" 2048; then
   exit 0
 fi
 
-LINES=$(git diff --shortstat HEAD -- "$FILE" 2>/dev/null | awk '{print $4}')
+# Handle git diff failure gracefully (file might be outside repo even if cwd is in one)
+# Use subshell to isolate pipefail behavior
+LINES=$(set +o pipefail; git diff --shortstat HEAD -- "$FILE" 2>/dev/null | awk '{print $4}')
 
 if [[ -z "$LINES" ]]; then
   exit 0
