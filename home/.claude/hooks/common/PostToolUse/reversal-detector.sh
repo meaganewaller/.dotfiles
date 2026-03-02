@@ -27,7 +27,14 @@ REMOVED=$(printf '%s\n' "$DIFF" | grep -c -e '^-[^-]' || true)
 if (( REMOVED > 50 && REMOVED > ADDED )); then
   PAYLOAD=$(jq -n \
     --arg file "$FILE" \
-    '{file_path:$file, likely_cause:"exploration_reversal"}')
+    --argjson added "$ADDED" \
+    --argjson removed "$REMOVED" \
+    '{
+      file_path: $file,
+      lines_added: $added,
+      lines_removed: $removed,
+      likely_cause: "exploration_reversal"
+    }')
 
   echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" reversal "$PAYLOAD"
 fi

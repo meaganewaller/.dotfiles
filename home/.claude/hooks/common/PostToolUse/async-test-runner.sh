@@ -101,18 +101,71 @@ PROJECT_ROOT=$(find_project_root "$FILE_DIR") || exit 0
 # Get the appropriate test command
 TEST_CMD=$(detect_test_command "$PROJECT_ROOT") || exit 0
 
-# Run tests (in project directory)
+# Run tests and capture output (in project directory)
 RESULT="passed"
-if ! (cd "$PROJECT_ROOT" && eval "$TEST_CMD" >/dev/null 2>&1); then
+TEST_OUTPUT=""
+TEMP_OUTPUT=$(mktemp)
+
+if (cd "$PROJECT_ROOT" && eval "$TEST_CMD" > "$TEMP_OUTPUT" 2>&1); then
+  RESULT="passed"
+else
   RESULT="failed"
 fi
+TEST_OUTPUT=$(cat "$TEMP_OUTPUT" 2>/dev/null | tail -50 || true)
+rm -f "$TEMP_OUTPUT"
 
-# Emit telemetry event
+# Parse test counts from output (best effort, framework-dependent)
+PASSED=0
+FAILED=0
+SKIPPED=0
+
+# RSpec format: "10 examples, 2 failures, 1 pending"
+if echo "$TEST_OUTPUT" | grep -qE "[0-9]+ examples?"; then
+  PASSED=$(echo "$TEST_OUTPUT" | grep -oE "[0-9]+ examples?" | grep -oE "[0-9]+" | head -1 || echo 0)
+  FAILED=$(echo "$TEST_OUTPUT" | grep -oE "[0-9]+ failures?" | grep -oE "[0-9]+" | head -1 || echo 0)
+  SKIPPED=$(echo "$TEST_OUTPUT" | grep -oE "[0-9]+ pending" | grep -oE "[0-9]+" | head -1 || echo 0)
+  # Adjust passed to exclude failures
+  PASSED=$((PASSED - FAILED))
+fi
+
+# Jest/Vitest format: "Tests: 2 failed, 1 skipped, 10 passed"
+if echo "$TEST_OUTPUT" | grep -qiE "Tests:.*passed"; then
+  PASSED=$(echo "$TEST_OUTPUT" | grep -oiE "[0-9]+ passed" | grep -oE "[0-9]+" | head -1 || echo 0)
+  FAILED=$(echo "$TEST_OUTPUT" | grep -oiE "[0-9]+ failed" | grep -oE "[0-9]+" | head -1 || echo 0)
+  SKIPPED=$(echo "$TEST_OUTPUT" | grep -oiE "[0-9]+ skipped" | grep -oE "[0-9]+" | head -1 || echo 0)
+fi
+
+# Pytest format: "10 passed, 2 failed, 1 skipped"
+if echo "$TEST_OUTPUT" | grep -qE "[0-9]+ passed"; then
+  PASSED=$(echo "$TEST_OUTPUT" | grep -oE "[0-9]+ passed" | grep -oE "[0-9]+" | head -1 || echo 0)
+  FAILED=$(echo "$TEST_OUTPUT" | grep -oE "[0-9]+ failed" | grep -oE "[0-9]+" | head -1 || echo 0)
+  SKIPPED=$(echo "$TEST_OUTPUT" | grep -oE "[0-9]+ skipped" | grep -oE "[0-9]+" | head -1 || echo 0)
+fi
+
+# Go format: "ok" or "FAIL" with "--- PASS:" counts
+if echo "$TEST_OUTPUT" | grep -qE "^(ok|FAIL)"; then
+  PASSED=$(echo "$TEST_OUTPUT" | grep -c "--- PASS:" || echo 0)
+  FAILED=$(echo "$TEST_OUTPUT" | grep -c "--- FAIL:" || echo 0)
+  SKIPPED=$(echo "$TEST_OUTPUT" | grep -c "--- SKIP:" || echo 0)
+fi
+
+# Emit telemetry event with counts
 PAYLOAD=$(jq -n \
   --arg result "$RESULT" \
   --arg project "$PROJECT_ROOT" \
   --arg cmd "$TEST_CMD" \
-  '{ result: $result, project: $project, test_command: $cmd }')
+  --argjson passed "$PASSED" \
+  --argjson failed "$FAILED" \
+  --argjson skipped "$SKIPPED" \
+  '{
+    result: $result,
+    project: $project,
+    test_command: $cmd,
+    passed: $passed,
+    failed: $failed,
+    skipped: $skipped,
+    total: ($passed + $failed + $skipped)
+  }')
 
 echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" test_run "$PAYLOAD"
 

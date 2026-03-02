@@ -166,6 +166,8 @@ files_modified = set()
 skills_used = Counter()
 cues_fired = Counter()
 cue_triggers = Counter()
+session_durations = []  # List of (session_id, project, duration_minutes, category)
+duration_categories = Counter()
 
 for e in events:
     et = e.get("event_type")
@@ -208,6 +210,13 @@ for e in events:
         r = (payload.get("result") or "").strip().lower()
         if r:
             test_results[r] += 1
+        # Aggregate detailed counts if available
+        passed_count = payload.get("passed", 0)
+        failed_count = payload.get("failed", 0)
+        skipped_count = payload.get("skipped", 0)
+        test_results["_passed_count"] = test_results.get("_passed_count", 0) + passed_count
+        test_results["_failed_count"] = test_results.get("_failed_count", 0) + failed_count
+        test_results["_skipped_count"] = test_results.get("_skipped_count", 0) + skipped_count
 
     if et == "large_change":
         f = payload.get("file_path", "")
@@ -228,9 +237,25 @@ for e in events:
         cues_fired[cue_id] += 1
         cue_triggers[trigger_type] += 1
 
-total_tests = sum(test_results.values())
+    if et == "session_end":
+        duration_mins = payload.get("duration_minutes", 0)
+        duration_cat = payload.get("duration_category", "unknown")
+        if duration_mins > 0:
+            session_durations.append({
+                "session_id": session_id,
+                "project": project,
+                "duration_minutes": duration_mins,
+                "category": duration_cat
+            })
+            duration_categories[duration_cat] += 1
+
+total_tests = test_results.get("passed", 0) + test_results.get("failed", 0)
 pass_tests = test_results.get("passed", 0)
 test_stability_rate = (pass_tests / total_tests) if total_tests else None
+# Detailed test counts (from enriched events)
+detailed_passed = test_results.get("_passed_count", 0)
+detailed_failed = test_results.get("_failed_count", 0)
+detailed_skipped = test_results.get("_skipped_count", 0)
 failure_rate = (failures / len(events)) if events else 0.0
 
 # Convert project stats for JSON (sets -> counts)
@@ -271,7 +296,13 @@ summary = {
     "derived_metrics": {
         "failure_rate": round(failure_rate, 4),
         "test_stability_rate": round(test_stability_rate, 4) if test_stability_rate is not None else None,
-        "test_runs_passed": pass_tests
+        "test_runs_passed": pass_tests,
+        "test_counts": {
+            "passed": detailed_passed,
+            "failed": detailed_failed,
+            "skipped": detailed_skipped,
+            "total": detailed_passed + detailed_failed + detailed_skipped
+        }
     },
     "projects": projects_summary,
     "events_by_type": dict(by_type.most_common()),
@@ -285,6 +316,18 @@ summary = {
         "unique_cues_fired": len(cues_fired),
         "by_cue": [{"cue": c, "count": n} for c, n in cues_fired.most_common(10)],
         "by_trigger": [{"trigger": t, "count": n} for t, n in cue_triggers.most_common()]
+    },
+    "session_duration": {
+        "sessions_tracked": len(session_durations),
+        "total_minutes": sum(s["duration_minutes"] for s in session_durations),
+        "average_minutes": round(sum(s["duration_minutes"] for s in session_durations) / len(session_durations), 1) if session_durations else 0,
+        "median_minutes": sorted([s["duration_minutes"] for s in session_durations])[len(session_durations)//2] if session_durations else 0,
+        "longest_session": max((s["duration_minutes"] for s in session_durations), default=0),
+        "by_category": [{"category": c, "count": n} for c, n in sorted(duration_categories.items(), key=lambda x: ["quick", "short", "medium", "long", "marathon", "unknown"].index(x[0]) if x[0] in ["quick", "short", "medium", "long", "marathon", "unknown"] else 99)],
+        "by_project": [
+            {"project": proj, "sessions": len([s for s in session_durations if s["project"] == proj]), "avg_minutes": round(sum(s["duration_minutes"] for s in session_durations if s["project"] == proj) / len([s for s in session_durations if s["project"] == proj]), 1) if [s for s in session_durations if s["project"] == proj] else 0}
+            for proj in sorted(set(s["project"] for s in session_durations))
+        ]
     }
 }
 

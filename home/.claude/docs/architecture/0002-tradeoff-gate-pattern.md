@@ -89,7 +89,7 @@ Enforcement must not be absolute:
 | `[n] Not a tradeoff` | Git | Formatting, refactoring |
 | `[s] Skip` | Git | Emergency, will document later |
 | Non-interactive environments | Git | CI/CD bypasses automatically |
-| Marker expiry (1 hour) | Claude | Prevents orphaned markers |
+| Marker expiry (24 hours) | Claude | Prevents orphaned markers while allowing full-day sessions |
 | No meaningful reasoning | Claude | Agent skips event emission for mechanical changes |
 
 Note: The Claude session stop gate never blocks—it auto-captures when possible and gracefully degrades when not.

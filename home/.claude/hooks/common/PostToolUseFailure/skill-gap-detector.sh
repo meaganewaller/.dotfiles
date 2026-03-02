@@ -314,10 +314,17 @@ FRICTION_DOMAIN=$(jq -cn \
 
 PAYLOAD=$(jq -n \
   --arg tool "$TOOL_NAME" \
+  --arg file_path "$FILE_PATH" \
+  --arg error_excerpt "$ERROR_EXCERPT" \
   --argjson friction_domain "$FRICTION_DOMAIN" \
+  --argjson hints "$HINTS_JSON" \
   '{
     tool: $tool,
+    file_path: (if $file_path == "" then null else $file_path end),
+    error_excerpt: (if $error_excerpt == "" then null else $error_excerpt end),
     domain: $friction_domain.domain,
+    subdomain: $friction_domain.subdomain,
+    hints: $hints,
     friction_domain: $friction_domain
   }')
 

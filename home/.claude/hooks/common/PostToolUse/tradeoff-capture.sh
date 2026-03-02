@@ -39,8 +39,8 @@ for marker in "$MARKER_DIR"/*.json; do
     # Mark as captured
     jq '.captured = true' "$marker" > "$marker.tmp" && mv "$marker.tmp" "$marker"
 
-    # Clean up old markers (older than 1 hour)
-    find "$MARKER_DIR" -name "*.json" -mmin +60 -delete 2>/dev/null || true
+    # Clean up old captured markers (older than 1 hour) and stale uncaptured (older than 24 hours)
+    find "$MARKER_DIR" -name "*.json" -mmin +1440 -delete 2>/dev/null || true
 
     exit 0
   fi

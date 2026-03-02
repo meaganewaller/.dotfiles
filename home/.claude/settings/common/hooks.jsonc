@@ -118,6 +118,10 @@
                 "hooks": [
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SessionEnd/session-end-tracker.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionEnd/learning-suggestion-generator.sh"
                     }
                 ]
@@ -198,6 +202,10 @@
             {
                 "matcher": "startup|resume",
                 "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SessionStart/session-start-tracker.sh"
+                    },
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/clear-cue-markers.sh"

@@ -67,8 +67,16 @@ teardown() {
   bash -n "$HOOKS_DIR/SessionStart/session-context-injector.sh"
 }
 
+@test "SessionStart/session-start-tracker.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/SessionStart/session-start-tracker.sh"
+}
+
 @test "SessionEnd/learning-suggestion-generator.sh has valid syntax" {
   bash -n "$HOOKS_DIR/SessionEnd/learning-suggestion-generator.sh"
+}
+
+@test "SessionEnd/session-end-tracker.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/SessionEnd/session-end-tracker.sh"
 }
 
 @test "Stop/hard-stop-test-blocker.sh has valid syntax" {

@@ -43,8 +43,8 @@ if [[ ${#PENDING_FILES[@]} -gt 0 ]]; then
   exit 0
 fi
 
-# Clean up old markers (older than 1 hour)
-find "$MARKER_DIR" -name "*.json" -mmin +60 -delete 2>/dev/null || true
+# Clean up old markers (older than 24 hours - allows for full workday sessions)
+find "$MARKER_DIR" -name "*.json" -mmin +1440 -delete 2>/dev/null || true
 
 echo '{"ok":true}'
 exit 0
