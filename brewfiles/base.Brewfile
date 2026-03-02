@@ -36,6 +36,7 @@ brew "shellcheck"
 brew "pre-commit"
 brew "rename"
 brew "trash"
+brew "age"
 
 # ----------------------------
 # Shell & Environment
@@ -84,4 +85,7 @@ cask "font-bigblue-terminal-nerd-font"
 cask "font-ia-writer-mono"
 cask "font-ibm-plex-mono"
 cask "font-maple-mono-nf"
+cask "font-maple-mono-nf-cn"
 cask "font-psudofont-liga-mono"
+cask "font-sf-mono-for-powerline"
+cask "font-victor-mono"

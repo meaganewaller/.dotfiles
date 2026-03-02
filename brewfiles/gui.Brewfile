@@ -15,7 +15,11 @@
 # ============================================================
 
 # Terminal
-cask "wezterm"
+cask "wezterm@nightly"
+
+# Browsers
+cask "chromium"
+cask "google-chrome"
 
 # App launcher
 cask "raycast"
@@ -24,7 +28,19 @@ cask "raycast"
 cask "1password"
 cask "1password-cli"
 cask "little-snitch"
+cask "cloudflare-warp"
 
 # Window management
 tap "nikitabobko/tap"
 cask "aerospace"
+cask "loop"
+
+# Tools
+cask "fantastical"
+cask "cameracontroller"
+cask "karabiner-elements"
+cask "hammerspoon"
+
+# Useful Apps
+cask "notion"
+cask "obsidian"
