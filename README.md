@@ -67,7 +67,7 @@ This repo includes global git hooks that run for **all repositories**:
 ```
 
 **Tradeoff Gate**: When staged changes exceed 50 lines, pre-commit prompts for a tradeoff note.
-Default backend is Codex (`TRADEOFF_GATE_BACKEND=codex`), writing to `~/.config/.codex/devos/decision-journal/`.
+Default backend is profile-aware: `work -> claude`, `personal -> codex` (override with `TRADEOFF_GATE_BACKEND`).
 
 ```bash
 # Bypass options
@@ -91,6 +91,7 @@ Codex DevOS decision journal helper:
 codex-tradeoff "Chose X over Y because Z"   # one-liner
 codex-tradeoff                              # interactive template
 codex-tradeoff --list                       # recent entries
+codex-weekly-review                           # profile default (work=claude, personal=codex)
 codex-weekly-review --mode combined          # build from codex + claude streams
 codex-weekly-review --mode codex             # codex-only weekly review
 codex-weekly-review --mode claude            # claude-only weekly review

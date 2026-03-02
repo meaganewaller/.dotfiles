@@ -29,11 +29,10 @@ Aggregates dev-os events from the past 7 days across all projects into a structu
 |--------|------|----------|-------------|
 | `CODEX_EVENT_STREAMS` (colon/comma-separated) | Env var | No | Explicit ordered event stream list |
 | `CODEX_EVENT_STREAM` | Env var | No | Single-stream override (prepended) |
-| `WEEKLY_REVIEW_MODE` | Env var | No | `codex`, `claude`, or `combined` (default) |
-| `~/.config/.codex/dev-os-events.jsonl` | File | Default | Primary Codex event stream |
-| `~/.codex/dev-os-events.jsonl` | File | Default | Alternate Codex event stream |
+| `WEEKLY_REVIEW_MODE` | Env var | No | `codex`, `claude`, or `combined`; default is profile-aware (`work=claude`, `personal=codex`) |
+| `~/.codex/dev-os-events.jsonl` | File | Default | Primary Codex event stream |
 | `~/.claude/dev-os-events.jsonl` | File | Fallback | Claude stream during migration |
-| `~/.config/.codex/devos/projects/` | Directory | No | Project directories for session→project mapping |
+| `~/.codex/devos/projects/` | Directory | No | Project directories for session→project mapping |
 
 #### Input Event Schema (dev-os-events.jsonl)
 
@@ -62,7 +61,7 @@ Each line must be valid JSON with these fields:
 
 | Destination | Type | Description |
 |-------------|------|-------------|
-| `~/.config/.codex/devos/reviews/week-of-YYYY-MM-DD/summary.json` | File | Aggregated summary |
+| `~/.codex/devos/reviews/week-of-YYYY-MM-DD/summary.json` | File | Aggregated summary |
 | `stdout` | String | Output directory path |
 | `stderr` | String | Progress messages |
 
@@ -126,7 +125,7 @@ interface SummaryJSON {
 
 ### Invariants
 
-- Output directory is always `~/.config/.codex/devos/reviews/week-of-{monday-date}/`
+- Output directory is always `~/.codex/devos/reviews/week-of-{monday-date}/`
 - Week start is always Monday (UTC)
 - Only events from past 7 days are included
 - Arrays are sorted by count descending (most common first)
@@ -396,17 +395,17 @@ echo '{"timestamp":"2024-01-15T10:00:00Z","session_id":"test","event_type":"tool
 GLOBAL_STREAM=/tmp/test-events.jsonl ./aggregate.sh
 
 # Verify
-jq '.counts.writes' ~/.config/.codex/devos/reviews/week-of-*/summary.json  # Should be 1
+jq '.counts.writes' ~/.codex/devos/reviews/week-of-*/summary.json  # Should be 1
 ```
 
 ### Unit Test: render_md.sh
 
 ```bash
 # Test
-./render_md.sh ~/.config/.codex/devos/reviews/week-of-2024-01-15/summary.json
+./render_md.sh ~/.codex/devos/reviews/week-of-2024-01-15/summary.json
 
 # Verify
-grep -c "PLACEHOLDER:" ~/.config/.codex/devos/reviews/week-of-2024-01-15/review.md  # Should be 6
+grep -c "PLACEHOLDER:" ~/.codex/devos/reviews/week-of-2024-01-15/review.md  # Should be 6
 ```
 
 ### Integration Test: Full Pipeline

@@ -4,7 +4,7 @@ set -euo pipefail
 # Finalize weekly review: regenerate dashboard with synthesized content and publish to Jekyll
 #
 # Usage: finalize_review.sh <review_dir>
-# Example: finalize_review.sh ~/.config/.codex/devos/reviews/week-of-2026-02-23
+# Example: finalize_review.sh ~/.codex/devos/reviews/week-of-2026-02-23
 #
 # This script should be run AFTER AI has filled all placeholders in review.md
 

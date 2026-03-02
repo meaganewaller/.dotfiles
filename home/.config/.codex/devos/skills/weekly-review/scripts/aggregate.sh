@@ -5,7 +5,7 @@ set -euo pipefail
 # Configuration
 # ============================================================================
 
-OUT_DIR_BASE="$HOME/.config/.codex/devos/reviews"
+OUT_DIR_BASE="$HOME/.codex/devos/reviews"
 PROJECTS_DIR="${CODEX_PROJECTS_DIR:-$HOME/.codex/projects}"
 JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/weekly-reviews}"
 
@@ -15,14 +15,20 @@ JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/weekly-reviews}"
 
 # FR-6: Resolve event streams (Codex + optional Claude fallback).
 # Order matters: first path wins if duplicate events are encountered.
-MODE="${WEEKLY_REVIEW_MODE:-combined}"
+MODE="${WEEKLY_REVIEW_MODE:-}"
+if [[ -z "$MODE" ]]; then
+  PROFILE="${DOTFILES_PROFILE:-work}"
+  case "$PROFILE" in
+    work) MODE="claude" ;;
+    personal) MODE="codex" ;;
+    *) MODE="combined" ;;
+  esac
+fi
 DEFAULT_COMBINED_STREAMS=(
-  "$HOME/.config/.codex/dev-os-events.jsonl"
   "$HOME/.codex/dev-os-events.jsonl"
   "$HOME/.claude/dev-os-events.jsonl"
 )
 DEFAULT_CODEX_STREAMS=(
-  "$HOME/.config/.codex/dev-os-events.jsonl"
   "$HOME/.codex/dev-os-events.jsonl"
 )
 DEFAULT_CLAUDE_STREAMS=(

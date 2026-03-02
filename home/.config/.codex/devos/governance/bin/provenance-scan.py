@@ -400,7 +400,7 @@ def get_cue_roots() -> list[Path]:
     roots = []
 
     # CODEX_HOME/devos/cues
-    codex_home = os.environ.get('CODEX_HOME', os.path.expanduser('~/.config/.codex'))
+    codex_home = os.environ.get('CODEX_HOME', os.path.expanduser('~/.codex'))
     roots.append(Path(codex_home) / 'devos' / 'cues')
 
     return roots

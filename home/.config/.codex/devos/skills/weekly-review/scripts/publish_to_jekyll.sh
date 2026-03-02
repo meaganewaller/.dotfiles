@@ -4,7 +4,7 @@ set -euo pipefail
 # Publish synthesized weekly review to Jekyll and optionally start server
 #
 # Usage: publish_to_jekyll.sh <review_dir>
-# Example: publish_to_jekyll.sh ~/.config/.codex/devos/reviews/week-of-2026-02-23
+# Example: publish_to_jekyll.sh ~/.codex/devos/reviews/week-of-2026-02-23
 
 REVIEW_DIR="${1:-}"
 if [[ -z "$REVIEW_DIR" || ! -d "$REVIEW_DIR" ]]; then

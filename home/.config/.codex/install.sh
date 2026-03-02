@@ -36,18 +36,32 @@ log "Profile: $PROFILE"
 
 # Managed allowlist only. Runtime/state files remain local and unmanaged.
 # Never touch files like auth.json, sessions, caches, or other Codex-generated state.
+map_dest_rel() {
+  local rel="$1"
+  case "$rel" in
+    .config/.codex/*)
+      printf ".codex/%s" "${rel#.config/.codex/}"
+      ;;
+    *)
+      printf "%s" "$rel"
+      ;;
+  esac
+}
+
 link_allowlisted() {
   local rel="$1"
   local src="$DOTFILES_ROOT/home/$rel"
-  local dest="$HOME/$rel"
+  local dest_rel
+  dest_rel="$(map_dest_rel "$rel")"
+  local dest="$HOME/$dest_rel"
 
   if [[ "$CODEX_INSTALL_DRY_RUN" -eq 1 ]]; then
-    log "Would link $rel"
+    log "Would link $rel -> $dest_rel"
     return 0
   fi
 
   make_symlink "$src" "$dest"
-  log "Linked $rel"
+  log "Linked $rel -> $dest_rel"
 }
 
 sync_allowlisted_dir_files() {

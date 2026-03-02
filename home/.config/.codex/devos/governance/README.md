@@ -20,5 +20,5 @@ dotfiles codex-governance --json
 
 ## Scope
 
-- Cue roots: `~/.config/.codex/devos/cues` and dotfiles Codex cues.
-- Policies/controls: `~/.config/.codex/devos/governance/{policies,controls}`.
+- Cue roots: `~/.codex/devos/cues` and dotfiles Codex cues.
+- Policies/controls: `~/.codex/devos/governance/{policies,controls}`.

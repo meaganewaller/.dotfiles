@@ -20,11 +20,17 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 # ============================================================================
 
 # Tradeoff gate backend selection:
-# - codex (default): use codex-tradeoff-gate
+# - codex: use codex-tradeoff-gate
 # - claude: use tradeoff-gate
 # - both: run codex then claude
 # - off: skip global tradeoff gate
-TRADEOFF_GATE_BACKEND="${TRADEOFF_GATE_BACKEND:-codex}"
+PROFILE="${DOTFILES_PROFILE:-work}"
+DEFAULT_GATE_BACKEND="codex"
+case "$PROFILE" in
+  work) DEFAULT_GATE_BACKEND="claude" ;;
+  personal) DEFAULT_GATE_BACKEND="codex" ;;
+esac
+TRADEOFF_GATE_BACKEND="${TRADEOFF_GATE_BACKEND:-$DEFAULT_GATE_BACKEND}"
 
 run_gate() {
   local gate="$1"

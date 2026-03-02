@@ -10,18 +10,18 @@ Codex should operate with a DevOS mindset: explicit decisions, traceable tradeof
 
 ## Cue Injection (Codex)
 When a trigger matches, load the corresponding cue and follow it:
-- commit/push/amend/rebase language or `git commit|push`: `~/.config/.codex/devos/cues/commit/cue.md`
-- env/secrets/config language or `.env*` files: `~/.config/.codex/devos/cues/env/cue.md`
-- migration/schema/database language or migration paths: `~/.config/.codex/devos/cues/migration/cue.md`
-- decision/tradeoff language: `~/.config/.codex/devos/cues/principles/cue.md`
+- commit/push/amend/rebase language or `git commit|push`: `~/.codex/devos/cues/commit/cue.md`
+- env/secrets/config language or `.env*` files: `~/.codex/devos/cues/env/cue.md`
+- migration/schema/database language or migration paths: `~/.codex/devos/cues/migration/cue.md`
+- decision/tradeoff language: `~/.codex/devos/cues/principles/cue.md`
 
 ## Decision Journal
 For non-trivial tradeoffs, add a journal entry in:
-- `~/.config/.codex/devos/decision-journal/`
+- `~/.codex/devos/decision-journal/`
 
 CLI:
 - `codex-tradeoff "one-line summary"`
 - `codex-tradeoff` (interactive template)
 
 ## Source of Truth
-- Repo-managed DevOS assets: `~/.config/.codex/devos/`
+- Repo-managed DevOS assets: `~/.codex/devos/`

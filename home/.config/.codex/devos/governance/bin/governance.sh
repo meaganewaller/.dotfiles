@@ -76,7 +76,7 @@ generate_manifest() {
   local cue_roots=""
 
   # Build cue roots
-  local codex_home="${CODEX_HOME:-$HOME/.config/.codex}"
+  local codex_home="${CODEX_HOME:-$HOME/.codex}"
   if [[ -d "$codex_home/devos/cues" ]]; then
     cue_roots="$codex_home/devos/cues"
   fi

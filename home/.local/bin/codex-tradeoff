@@ -9,7 +9,7 @@ set -euo pipefail
 #   codex-tradeoff --list             # List recent
 #   codex-tradeoff --edit             # Edit latest
 
-JOURNAL_DIR="${CODEX_TRADEOFF_JOURNAL:-$HOME/.config/.codex/devos/decision-journal}"
+JOURNAL_DIR="${CODEX_TRADEOFF_JOURNAL:-$HOME/.codex/devos/decision-journal}"
 mkdir -p "$JOURNAL_DIR"
 
 show_help() {

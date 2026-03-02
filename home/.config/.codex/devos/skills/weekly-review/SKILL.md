@@ -11,8 +11,8 @@ allowed-tools:
   - Edit
   - Bash(jq *)
   - Bash(python3 *)
-  - Bash(bash ~/.config/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh)
-  - Bash(bash ~/.config/.codex/devos/skills/weekly-review/scripts/finalize_review.sh *)
+  - Bash(bash ~/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh)
+  - Bash(bash ~/.codex/devos/skills/weekly-review/scripts/finalize_review.sh *)
 ---
 
 # Weekly Engineering Review (Dev OS)
@@ -25,9 +25,9 @@ You MUST precompute stats and artifacts before analysis.
 
 Run:
 
-- !`WEEKLY_REVIEW_MODE=combined bash ~/.config/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh`
-- !`WEEKLY_REVIEW_MODE=codex bash ~/.config/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh`
-- !`WEEKLY_REVIEW_MODE=claude bash ~/.config/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh`
+- !`WEEKLY_REVIEW_MODE=combined bash ~/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh`
+- !`WEEKLY_REVIEW_MODE=codex bash ~/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh`
+- !`WEEKLY_REVIEW_MODE=claude bash ~/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh`
 
 This generates:
 - summary.json
@@ -121,7 +121,7 @@ Do NOT output the content to the chat — write it directly to the file.
 After all edits are complete, run the finalize script to regenerate the dashboard and publish to Jekyll:
 
 ```bash
-bash ~/.config/.codex/devos/skills/weekly-review/scripts/finalize_review.sh REVIEW_DIR
+bash ~/.codex/devos/skills/weekly-review/scripts/finalize_review.sh REVIEW_DIR
 ```
 
 This will:
@@ -146,14 +146,14 @@ Error: No events in the last 7 days
 
 **Fix:** Verify hooks are emitting events:
 ```bash
-tail -5 ~/.config/.codex/dev-os-events.jsonl
 tail -5 ~/.codex/dev-os-events.jsonl
+tail -5 ~/.claude/dev-os-events.jsonl
 ```
 
 If empty, set explicit sources and retry:
 ```bash
-CODEX_EVENT_STREAMS="$HOME/.config/.codex/dev-os-events.jsonl:$HOME/.claude/dev-os-events.jsonl" \
-bash ~/.config/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh
+CODEX_EVENT_STREAMS="$HOME/.codex/dev-os-events.jsonl:$HOME/.claude/dev-os-events.jsonl" \
+bash ~/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh
 ```
 
 ---
@@ -166,8 +166,8 @@ Error: Permission denied: aggregate.sh
 
 **Fix:** Make scripts executable:
 ```bash
-chmod +x ~/.config/.codex/devos/skills/weekly-review/scripts/*.sh
-chmod +x ~/.config/.codex/devos/skills/weekly-review/scripts/*.py
+chmod +x ~/.codex/devos/skills/weekly-review/scripts/*.sh
+chmod +x ~/.codex/devos/skills/weekly-review/scripts/*.py
 ```
 
 ---
@@ -221,4 +221,4 @@ If empty, charts generation may have silently failed. Check for Python errors.
 
 **Fix:**
 1. Verify review.md has real content (not placeholder text)
-2. Re-run: `python3 ~/.config/.codex/devos/skills/weekly-review/scripts/render_dashboard.py REVIEW_DIR/summary.json`
+2. Re-run: `python3 ~/.codex/devos/skills/weekly-review/scripts/render_dashboard.py REVIEW_DIR/summary.json`

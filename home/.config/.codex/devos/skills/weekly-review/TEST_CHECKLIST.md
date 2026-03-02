@@ -7,7 +7,6 @@ Use this checklist to verify the aggregate.sh script works correctly.
 ## Prerequisites
 
 - [ ] At least one event stream exists with recent events:
-  - `~/.config/.codex/dev-os-events.jsonl`
   - `~/.codex/dev-os-events.jsonl`
   - `~/.claude/dev-os-events.jsonl`
 - [ ] `jq` is installed
@@ -20,19 +19,19 @@ Use this checklist to verify the aggregate.sh script works correctly.
 
 ```bash
 # Run the script
-~/.config/.codex/devos/skills/weekly-review/scripts/aggregate.sh
+~/.codex/devos/skills/weekly-review/scripts/aggregate.sh
 ```
 
 **Expected output:**
 ```
-✓ Wrote local summary: ~/.config/.codex/devos/reviews/week-of-YYYY-MM-DD/summary.json
+✓ Wrote local summary: ~/.codex/devos/reviews/week-of-YYYY-MM-DD/summary.json
 ✓ Published summary to Jekyll: ~/github/meaganewaller/weekly-reviews/_data/dev_os/YYYY-MM-DD-summary.json
 ✓ Created post: ~/github/meaganewaller/weekly-reviews/_posts/YYYY-MM-DD-weekly-review.md
-~/.config/.codex/devos/reviews/week-of-YYYY-MM-DD
+~/.codex/devos/reviews/week-of-YYYY-MM-DD
 ```
 
 **Verify:**
-- [ ] Local summary exists: `ls ~/.config/.codex/devos/reviews/week-of-*/summary.json`
+- [ ] Local summary exists: `ls ~/.codex/devos/reviews/week-of-*/summary.json`
 - [ ] Jekyll summary exists: `ls ~/github/meaganewaller/weekly-reviews/_data/dev_os/*-summary.json`
 - [ ] Jekyll post exists: `ls ~/github/meaganewaller/weekly-reviews/_posts/*-weekly-review.md`
 
@@ -41,7 +40,7 @@ Use this checklist to verify the aggregate.sh script works correctly.
 ## Test 2: Schema Version Present
 
 ```bash
-jq '.schema_version' ~/.config/.codex/devos/reviews/week-of-*/summary.json
+jq '.schema_version' ~/.codex/devos/reviews/week-of-*/summary.json
 ```
 
 **Expected:** `"1.0.0"`
@@ -53,7 +52,7 @@ jq '.schema_version' ~/.config/.codex/devos/reviews/week-of-*/summary.json
 ## Test 3: Week Dates Correct
 
 ```bash
-jq '.week' ~/.config/.codex/devos/reviews/week-of-*/summary.json
+jq '.week' ~/.codex/devos/reviews/week-of-*/summary.json
 ```
 
 **Expected:**
@@ -75,7 +74,7 @@ jq '.week' ~/.config/.codex/devos/reviews/week-of-*/summary.json
 
 ```bash
 # Run again
-~/.config/.codex/devos/skills/weekly-review/scripts/aggregate.sh
+~/.codex/devos/skills/weekly-review/scripts/aggregate.sh
 ```
 
 **Expected output:**
@@ -99,7 +98,7 @@ jq '.week' ~/.config/.codex/devos/reviews/week-of-*/summary.json
 export CODEX_EVENT_STREAMS="/tmp/nope-a.jsonl:/tmp/nope-b.jsonl"
 
 # Run script
-~/.config/.codex/devos/skills/weekly-review/scripts/aggregate.sh
+~/.codex/devos/skills/weekly-review/scripts/aggregate.sh
 
 # Restore default behavior
 unset CODEX_EVENT_STREAMS
@@ -115,7 +114,7 @@ unset CODEX_EVENT_STREAMS
 
 ```bash
 # Run with non-existent Jekyll root
-JEKYLL_ROOT=/tmp/nonexistent ~/.config/.codex/devos/skills/weekly-review/scripts/aggregate.sh
+JEKYLL_ROOT=/tmp/nonexistent ~/.codex/devos/skills/weekly-review/scripts/aggregate.sh
 ```
 
 **Expected:**
@@ -127,7 +126,7 @@ JEKYLL_ROOT=/tmp/nonexistent ~/.config/.codex/devos/skills/weekly-review/scripts
 ## Test 7: Totals Structure
 
 ```bash
-jq '.totals | keys' ~/.config/.codex/devos/reviews/week-of-*/summary.json
+jq '.totals | keys' ~/.codex/devos/reviews/week-of-*/summary.json
 ```
 
 **Expected keys:**
@@ -154,7 +153,7 @@ jq '.totals | keys' ~/.config/.codex/devos/reviews/week-of-*/summary.json
 ## Test 8: Derived Metrics
 
 ```bash
-jq '.derived_metrics' ~/.config/.codex/devos/reviews/week-of-*/summary.json
+jq '.derived_metrics' ~/.codex/devos/reviews/week-of-*/summary.json
 ```
 
 **Expected:**
@@ -198,7 +197,7 @@ summary_file: YYYY-MM-DD-summary.json
 
 ```bash
 # Run full pipeline
-~/.config/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh
+~/.codex/devos/skills/weekly-review/scripts/run_weekly_review.sh
 ```
 
 **Verify all artifacts:**
@@ -216,7 +215,7 @@ To reset for fresh testing:
 
 ```bash
 # Remove local review (preserves events)
-rm -rf ~/.config/.codex/devos/reviews/week-of-$(date -u +%Y-%m-%d -d 'last monday')
+rm -rf ~/.codex/devos/reviews/week-of-$(date -u +%Y-%m-%d -d 'last monday')
 
 # Remove Jekyll artifacts (careful!)
 rm ~/github/meaganewaller/weekly-reviews/_data/dev_os/*-summary.json

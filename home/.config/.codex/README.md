@@ -1,6 +1,7 @@
 # Codex Configuration
 
 Codex configuration managed by dotfiles using an explicit allowlist.
+Managed files are linked into `~/.codex` (source files remain in this repo under `home/.config/.codex`).
 
 ## Managed by dotfiles
 
@@ -30,6 +31,7 @@ mise run codex:dry-run
 codex-tradeoff "Chose X over Y because Z"
 
 # Generate weekly review artifacts
+codex-weekly-review  # profile default (work=claude, personal=codex)
 codex-weekly-review --mode combined
 codex-weekly-review --mode codex
 codex-weekly-review --mode claude

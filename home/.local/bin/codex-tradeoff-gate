@@ -4,10 +4,10 @@ set -euo pipefail
 # codex-tradeoff-gate - Pre-commit prompt for large-change tradeoff notes
 #
 # Triggers when staged changes exceed TRADEOFF_THRESHOLD lines (default: 50)
-# Entries are saved to ~/.config/.codex/devos/decision-journal/
+# Entries are saved to ~/.codex/devos/decision-journal/
 
 THRESHOLD="${TRADEOFF_THRESHOLD:-50}"
-JOURNAL_DIR="${CODEX_TRADEOFF_JOURNAL:-$HOME/.config/.codex/devos/decision-journal}"
+JOURNAL_DIR="${CODEX_TRADEOFF_JOURNAL:-$HOME/.codex/devos/decision-journal}"
 
 if [[ "${SKIP_TRADEOFF:-}" == "1" ]]; then
   exit 0

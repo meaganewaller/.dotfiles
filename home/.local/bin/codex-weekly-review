@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MODE="${WEEKLY_REVIEW_MODE:-combined}"
+MODE="${WEEKLY_REVIEW_MODE:-}"
+if [[ -z "$MODE" ]]; then
+  PROFILE="${DOTFILES_PROFILE:-work}"
+  case "$PROFILE" in
+    work) MODE="claude" ;;
+    personal) MODE="codex" ;;
+    *) MODE="combined" ;;
+  esac
+fi
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --mode)
@@ -24,7 +32,7 @@ case "$MODE" in
     ;;
 esac
 
-SCRIPTS_DIR="$HOME/.config/.codex/devos/skills/weekly-review/scripts"
+SCRIPTS_DIR="$HOME/.codex/devos/skills/weekly-review/scripts"
 if [[ ! -d "$SCRIPTS_DIR" ]]; then
   DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/github/meaganewaller/.dotfiles}"
   SCRIPTS_DIR="$DOTFILES_ROOT/home/.config/.codex/devos/skills/weekly-review/scripts"
