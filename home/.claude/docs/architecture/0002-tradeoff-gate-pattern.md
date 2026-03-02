@@ -1,6 +1,7 @@
 ---
 status: accepted
 date: 2026-02-27
+updated: 2026-03-02
 deciders: [meaganewaller]
 ---
 
@@ -31,7 +32,7 @@ We will implement a **Tradeoff Gate** pattern that intercepts large changes at t
 | Point | Trigger | Threshold | Mechanism |
 |-------|---------|-----------|-----------|
 | Git pre-commit | Staged diff size | 50 lines | Interactive prompt |
-| Claude session stop | Edit diff size | 250 lines | Stop hook blocker |
+| Claude session stop | Edit diff size | 250 lines | Auto-capture agent |
 
 ### Git Pre-Commit Gate (`tradeoff-gate`)
 
@@ -49,9 +50,13 @@ When `git commit` stages >50 lines of changes:
 
 When Claude Code edits a file with >250 lines changed:
 
-1. `large-diff-escalator.sh` (PostToolUse) creates a pending marker
-2. `pending-tradeoff-blocker.sh` (Stop) checks for uncaptured tradeoffs
-3. Session cannot end until tradeoffs are documented or markers expire
+1. `large-diff-escalator.sh` (PostToolUse) creates a pending marker and displays an advisory message encouraging inline tradeoff discussion
+2. `tradeoff-context-prep.sh` (Stop) prepares context about pending markers for the agent
+3. An agent-type Stop hook analyzes the session's `last_assistant_message` for tradeoff reasoning
+4. If meaningful reasoning is found, the agent extracts structured data and emits a `decision_tradeoff` event to `dev-os-events.jsonl`
+5. The agent marks markers as captured and always returns `{"ok": true}` (never blocks)
+
+This approach captures tradeoffs automatically from the conversation context while inline discussion enriches what the agent can extract.
 
 ### Documentation Template
 
@@ -78,13 +83,16 @@ The "Revisit if" section is critical—it transforms a point-in-time decision in
 
 Enforcement must not be absolute:
 
-| Escape | Use Case |
-|--------|----------|
-| `SKIP_TRADEOFF=1` | Known trivial change |
-| `[n] Not a tradeoff` | Formatting, refactoring |
-| `[s] Skip` | Emergency, will document later |
-| Marker expiry (1 hour) | Prevents orphaned blocks |
-| Non-interactive environments | CI/CD bypasses automatically |
+| Escape | Applies To | Use Case |
+|--------|------------|----------|
+| `SKIP_TRADEOFF=1` | Git | Known trivial change |
+| `[n] Not a tradeoff` | Git | Formatting, refactoring |
+| `[s] Skip` | Git | Emergency, will document later |
+| Non-interactive environments | Git | CI/CD bypasses automatically |
+| Marker expiry (1 hour) | Claude | Prevents orphaned markers |
+| No meaningful reasoning | Claude | Agent skips event emission for mechanical changes |
+
+Note: The Claude session stop gate never blocks—it auto-captures when possible and gracefully degrades when not.
 
 ### Threshold Rationale
 
@@ -102,7 +110,9 @@ Both thresholds are configurable via environment variables (`TRADEOFF_THRESHOLD`
 - Creates searchable institutional memory
 - "Revisit if" enables proactive reconsideration
 - Tradeoffs feed into weekly review and learning suggestions
-- Low-friction options (quick note, skip) prevent blocking flow
+- Low-friction options (quick note, skip) prevent blocking flow at git commit
+- Claude auto-capture eliminates manual friction while preserving documentation
+- Inline discussion enriches captured context without requiring explicit documentation
 
 ### Negative
 
@@ -110,12 +120,16 @@ Both thresholds are configurable via environment variables (`TRADEOFF_THRESHOLD`
 - Threshold is arbitrary—will miss small impactful changes, catch large trivial ones
 - Requires discipline to write meaningful content vs. placeholder text
 - Two enforcement points means two systems to maintain
+- Auto-capture adds ~30-60s latency to Claude session stop
+- LLM extraction may miss nuance that manual documentation would capture
+- API token cost for agent invocation on each session with large changes
 
 ### Neutral
 
-- Documentation lives in `~/.claude/decision-journal/` (existing location)
-- Integrates with existing telemetry (`dev-os-events.jsonl`)
+- Documentation lives in `~/.claude/decision-journal/` (git) and `dev-os-events.jsonl` (Claude)
+- Integrates with existing telemetry
 - Template structure is suggestive, not enforced
+- Auto-captured events marked with `source: "auto-capture"` for traceability
 
 ## Alternatives Considered
 
@@ -151,10 +165,19 @@ Prompt after commit completes rather than before.
 **Cons:** Context already fading; easy to dismiss and forget
 **Why rejected:** Pre-commit captures context at peak freshness
 
+### Alternative E: Blocking Claude Session Stop (Previous Implementation)
+
+Block session stop until tradeoffs are manually documented.
+
+**Pros:** Guaranteed documentation, enforces discipline
+**Cons:** Creates workflow friction; users must remember to document; manual entry required
+**Why replaced:** Auto-capture achieves documentation without blocking while inline discussion provides richer context for extraction
+
 ## References
 
 - `home/.local/bin/tradeoff-gate` - Git pre-commit hook
 - `home/.local/bin/tradeoff` - Standalone CLI
-- `home/.claude/hooks/PostToolUse/large-diff-escalator.sh` - Creates pending markers
-- `home/.claude/hooks/Stop/pending-tradeoff-blocker.sh` - Blocks session stop
+- `home/.claude/hooks/PostToolUse/large-diff-escalator.sh` - Creates pending markers, displays advisory
+- `home/.claude/hooks/Stop/tradeoff-context-prep.sh` - Prepares context for agent
+- `home/.claude/settings/common/hooks.jsonc` - Agent hook definition for auto-capture
 - Blog post: `home/.claude/docs/blog-drafts/tradeoff-gate-pattern.md`
