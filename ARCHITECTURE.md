@@ -18,7 +18,7 @@ This document describes the structure and design of this dotfiles repository.
 │   1. Source lib/common.sh (logging, arg parsing)                            │
 │   2. Ensure mise is installed                                               │
 │   3. Run mise install (tools from mise.toml)                                │
-│   4. Run mise run bootstrap (Brewfiles)                                     │
+│   4. Run mise run brew:bootstrap (Brewfiles)                                     │
 │   5. Run bin/link-dotfiles (symlinks)                                       │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
@@ -37,11 +37,13 @@ This document describes the structure and design of this dotfiles repository.
 │
 ├── bootstrap/                      # Stage 0: Fresh machine setup
 │   ├── remote-bootstrap.sh         # curl-able entrypoint for new machines
-│   ├── Brewfile.common             # Packages for all profiles
-│   ├── Brewfile.work               # Work-specific packages
-│   ├── Brewfile.personal           # Personal packages
-│   └── brew/                       # Brew helper scripts
-│
+├── brewfiles/
+│   ├── base.Brewfile
+│   ├── creative.Brewfile
+│   ├── dev.Brewfile
+│   ├── experimental.Brewfile
+│   ├── gui.Brewfile
+│   ├── infra.Brewfile
 ├── home/                           # Everything here is symlinked to $HOME
 │   ├── .config/                    # XDG Base Directory configs
 │   │   ├── fish/                   # Fish shell config

@@ -85,7 +85,7 @@ sync_mise() {
 run_mise_tasks() {
     if mise tasks >/dev/null 2>&1; then
         log "Running mise bootstrap tasks..."
-        mise run bootstrap || true
+        mise run brew:bootstrap || true
     else
         log "No mise tasks found. Skipping..."
     fi

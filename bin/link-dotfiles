@@ -36,6 +36,19 @@ run() {
   fi
 }
 
+run_to() {
+  local src_rel="$1"
+  local dest_rel="$2"
+  local src="$DOTFILES_ROOT/home/$src_rel"
+  local dest="$HOME/$dest_rel"
+  if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
+    log "Would link $src_rel -> $dest_rel"
+  else
+    log "Linking $src_rel -> $dest_rel"
+    make_symlink "$src" "$dest"
+  fi
+}
+
 run_dir_contents() {
   local rel="$1"
   shift
@@ -86,7 +99,7 @@ run ".local/bin/codex-governance"
 run ".config/git/hooks"
 
 run ".config/mise"
-run ".config/.codex/config.toml"
+run_to ".config/.codex/config.toml" ".codex/config.toml"
 
 run ".tmux.conf"
 run ".tmux/settings.conf"

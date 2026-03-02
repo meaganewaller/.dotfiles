@@ -1,3 +1,21 @@
+# ============================================================
+# Layer: base
+#
+# Scope:
+# - Core CLI tools
+# - Primary shell
+# - Runtime manager
+# - Docker runtime
+# - Primary editor(s)
+#
+# Guarantees:
+# - No stateful services installed via Homebrew
+# - No brew services auto-started
+# - No cloud / infra tooling
+#
+# All stateful dependencies must run in Docker.
+# ============================================================
+
 # ----------------------------
 # Core CLI
 # ----------------------------
@@ -36,12 +54,11 @@ brew "mise"
 # ----------------------------
 # Containers (Primary Infra Layer)
 # ----------------------------
-cask "docker"
+cask "docker-desktop"
 
 # ----------------------------
-# Terminal & Editors
+# Editors
 # ----------------------------
-cask "wezterm"
 brew "neovim"
 cask "visual-studio-code"
 

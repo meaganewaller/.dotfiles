@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-#MISE description="Run brew bundle for all (common + profile)"
-#USAGE arg "[profile]" help="Profile for Brefwile" default="work"
-set -euo pipefail
-profile="${usage_profile:-work}"
-mise run brew:common
-mise run brew:profile "$profile"

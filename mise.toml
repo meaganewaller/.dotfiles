@@ -11,23 +11,6 @@ bun = "latest"
 [env]
 DOTFILES = "{{config_root}}"
 
-[tasks.bootstrap]
-run = """
-if command -v brew >/dev/null; then
-    brew bundle --file=brewfiles/base.Brewfile
-
-    for layer in ${BREW_LAYERS}; do
-        brew bundle --file=brewfiles/${layer}.Brewfile
-    done
-fi
-"""
-
-[tasks.tools]
-run = """
-echo "Installing CLI tools..."
-gh extension upgrade --all || true
-"""
-
 [tasks.default]
 description = "Show available commands"
 run = "mise tasks"

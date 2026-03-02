@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+#MISE description="Enforce declared Brew state (prune + autoremove + cleanup + doctor)"
+#MISE alias="brew:prune"
+
+set -euo pipefail
+
+#USAGE flag "-f --force" help="Skip confirmation prompt"
+#USAGE flag "-l --layers <layers>" help="Space-separated layer list" default="base"
+
+LAYERS="${usage_layers:-base}"
+FORCE="${usage_force:-false}"
+
+LOG_DIR="$HOME/.local/state"
+LOG_FILE="$LOG_DIR/brew-prune-history.log"
+
+mkdir -p "$LOG_DIR"
+
+timestamp() {
+  date "+%Y-%m-%d %H:%M:%S"
+}
+
+log() {
+  echo "[$(timestamp)] $1" | tee -a "$LOG_FILE"
+}
+
+if ! command -v brew >/dev/null; then
+  log "Homebrew not installed."
+  exit 1
+fi
+
+log "Starting brew prune using layers: $LAYERS"
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+DECLARED_FORMULAE="$TMP_DIR/declared.formulae"
+DECLARED_CASKS="$TMP_DIR/declared.casks"
+ACTUAL_FORMULAE="$TMP_DIR/actual.formulae"
+ACTUAL_CASKS="$TMP_DIR/actual.casks"
+UNDECLARED_FORMULAE="$TMP_DIR/undeclared.formulae"
+UNDECLARED_CASKS="$TMP_DIR/undeclared.casks"
+
+> "$DECLARED_FORMULAE"
+> "$DECLARED_CASKS"
+
+# ----------------------------------------
+# Collect declared
+# ----------------------------------------
+
+for layer in $LAYERS; do
+  FILE="brewfiles/${layer}.Brewfile"
+
+  if [[ ! -f "$FILE" ]]; then
+    log "Layer not found: $FILE"
+    exit 1
+  fi
+
+  grep -E '^brew ' "$FILE" \
+    | awk '{print $2}' \
+    | tr -d '"' \
+    >> "$DECLARED_FORMULAE"
+
+  grep -E '^cask ' "$FILE" \
+    | awk '{print $2}' \
+    | tr -d '"' \
+    >> "$DECLARED_CASKS"
+done
+
+sort -u "$DECLARED_FORMULAE" -o "$DECLARED_FORMULAE"
+sort -u "$DECLARED_CASKS" -o "$DECLARED_CASKS"
+
+# ----------------------------------------
+# Collect actual
+# ----------------------------------------
+
+brew leaves | sort -u > "$ACTUAL_FORMULAE"
+brew list --cask | sort -u > "$ACTUAL_CASKS"
+
+# ----------------------------------------
+# Compute drift
+# ----------------------------------------
+
+comm -23 "$ACTUAL_FORMULAE" "$DECLARED_FORMULAE" > "$UNDECLARED_FORMULAE"
+comm -23 "$ACTUAL_CASKS" "$DECLARED_CASKS" > "$UNDECLARED_CASKS"
+
+echo
+echo "Formulae to remove:"
+cat "$UNDECLARED_FORMULAE" || true
+echo
+
+echo "Casks to remove:"
+cat "$UNDECLARED_CASKS" || true
+echo
+
+if [[ ! -s "$UNDECLARED_FORMULAE" && ! -s "$UNDECLARED_CASKS" ]]; then
+  log "No drift detected. Nothing to prune."
+  exit 0
+fi
+
+if [[ "$FORCE" != "true" ]]; then
+  read -p "Proceed with uninstall + autoremove + cleanup? (y/N): " CONFIRM
+  if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
+    log "Prune aborted by user."
+    exit 0
+  fi
+fi
+
+log "Removing undeclared formulae..."
+if [[ -s "$UNDECLARED_FORMULAE" ]]; then
+  xargs brew uninstall < "$UNDECLARED_FORMULAE"
+fi
+
+log "Removing undeclared casks..."
+if [[ -s "$UNDECLARED_CASKS" ]]; then
+  xargs brew uninstall --cask < "$UNDECLARED_CASKS"
+fi
+
+log "Running brew autoremove..."
+brew autoremove
+
+log "Running brew cleanup..."
+brew cleanup
+
+echo
+log "Running brew doctor..."
+
+DOCTOR_OUTPUT="$TMP_DIR/doctor.txt"
+brew doctor | tee "$DOCTOR_OUTPUT"
+
+if grep -q "Warning" "$DOCTOR_OUTPUT"; then
+  log "brew doctor reported warnings. Failing task."
+  exit 1
+fi
+
+log "Prune complete. Machine aligned with declared Brewfiles."
+echo
+echo "✓ Brew state fully reconciled and verified."

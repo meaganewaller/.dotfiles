@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-#MISE description="Install profile-specific brew packages"
-#USAGE arg "[profile]" help="Profile (e.g. work, personal)" default="work"
-set -euo pipefail
-profile="${usage_profile?}"
-brew bundle --file=bootstrap/Brewfile.{{ profile }}

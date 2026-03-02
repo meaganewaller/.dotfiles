@@ -14,7 +14,7 @@ log "Profile: $DOTFILES_PROFILE"
 
 ensure_mise
 mise install
-mise run bootstrap
+mise run brew:bootstrap
 $ROOT/home/.local/bin/dotfiles link --profile "$DOTFILES_PROFILE"
 
 log "Install complete."

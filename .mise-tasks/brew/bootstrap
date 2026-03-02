@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+#MISE description="Install brew layers and detect drift"
+#MISE alias="brew:bootstrap"
+
+set -euo pipefail
+
+if ! command -v brew >/dev/null; then
+  echo "Homebrew not installed."
+  exit 1
+fi
+
+LAYERS="${BREW_LAYERS:-base}"
+
+echo "==> Installing Brew layers: $LAYERS"
+echo
+
+for layer in $LAYERS; do
+  FILE="brewfiles/${layer}.Brewfile"
+
+  if [[ ! -f "$FILE" ]]; then
+    echo "Layer not found: $FILE"
+    exit 1
+  fi
+
+  echo "→ Installing layer: $layer"
+  brew bundle --file="$FILE"
+done
+
+echo
+echo "==> Checking for Brew drift..."
+echo
+
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+DECLARED_FORMULAE="$TMP_DIR/declared.formulae"
+DECLARED_CASKS="$TMP_DIR/declared.casks"
+ACTUAL_FORMULAE="$TMP_DIR/actual.formulae"
+ACTUAL_CASKS="$TMP_DIR/actual.casks"
+
+# ----------------------------------------
+# Collect declared formulae & casks
+# ----------------------------------------
+
+> "$DECLARED_FORMULAE"
+> "$DECLARED_CASKS"
+
+for layer in $LAYERS; do
+  FILE="brewfiles/${layer}.Brewfile"
+
+  grep -E '^brew ' "$FILE" \
+    | awk '{print $2}' \
+    | tr -d '"' \
+    >> "$DECLARED_FORMULAE"
+
+  grep -E '^cask ' "$FILE" \
+    | awk '{print $2}' \
+    | tr -d '"' \
+    >> "$DECLARED_CASKS"
+done
+
+sort -u "$DECLARED_FORMULAE" -o "$DECLARED_FORMULAE"
+sort -u "$DECLARED_CASKS" -o "$DECLARED_CASKS"
+
+# ----------------------------------------
+# Collect actual installed
+# ----------------------------------------
+
+brew leaves | sort -u > "$ACTUAL_FORMULAE"
+brew list --cask | sort -u > "$ACTUAL_CASKS"
+
+# ----------------------------------------
+# Compare formulae
+# ----------------------------------------
+
+FORMULA_DRIFT=0
+CASK_DRIFT=0
+
+if ! diff -u "$DECLARED_FORMULAE" "$ACTUAL_FORMULAE"; then
+  FORMULA_DRIFT=1
+fi
+
+if ! diff -u "$DECLARED_CASKS" "$ACTUAL_CASKS"; then
+  CASK_DRIFT=1
+fi
+
+echo
+
+if [[ "$FORMULA_DRIFT" -eq 0 ]]; then
+  echo "✓ Formulae match declared state."
+else
+  echo "⚠️  Formula drift detected."
+fi
+
+if [[ "$CASK_DRIFT" -eq 0 ]]; then
+  echo "✓ Casks match declared state."
+else
+  echo "⚠️  Cask drift detected."
+fi
+
+echo
+
+if [[ "$FORMULA_DRIFT" -ne 0 || "$CASK_DRIFT" -ne 0 ]]; then
+  echo "Drift detected. Your machine has diverged from declared Brewfiles."
+  exit 1
+fi
+
+echo "✓ Brew state matches declaration."
