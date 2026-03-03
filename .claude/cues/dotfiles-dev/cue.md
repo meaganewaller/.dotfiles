@@ -27,3 +27,13 @@ You're working on the Claude Code configuration system.
 - [ ] Cue has governance provenance
 - [ ] BATS test added for new hooks
 - [ ] Run `./bin/link-dotfiles` after changes
+
+## Linting
+
+This repo has project-level hooks that run linting on file changes:
+- **PostToolUse (Write|Edit)**: Runs `.claude/hooks/lint.sh` for shellcheck, whitespace, JSON/YAML validation
+- **PreToolUse (Bash)**: Runs `.claude/hooks/git-branch-guard.sh` to protect main branch
+
+Run full lint suite: `pre-commit run --all-files`
+
+Use `/lint` skill for on-demand linting guidance.
