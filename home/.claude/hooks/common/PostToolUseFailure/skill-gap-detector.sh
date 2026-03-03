@@ -15,10 +15,76 @@ TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
 ERROR=$(echo "$INPUT" | jq -r '.error // ""')
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+# Note: session_id could be used for future correlation but currently unused
+# SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
 
 # Only log meaningful failures (skip empty)
 if [[ -z "${ERROR}${CMD}" ]]; then
   exit 0
+fi
+
+# ============================================================================
+# CONTEXT DETECTION - Understand WHERE the failure occurred
+# ============================================================================
+
+FILE_CONTEXT="unknown"
+FILE_TYPE="unknown"
+
+if [[ -n "$FILE_PATH" ]]; then
+  # Detect file context based on path patterns
+  case "$FILE_PATH" in
+    */.claude/projects/*/subagents/*)
+      FILE_CONTEXT="subagent-session"
+      ;;
+    */.claude/projects/*.jsonl)
+      FILE_CONTEXT="session-log"
+      ;;
+    */.claude/dev-os-events.jsonl|*/.claude/skill-friction-log.jsonl|*/.claude/impact-log.jsonl)
+      FILE_CONTEXT="telemetry-log"
+      ;;
+    */.claude/hooks/*)
+      FILE_CONTEXT="hook-script"
+      ;;
+    */.claude/cues/*)
+      FILE_CONTEXT="cue-file"
+      ;;
+    */.claude/pending-tradeoffs/*)
+      FILE_CONTEXT="tradeoff-marker"
+      ;;
+    */.claude/*)
+      FILE_CONTEXT="claude-internal"
+      ;;
+    *)
+      FILE_CONTEXT="user-file"
+      ;;
+  esac
+
+  # Detect file type
+  case "$FILE_PATH" in
+    *.jsonl) FILE_TYPE="jsonl-log" ;;
+    *.json) FILE_TYPE="json" ;;
+    *.md) FILE_TYPE="markdown" ;;
+    *.sh) FILE_TYPE="shell-script" ;;
+    *.rb) FILE_TYPE="ruby" ;;
+    *.py) FILE_TYPE="python" ;;
+    *.ts|*.tsx) FILE_TYPE="typescript" ;;
+    *.js|*.jsx) FILE_TYPE="javascript" ;;
+    *) FILE_TYPE="other" ;;
+  esac
+
+  # Get actual file stats if path exists
+  FILE_EXISTS="false"
+  FILE_IS_DIR="false"
+  FILE_SIZE_KB=0
+
+  if [[ -e "$FILE_PATH" ]]; then
+    FILE_EXISTS="true"
+    if [[ -d "$FILE_PATH" ]]; then
+      FILE_IS_DIR="true"
+    elif [[ -f "$FILE_PATH" ]]; then
+      FILE_SIZE_KB=$(( $(stat -f%z "$FILE_PATH" 2>/dev/null || stat -c%s "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))
+    fi
+  fi
 fi
 
 LOG_FILE="$CLAUDE_FRICTION_LOG"
@@ -73,14 +139,45 @@ set_domain() {
 if echo "$TEXT" | grep -qiE "file does not exist|no such file or directory|ENOENT|cannot find|not found.*file|missing .*(file|json|config)"; then
   set_domain "state" "file-not-found"
   add_signal "state:file-not-found"
-  add_hint "Verify the file path exists; check for typos, stale references, or race conditions in file creation."
+
+  # Context-specific hints for file-not-found
+  case "$FILE_CONTEXT" in
+    subagent-session)
+      add_hint "Subagent session files are ephemeral. The subagent may have completed or been cleaned up. Check if agent is still running."
+      ;;
+    tradeoff-marker)
+      add_hint "Tradeoff marker files are temporary. They may have been processed and removed already."
+      ;;
+    session-log)
+      add_hint "Session log may not exist yet or has been archived. Check session ID validity."
+      ;;
+    *)
+      add_hint "Verify the file path exists; check for typos, stale references, or race conditions in file creation."
+      ;;
+  esac
 fi
 
 # 2. Resource limits exceeded (~12 occurrences)
 if echo "$TEXT" | grep -qiE "exceeds maximum allowed|too large|size limit|token limit|content.*exceeds|file.*too big"; then
   set_domain "state" "resource-limit"
   add_signal "state:resource-limit"
-  add_hint "Use offset/limit parameters for large files; consider chunked reading or grep for specific content."
+
+  # Context-specific hints for resource limits
+  case "$FILE_CONTEXT" in
+    telemetry-log)
+      add_hint "Telemetry logs grow unbounded. Use 'tail -100 file | jq' or grep for specific event types instead of reading full file."
+      ;;
+    session-log)
+      add_hint "Session logs can be large. Use grep to find specific content, or read with offset/limit for recent entries."
+      ;;
+    jsonl-log|*)
+      if [[ "$FILE_TYPE" == "jsonl-log" ]]; then
+        add_hint "JSONL files are append-only logs. Use 'tail -N' to get recent entries, or grep for specific patterns."
+      else
+        add_hint "Use offset/limit parameters for large files; consider chunked reading or grep for specific content."
+      fi
+      ;;
+  esac
 fi
 
 # 3. Exit code failures with missing files (~5 occurrences)
@@ -281,6 +378,24 @@ SIGNALS_JSON=$(printf '%s\n' "${SIGNALS[@]:-}" | jq -R . | jq -s '.')
 # Keep excerpt short-ish
 ERROR_EXCERPT=$(printf "%s\n%s" "$CMD" "$ERROR" | head -c 800 | tr '\n' ' ')
 
+# Build context object for Read-specific diagnostics
+CONTEXT_JSON="{}"
+if [[ "$TOOL_NAME" == "Read" && -n "$FILE_PATH" ]]; then
+  CONTEXT_JSON=$(jq -cn \
+    --arg file_context "$FILE_CONTEXT" \
+    --arg file_type "$FILE_TYPE" \
+    --argjson file_exists "$FILE_EXISTS" \
+    --argjson file_is_dir "$FILE_IS_DIR" \
+    --argjson file_size_kb "$FILE_SIZE_KB" \
+    '{
+      file_context: $file_context,
+      file_type: $file_type,
+      file_exists: $file_exists,
+      file_is_dir: $file_is_dir,
+      file_size_kb: $file_size_kb
+    }')
+fi
+
 jq -cn \
   --arg timestamp "$TIMESTAMP" \
   --arg tool_name "$TOOL_NAME" \
@@ -290,6 +405,7 @@ jq -cn \
   --arg error_excerpt "$ERROR_EXCERPT" \
   --argjson hints "$HINTS_JSON" \
   --argjson signals "$SIGNALS_JSON" \
+  --argjson context "$CONTEXT_JSON" \
   '{
     timestamp: $timestamp,
     tool_name: $tool_name,
@@ -298,7 +414,8 @@ jq -cn \
     subdomain: (if $subdomain == "" then null else $subdomain end),
     error_excerpt: $error_excerpt,
     hints: $hints,
-    signals: $signals
+    signals: $signals,
+    context: (if $context == {} then null else $context end)
   }' >> "$LOG_FILE"
 
 # Build structured friction_domain object
@@ -312,20 +429,35 @@ FRICTION_DOMAIN=$(jq -cn \
     signals: $signals
   }')
 
+# Check for repeated failures (same tool + subdomain in last 10 entries)
+REPEAT_COUNT=0
+if [[ -f "$LOG_FILE" ]]; then
+  REPEAT_COUNT=$(tail -10 "$LOG_FILE" 2>/dev/null | jq -s --arg tool "$TOOL_NAME" --arg sub "$SUBDOMAIN" \
+    '[.[] | select(.tool_name == $tool and .subdomain == $sub)] | length' 2>/dev/null || echo "0")
+fi
+
 PAYLOAD=$(jq -n \
   --arg tool "$TOOL_NAME" \
   --arg file_path "$FILE_PATH" \
+  --arg file_context "${FILE_CONTEXT:-unknown}" \
+  --arg file_type "${FILE_TYPE:-unknown}" \
   --arg error_excerpt "$ERROR_EXCERPT" \
   --argjson friction_domain "$FRICTION_DOMAIN" \
   --argjson hints "$HINTS_JSON" \
+  --argjson repeat_count "$REPEAT_COUNT" \
+  --argjson context "$CONTEXT_JSON" \
   '{
     tool: $tool,
     file_path: (if $file_path == "" then null else $file_path end),
+    file_context: $file_context,
+    file_type: $file_type,
     error_excerpt: (if $error_excerpt == "" then null else $error_excerpt end),
     domain: $friction_domain.domain,
     subdomain: $friction_domain.subdomain,
     hints: $hints,
-    friction_domain: $friction_domain
+    friction_domain: $friction_domain,
+    repeat_count: $repeat_count,
+    context: (if $context == {} then null else $context end)
   }')
 
 echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" tool_failure "$PAYLOAD"
