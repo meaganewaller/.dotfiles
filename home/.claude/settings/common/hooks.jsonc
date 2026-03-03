@@ -5,6 +5,15 @@
     "hooks": {
         "PostToolUse": [
             {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/loop-detector.sh"
+                    }
+                ]
+            },
+            {
                 "matcher": "MultiEdit|Write|Edit",
                 "hooks": [
                     {
