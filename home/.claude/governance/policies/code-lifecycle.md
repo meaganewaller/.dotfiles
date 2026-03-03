@@ -62,7 +62,13 @@ Never force-push to shared branches (main, develop, release/*).
 | ENG-COMMIT-001 | Structured Change Records |
 | ENG-COMMIT-002 | Atomic Change Units |
 | ENG-COMMIT-003 | Pre-Push Verification |
+| ENG-PR-001 | Meaningful PR Descriptions |
+| ENG-PR-002 | Focused Review Scope |
+| ENG-REFACTOR-001 | Behavior Preservation |
+| ENG-REFACTOR-002 | Incremental Changes |
 
 ## Related Cues
 
 - `commit/cue.md` - Triggered on commit/push operations
+- `pr-review/cue.md` - Triggered on PR and review operations
+- `refactoring/cue.md` - Triggered on refactoring operations

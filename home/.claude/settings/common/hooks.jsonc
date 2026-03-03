@@ -161,6 +161,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/cue-injector-bash.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/git-guard.sh"
                     }
                 ]
             },
@@ -230,6 +234,26 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/friction-escalator.sh"
+                    }
+                ]
+            }
+        ],
+        "WorktreeCreate": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/WorktreeCreate/worktree-create-log.sh"
+                    }
+                ]
+            }
+        ],
+        "WorktreeRemove": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/WorktreeRemove/worktree-remove-log.sh"
                     }
                 ]
             }
