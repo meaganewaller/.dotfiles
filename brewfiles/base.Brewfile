@@ -36,6 +36,7 @@ brew "shellcheck"
 brew "pre-commit"
 brew "rename"
 brew "trash"
+brew "trash-cli"
 brew "age"
 
 # ----------------------------
@@ -46,6 +47,7 @@ brew "starship"
 brew "zoxide"
 brew "direnv"
 brew "atuin"
+brew "yazi"
 
 # ----------------------------
 # Runtime Management
