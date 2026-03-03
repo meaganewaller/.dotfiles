@@ -5,6 +5,7 @@
 # Karabiner
 home/.config/karabiner/automatic_backups
 home/.config/fish/fish_variables
+home/.config/fish/config.fish
 home/.config/zsh/.zcompdump
 home/.config/zsh/.zsh_history
 home/.config/zsh/.zsh_sessions
