@@ -33,7 +33,11 @@ if [[ -z "$LINES" ]]; then
   exit 0
 fi
 
-if (( LINES > 250 )); then
+# Threshold for large changes that warrant tradeoff documentation
+# Lowered from 250 to 100 to improve capture rate (was 35%, target >56%)
+LARGE_CHANGE_THRESHOLD="${LARGE_CHANGE_THRESHOLD:-100}"
+
+if (( LINES > LARGE_CHANGE_THRESHOLD )); then
   PAYLOAD=$(jq -n --arg file "$FILE" --arg lines "$LINES" \
     '{file_path:$file, lines_changed:($lines|tonumber), risk:"high"}')
 
@@ -68,7 +72,7 @@ if (( LINES > 250 )); then
     --arg file "$FILE" \
     --arg lines "$LINES" \
     '{
-      systemMessage: ("📝 LARGE CHANGE: " + $file + " (" + $lines + " lines)\n\nTradeoffs will be auto-captured when the session ends. To enrich the capture, consider noting:\n\n**Tradeoffs:** X vs Y decisions you made\n**Options Considered:** Alternatives you evaluated\n**Principles Applied:** (see ~/.claude/principles/career-matrix.md)\n\nInline documentation here helps the auto-capture agent extract richer context.")
+      systemMessage: ("📝 LARGE CHANGE: " + $file + " (" + $lines + " lines)\n\nA tradeoff marker has been created. When this session ends, the auto-capture agent will extract any tradeoff reasoning from our conversation.\n\nTo enrich the capture, consider noting:\n- **Why** you chose this approach over alternatives\n- **What** options you considered and rejected\n- **When** this decision should be revisited")
     }'
 fi
 
