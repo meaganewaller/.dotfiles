@@ -15,8 +15,14 @@ TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
 ERROR=$(echo "$INPUT" | jq -r '.error // ""')
 CMD=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-# Note: session_id could be used for future correlation but currently unused
-# SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
+# Session context for correlation
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // "unknown"')
+
+# Detect if we're in a subagent context
+IS_SUBAGENT="false"
+if [[ -n "${CLAUDE_SUBAGENT_ID:-}" ]] || [[ "$FILE_PATH" =~ /subagents/ ]]; then
+  IS_SUBAGENT="true"
+fi
 
 # Only log meaningful failures (skip empty)
 if [[ -z "${ERROR}${CMD}" ]]; then
@@ -400,6 +406,8 @@ jq -cn \
   --arg timestamp "$TIMESTAMP" \
   --arg tool_name "$TOOL_NAME" \
   --arg file_path "$FILE_PATH" \
+  --arg session_id "$SESSION_ID" \
+  --argjson is_subagent "$IS_SUBAGENT" \
   --arg domain "$DOMAIN" \
   --arg subdomain "$SUBDOMAIN" \
   --arg error_excerpt "$ERROR_EXCERPT" \
@@ -410,6 +418,8 @@ jq -cn \
     timestamp: $timestamp,
     tool_name: $tool_name,
     file_paths: (if $file_path == "" then [] else [$file_path] end),
+    session_id: $session_id,
+    is_subagent: $is_subagent,
     domain: $domain,
     subdomain: (if $subdomain == "" then null else $subdomain end),
     error_excerpt: $error_excerpt,
@@ -446,6 +456,7 @@ PAYLOAD=$(jq -n \
   --argjson hints "$HINTS_JSON" \
   --argjson repeat_count "$REPEAT_COUNT" \
   --argjson context "$CONTEXT_JSON" \
+  --argjson is_subagent "$IS_SUBAGENT" \
   '{
     tool: $tool,
     file_path: (if $file_path == "" then null else $file_path end),
@@ -457,6 +468,7 @@ PAYLOAD=$(jq -n \
     hints: $hints,
     friction_domain: $friction_domain,
     repeat_count: $repeat_count,
+    is_subagent: $is_subagent,
     context: (if $context == {} then null else $context end)
   }')
 

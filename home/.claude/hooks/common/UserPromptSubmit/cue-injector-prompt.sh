@@ -54,16 +54,47 @@ if [[ ${#MATCHED_CUES[@]} -gt 0 ]]; then
   # Extract first 100 chars of prompt for context
   PROMPT_SNIPPET="${PROMPT:0:100}"
 
+  # Determine match reasons for each cue
+  MATCH_DETAILS="[]"
+  CLAUDE_HOME="${CLAUDE_HOME:-$HOME/.claude}"
+  for cue_name in "${MATCHED_CUES[@]}"; do
+    CUE_FILE="$CLAUDE_HOME/cues/$cue_name/cue.md"
+    if [[ -f "$CUE_FILE" ]]; then
+      # Extract frontmatter fields
+      PATTERN=$(awk '/^---$/,/^---$/' "$CUE_FILE" | grep -E "^pattern:" | sed 's/^pattern:[[:space:]]*//' | head -1)
+      VOCAB=$(awk '/^---$/,/^---$/' "$CUE_FILE" | grep -E "^vocabulary:" | sed 's/^vocabulary:[[:space:]]*//' | head -1)
+
+      # Determine match type
+      MATCH_TYPE="unknown"
+      if [[ -n "$PATTERN" ]] && echo "$PROMPT" | grep -qiE "$PATTERN" 2>/dev/null; then
+        MATCH_TYPE="pattern"
+      elif [[ -n "$VOCAB" ]]; then
+        # Check if any vocabulary word appears in prompt
+        for word in $VOCAB; do
+          if echo "$PROMPT" | grep -qiw "$word" 2>/dev/null; then
+            MATCH_TYPE="vocabulary"
+            break
+          fi
+        done
+        [[ "$MATCH_TYPE" == "unknown" ]] && MATCH_TYPE="semantic"
+      fi
+
+      MATCH_DETAILS=$(echo "$MATCH_DETAILS" | jq --arg name "$cue_name" --arg type "$MATCH_TYPE" '. + [{name: $name, match_type: $type}]')
+    fi
+  done
+
   PAYLOAD=$(jq -n \
     --argjson cues "$CUES_JSON" \
     --arg trigger "user_prompt" \
     --arg prompt_snippet "$PROMPT_SNIPPET" \
     --argjson count "${#MATCHED_CUES[@]}" \
+    --argjson match_details "$MATCH_DETAILS" \
     '{
       cues: $cues,
       trigger: $trigger,
       prompt_snippet: $prompt_snippet,
-      count: $count
+      count: $count,
+      match_details: $match_details
     }')
 
   echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" cue_matched "$PAYLOAD"

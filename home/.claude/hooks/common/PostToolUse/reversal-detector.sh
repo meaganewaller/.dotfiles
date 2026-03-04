@@ -28,6 +28,7 @@ if (( REMOVED > 50 && REMOVED > ADDED )); then
   # Determine likely cause based on context
   LIKELY_CAUSE="exploration_reversal"
   REVERSAL_REASON=""
+  PRECEDING_ACTION=""
 
   # Check recent test status
   EVENTS_FILE="$HOME/.claude/dev-os-events.jsonl"
@@ -36,6 +37,7 @@ if (( REMOVED > 50 && REMOVED > ADDED )); then
     if [[ "$LAST_TEST" == "failed" ]]; then
       LIKELY_CAUSE="test_failure_rollback"
       REVERSAL_REASON="Reversal occurred after test failure"
+      PRECEDING_ACTION="test_failure"
     fi
   fi
 
@@ -43,6 +45,30 @@ if (( REMOVED > 50 && REMOVED > ADDED )); then
   if [[ "$FILE" =~ \.(lock|generated|min\.)|(node_modules|vendor|dist)/ ]]; then
     LIKELY_CAUSE="generated_file_cleanup"
     REVERSAL_REASON="Generated or dependency file"
+  fi
+
+  # Get git branch for context
+  GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+
+  # Get time since file was last modified (seconds)
+  if [[ -f "$FILE" ]]; then
+    FILE_MTIME=$(stat -f %m "$FILE" 2>/dev/null || stat -c %Y "$FILE" 2>/dev/null || echo 0)
+    NOW=$(date +%s)
+    SECONDS_SINCE_CHANGE=$((NOW - FILE_MTIME))
+  else
+    SECONDS_SINCE_CHANGE=0
+  fi
+
+  # Categorize reversal speed
+  REVERSAL_SPEED="unknown"
+  if (( SECONDS_SINCE_CHANGE < 60 )); then
+    REVERSAL_SPEED="immediate"  # Within 1 minute - likely mistake
+  elif (( SECONDS_SINCE_CHANGE < 300 )); then
+    REVERSAL_SPEED="quick"      # Within 5 minutes - exploration
+  elif (( SECONDS_SINCE_CHANGE < 1800 )); then
+    REVERSAL_SPEED="delayed"    # Within 30 minutes - considered change
+  else
+    REVERSAL_SPEED="late"       # After 30 minutes - significant rethink
   fi
 
   # Extract what was removed (first few removed lines for context)
@@ -61,20 +87,28 @@ if (( REMOVED > 50 && REMOVED > ADDED )); then
   PAYLOAD=$(jq -n \
     --arg file "$FILE" \
     --arg file_ext "$FILE_EXT" \
+    --arg git_branch "$GIT_BRANCH" \
     --argjson added "$ADDED" \
     --argjson removed "$REMOVED" \
     --argjson ratio "$RATIO" \
     --arg likely_cause "$LIKELY_CAUSE" \
     --arg reversal_reason "$REVERSAL_REASON" \
+    --arg preceding_action "$PRECEDING_ACTION" \
+    --arg reversal_speed "$REVERSAL_SPEED" \
+    --argjson seconds_since_change "$SECONDS_SINCE_CHANGE" \
     --arg removed_preview "$REMOVED_PREVIEW" \
     '{
       file_path: $file,
       file_extension: $file_ext,
+      git_branch: $git_branch,
       lines_added: $added,
       lines_removed: $removed,
       removal_ratio: $ratio,
       likely_cause: $likely_cause,
       reversal_reason: (if $reversal_reason == "" then null else $reversal_reason end),
+      preceding_action: (if $preceding_action == "" then null else $preceding_action end),
+      reversal_speed: $reversal_speed,
+      seconds_since_change: $seconds_since_change,
       removed_preview: (if $removed_preview == "" then null else $removed_preview end)
     }')
 
