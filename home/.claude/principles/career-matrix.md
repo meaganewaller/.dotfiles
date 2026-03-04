@@ -229,3 +229,7 @@ Engineering behaviors from Test Double's career matrix, organized for quick refe
 ### When hitting resource limits:
 - Optimizing For Scale: Address bottlenecks, validate constraints
 - See also: `efficiency-principles.md` for actionable strategies
+
+### When starting implementation:
+- Planning Your Approach: Validate with colleagues, raise obstacles early
+- See also: `model-first-development.md` for reducing reversals

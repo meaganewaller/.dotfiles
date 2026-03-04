@@ -10,7 +10,22 @@ PROMPT=$(echo "$INPUT" | jq -r '.prompt' 2>/dev/null) || PROMPT=""
 LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
 
 # ----------------------------------------
-# Heuristic trigger detection
+# Domain modeling detection (emit event, don't gate)
+# ----------------------------------------
+
+if echo "$LOWER" | grep -qiE \
+  "what.*entities|what.*types|what.*shape|sketch.*model|model.*first|domain.*model|what.*invariants|what.*constraints|before.*implement|plan.*approach|design.*first|what.*states|state.*machine|data.*flow"; then
+  if [[ -x "$HOME/.claude/hooks/dev-os-emit.sh" ]]; then
+    MODELING_PAYLOAD=$(jq -n \
+      --arg prompt "${PROMPT:0:200}" \
+      --arg trigger "prompt_pattern" \
+      '{prompt_snippet: $prompt, trigger: $trigger}')
+    echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" domain_modeling "$MODELING_PAYLOAD" 2>/dev/null || true
+  fi
+fi
+
+# ----------------------------------------
+# Opinion/idea trigger detection
 # ----------------------------------------
 
 if ! echo "$LOWER" | grep -qiE \
