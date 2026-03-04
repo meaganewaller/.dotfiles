@@ -61,9 +61,9 @@ if [[ ${#MATCHED_CUES[@]} -gt 0 ]]; then
   for cue_name in "${MATCHED_CUES[@]}"; do
     CUE_FILE="$CLAUDE_HOME/cues/$cue_name/cue.md"
     if [[ -f "$CUE_FILE" ]]; then
-      # Extract frontmatter fields
-      PATTERN=$(awk '/^---$/,/^---$/' "$CUE_FILE" | grep -E "^pattern:" | sed 's/^pattern:[[:space:]]*//' | head -1)
-      VOCAB=$(awk '/^---$/,/^---$/' "$CUE_FILE" | grep -E "^vocabulary:" | sed 's/^vocabulary:[[:space:]]*//' | head -1)
+      # Extract frontmatter fields (|| true prevents grep exit 1 when field missing)
+      PATTERN=$(awk '/^---$/,/^---$/' "$CUE_FILE" | grep -E "^pattern:" | sed 's/^pattern:[[:space:]]*//' | head -1 || true)
+      VOCAB=$(awk '/^---$/,/^---$/' "$CUE_FILE" | grep -E "^vocabulary:" | sed 's/^vocabulary:[[:space:]]*//' | head -1 || true)
 
       # Determine match type
       MATCH_TYPE="unknown"
