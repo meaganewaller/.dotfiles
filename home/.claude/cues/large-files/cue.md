@@ -1,10 +1,10 @@
 ---
 # Triggers when reading large files or batch operations
-pattern: large file|read.*lines|offset|limit|chunk|batch|many files|multiple files
+pattern: large file|read.*lines|offset|limit|chunk|batch|many files|multiple files|resource.?limit|exceeds.*size|file.*too large
 files: \.log$|\.jsonl$|\.csv$|\.sql$|dump
 scope: agent, subagent
 description: Large file operations, chunked reading, batch processing, resource limits
-vocabulary: chunk chunked batch batched offset limit lines large huge massive scroll paginate
+vocabulary: chunk chunked batch batched offset limit lines large huge massive scroll paginate resource-limit
 provenance:
   policy:
     - uri: home/.claude/governance/policies/resource-management.md
@@ -66,3 +66,12 @@ For `.jsonl`, `.log`, and similar append-only files:
 - Read from the end: `tail -100 file.jsonl`
 - Use time-based filtering with `jq` for JSON logs
 - Never read entire log files into context
+
+## Related Principles
+
+See `~/.claude/principles/efficiency-principles.md` for:
+- Resource-aware operations
+- Context window economy
+- Progressive loading strategies
+
+**Key heuristic:** If you've hit "exceeds maximum size" once, don't retry without offset/limit.

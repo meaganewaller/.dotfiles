@@ -225,3 +225,7 @@ Engineering behaviors from Test Double's career matrix, organized for quick refe
 ### When creating content:
 - Developing Thought Leadership: Learn in the open, educate and excite
 - Growing Your Skills: Contribute educational resources
+
+### When hitting resource limits:
+- Optimizing For Scale: Address bottlenecks, validate constraints
+- See also: `efficiency-principles.md` for actionable strategies
