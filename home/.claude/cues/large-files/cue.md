@@ -67,6 +67,19 @@ For `.jsonl`, `.log`, and similar append-only files:
 - Use time-based filtering with `jq` for JSON logs
 - Never read entire log files into context
 
+## Session Logs (BLOCKED)
+
+**Session logs (`.claude/projects/*.jsonl`) are blocked from full reads.**
+
+These files grow large quickly and caused 672 resource-limit errors. Use:
+```bash
+# Recent entries
+tail -50 ~/.claude/projects/SESSION_ID.jsonl | jq '.'
+
+# Find specific events
+grep "event_type" ~/.claude/projects/SESSION_ID.jsonl | tail -20
+```
+
 ## Related Principles
 
 See `~/.claude/principles/efficiency-principles.md` for:

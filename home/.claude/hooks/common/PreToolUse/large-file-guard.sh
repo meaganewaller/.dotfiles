@@ -32,6 +32,20 @@ SIZE_THRESHOLD_KB="${RESOURCE_LARGE_FILE_SIZE_KB:-256}"
 
 # Check both line count and file size
 if (( LINE_COUNT > THRESHOLD )) || (( FILE_SIZE_KB > SIZE_THRESHOLD_KB )); then
+  # Session logs should be BLOCKED, not warned - they're never useful to read in full
+  # These cause 99% of resource-limit errors (672 errors from session logs)
+  if [[ "$FILE_PATH" =~ \.claude/projects/.*\.jsonl$ ]]; then
+    jq -n \
+      --arg size_kb "$FILE_SIZE_KB" \
+      --arg path "$FILE_PATH" \
+      '{
+        "error": "Session log too large to read in full (\($size_kb)KB). Use grep to find specific content or tail for recent entries.",
+        "suggestion": "grep \"event_type\" \"\($path)\" | tail -20",
+        "ok": false
+      }'
+    exit 0
+  fi
+
   # Get chunk recommendations
   total_lines="" num_chunks="" chunk_size=""
   eval "$(get_chunk_params "$FILE_PATH")"
