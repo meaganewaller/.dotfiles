@@ -2,7 +2,7 @@
 # Triggers when working on security-sensitive or reliability-critical code
 pattern: auth|login|password|session|token|api.*key|secret|encrypt|permission|role|access.*control|sanitize|escape|inject|xss|csrf|validate.*input|user.*input
 commands: rails g.*auth|devise|omniauth|jwt|bcrypt
-files: auth|session|login|password|token|permission|controller|api/|middleware
+files: auth|session|login|password|token|permission|controller|api/|middleware|\.erb$|views/|forms/
 scope: agent, subagent
 description: Security and reliability considerations for user-facing and critical code paths
 vocabulary: authentication authorization session token password encrypt decrypt permission role access validate sanitize escape injection xss csrf security reliability

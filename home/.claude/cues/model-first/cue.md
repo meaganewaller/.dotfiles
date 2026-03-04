@@ -2,7 +2,7 @@
 # Triggers before implementation to encourage upfront modeling
 pattern: add.*class|add.*model|add.*entity|create.*table|new.*migration|refactor|restructure|integrate.*api|connect.*service
 commands: rails g model|rails g migration|rails generate
-files: \.rb$|models/|migrations/
+files: \.rb$|\.py$|\.ts$|\.js$|models/|migrations/|entities/|domain/
 scope: agent, subagent
 description: Encourages domain modeling before implementation to reduce reversals
 vocabulary: model entity class table migration refactor restructure integrate domain schema
