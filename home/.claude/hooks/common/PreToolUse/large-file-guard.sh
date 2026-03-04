@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse (Read): warn when reading large files without offset/limit
+# Provides specific chunked reading recommendations based on file type
 set -euo pipefail
 
 INPUT=$(cat)
@@ -23,41 +24,90 @@ LIMIT=$(echo "$INPUT" | jq -r '.tool_input.limit // ""')
 # If offset or limit provided, they know what they're doing
 [[ -n "$OFFSET" || -n "$LIMIT" ]] && exit 0
 
-# Check file size
+# Check file size (lines and bytes)
 LINE_COUNT=$(file_line_count "$FILE_PATH")
+FILE_SIZE_KB=$(( $(stat -f%z "$FILE_PATH" 2>/dev/null || stat -c%s "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))
 THRESHOLD="${RESOURCE_LARGE_FILE_THRESHOLD:-1000}"
+SIZE_THRESHOLD_KB="${RESOURCE_LARGE_FILE_SIZE_KB:-256}"
 
-if (( LINE_COUNT > THRESHOLD )); then
-  # Get chunk recommendations (eval sets these variables)
-  chunk_size="" num_chunks=""
+# Check both line count and file size
+if (( LINE_COUNT > THRESHOLD )) || (( FILE_SIZE_KB > SIZE_THRESHOLD_KB )); then
+  # Get chunk recommendations
+  total_lines="" num_chunks="" chunk_size=""
   eval "$(get_chunk_params "$FILE_PATH")"
 
-  # Determine file type for specific advice
-  ADVICE=""
+  # Determine file type and provide specific chunked reading strategy
+  STRATEGY=""
+  EXAMPLE=""
+
   case "$FILE_PATH" in
-    *.jsonl|*.log)
-      ADVICE="For log files, consider: tail -100 \"$FILE_PATH\" or use jq for filtering."
+    *dev-os-events.jsonl|*friction-log.jsonl|*impact-log.jsonl)
+      STRATEGY="Telemetry log - filter by event_type instead of reading entire file."
+      EXAMPLE="Use Bash: grep '\"event_type\":\"test_run\"' \"$FILE_PATH\" | tail -20 | jq -s '.'"
+      ;;
+    *.jsonl)
+      STRATEGY="JSONL files are append-only logs. Read from the end for recent entries."
+      EXAMPLE="Use Bash: tail -100 \"$FILE_PATH\" | jq '.'"
+      ;;
+    *.log)
+      STRATEGY="Log file - read recent entries or grep for specific patterns."
+      EXAMPLE="Use Bash: tail -200 \"$FILE_PATH\" or grep -i 'error' \"$FILE_PATH\" | tail -50"
       ;;
     *.csv)
-      ADVICE="For CSV, read header first (limit=1), then specific ranges."
+      STRATEGY="CSV file - read header first, then specific row ranges."
+      EXAMPLE="Read with limit=1 for header, then offset=2 limit=$chunk_size for data chunks."
       ;;
-    *.sql|*dump*)
-      ADVICE="For SQL dumps, use grep to find specific tables/sections first."
+    *.sql|*dump*|*.bak)
+      STRATEGY="Database dump - use grep to locate specific tables/sections."
+      EXAMPLE="Use Bash: grep -n 'CREATE TABLE' \"$FILE_PATH\" to find table locations."
+      ;;
+    *.md|*.txt)
+      STRATEGY="Text file - read in chunks or search for specific sections."
+      EXAMPLE="Read with offset=1 limit=$chunk_size, then offset=$((chunk_size + 1)) limit=$chunk_size"
+      ;;
+    *.rb|*.py|*.ts|*.js|*.go|*.rs)
+      STRATEGY="Source file - use Grep to find specific functions/classes first."
+      EXAMPLE="Use Grep to find 'def method_name' or 'class ClassName', then Read with offset/limit."
       ;;
     *)
-      ADVICE="Use offset and limit parameters to read in chunks of $chunk_size lines."
+      STRATEGY="Large file - read in chunks of $chunk_size lines."
+      EXAMPLE="Read with offset=1 limit=$chunk_size for first chunk."
       ;;
   esac
 
+  # Build chunked reading guide
+  CHUNK_GUIDE=""
+  if (( num_chunks <= 5 )); then
+    # Show all chunk ranges for small number of chunks
+    CHUNK_GUIDE="Chunk ranges:"
+    for ((i=1; i<=num_chunks; i++)); do
+      start=$(( (i-1) * chunk_size + 1 ))
+      end=$(( i * chunk_size ))
+      (( end > total_lines )) && end=$total_lines
+      CHUNK_GUIDE="$CHUNK_GUIDE
+  - Chunk $i: offset=$start limit=$((end - start + 1))"
+    done
+  else
+    # Show first, middle, and last chunk for large files
+    mid=$((num_chunks / 2))
+    CHUNK_GUIDE="Sample chunk ranges (of $num_chunks total):
+  - First: offset=1 limit=$chunk_size
+  - Middle: offset=$(( (mid-1) * chunk_size + 1 )) limit=$chunk_size
+  - Last: offset=$(( (num_chunks-1) * chunk_size + 1 )) limit=$chunk_size"
+  fi
+
   jq -n \
     --arg lines "$LINE_COUNT" \
+    --arg size_kb "$FILE_SIZE_KB" \
     --arg chunks "$num_chunks" \
     --arg chunk_size "$chunk_size" \
-    --arg advice "$ADVICE" \
+    --arg strategy "$STRATEGY" \
+    --arg example "$EXAMPLE" \
+    --arg chunk_guide "$CHUNK_GUIDE" \
     '{
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        additionalContext: "**Large file detected** (\($lines) lines, \($chunks) chunks recommended).\n\n\($advice)\n\nExample: Read with offset=1 limit=\($chunk_size) to read first chunk."
+        additionalContext: ("**Large file detected** (\($lines) lines, \($size_kb)KB)\n\n**Strategy:** \($strategy)\n\n**Example:** \($example)\n\n\($chunk_guide)")
       }
     }'
 fi

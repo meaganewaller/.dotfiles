@@ -198,6 +198,15 @@
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/large-file-guard.sh"
                     }
                 ]
+            },
+            {
+                "matcher": "Glob|Grep",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/bulk-operation-estimator.sh"
+                    }
+                ]
             }
         ],
         "TaskCompleted": [
