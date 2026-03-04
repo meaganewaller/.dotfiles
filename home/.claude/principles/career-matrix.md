@@ -233,3 +233,7 @@ Engineering behaviors from Test Double's career matrix, organized for quick refe
 ### When starting implementation:
 - Planning Your Approach: Validate with colleagues, raise obstacles early
 - See also: `model-first-development.md` for reducing reversals
+
+### When working on auth, user input, or critical paths:
+- Delivering Great Code: Address cross-cutting concerns (security, a11y, logging)
+- See also: `security-reliability.md` for actionable checklists

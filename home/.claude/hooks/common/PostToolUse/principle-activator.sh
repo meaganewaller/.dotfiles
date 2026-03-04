@@ -82,4 +82,14 @@ if echo "$TOOL_RESULT" | grep -qiE "root.cause|why.*fail|underlying.issue|invest
   activate_principle "uncovering-root-causes" ""
 fi
 
+# Security awareness
+if echo "$TOOL_RESULT" | grep -qiE "auth|login|password|session|token|secret|encrypt|permission|sanitize|escape|inject|xss|csrf|owasp|vulnerab"; then
+  activate_principle "security" ""
+fi
+
+# Reliability awareness
+if echo "$TOOL_RESULT" | grep -qiE "retry|timeout|circuit.break|fallback|idempoten|error.handl|failover|graceful|resilien"; then
+  activate_principle "reliability" ""
+fi
+
 exit 0

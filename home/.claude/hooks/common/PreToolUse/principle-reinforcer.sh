@@ -69,6 +69,20 @@ for entry in "${PRINCIPLES[@]}"; do
         REMINDERS="${REMINDERS}- **Efficiency**: Use chunked access for large files\n"
       fi
       ;;
+    "security")
+      # Relevant when working on auth, controllers, or user-facing code
+      if [[ "$FILE_PATH" =~ auth|session|login|password|controller|api/|middleware|token ]]; then
+        RELEVANT_PRINCIPLES+=("$PRINCIPLE_NAME")
+        REMINDERS="${REMINDERS}- **Security**: Validate input, escape output, check auth\n"
+      fi
+      ;;
+    "reliability")
+      # Relevant when working on integrations, jobs, or error handling
+      if [[ "$FILE_PATH" =~ job|worker|service|client|integration|api/ ]]; then
+        RELEVANT_PRINCIPLES+=("$PRINCIPLE_NAME")
+        REMINDERS="${REMINDERS}- **Reliability**: Handle failures, use timeouts, make idempotent\n"
+      fi
+      ;;
     *)
       # Generic principle - include if context matches file path
       if [[ -n "$PRINCIPLE_CONTEXT" ]] && [[ "$FILE_PATH" == *"$PRINCIPLE_CONTEXT"* ]]; then
