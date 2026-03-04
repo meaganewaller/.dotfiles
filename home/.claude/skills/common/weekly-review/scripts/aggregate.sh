@@ -85,6 +85,43 @@ def decode_project_name(encoded: str) -> str:
         return encoded.replace("-", "/", 1).replace("-", "/")
     return encoded
 
+def encode_path(path: str) -> str:
+    """Encode a path the same way Claude Code does: replace / and . with -"""
+    return path.replace("/", "-").replace(".", "-")
+
+def infer_project_from_paths(file_paths: list, projects_dir: str) -> dict:
+    """Infer project from file paths by matching against known project directories"""
+    if not file_paths:
+        return None
+    projects_path = Path(projects_dir)
+    if not projects_path.exists():
+        return None
+
+    # Get all known project directories
+    project_dirs = {}
+    for project_dir in projects_path.iterdir():
+        if not project_dir.is_dir() or project_dir.name.startswith("."):
+            continue
+        # Extract the short name (last path component, approximated)
+        parts = project_dir.name.lstrip("-").split("-")
+        short_name = parts[-1] if parts else project_dir.name
+        project_dirs[project_dir.name] = {
+            "project_path": project_dir.name,
+            "project_dir": project_dir.name,
+            "project_short": short_name
+        }
+
+    # Try to match file paths to projects by encoding the file path
+    for fp in file_paths:
+        if not isinstance(fp, str):
+            continue
+        encoded_fp = encode_path(fp)
+        for proj_name, proj_info in project_dirs.items():
+            # Check if the encoded file path starts with the project directory name
+            if encoded_fp.startswith(proj_name):
+                return proj_info
+    return None
+
 def build_session_project_map(projects_dir: str) -> dict:
     """Map session_id -> project_name by scanning project directories"""
     session_map = {}
@@ -122,6 +159,8 @@ with open(stream_path, "r", encoding="utf-8") as f:
             e = json.loads(line)
         except Exception:
             continue
+        if not isinstance(e, dict):
+            continue
         ts = e.get("timestamp")
         if not ts:
             continue
@@ -140,7 +179,14 @@ with open(stream_path, "r", encoding="utf-8") as f:
             if session_id in session_map:
                 e["_project"] = session_map[session_id]
             else:
-                e["_project"] = {"project_short": "unknown", "project_path": "unknown"}
+                # For decision_tradeoff events, try to infer project from files_changed
+                inferred = None
+                if event_type == "decision_tradeoff":
+                    payload = e.get("payload")
+                    if isinstance(payload, dict):
+                        files_changed = payload.get("files_changed") or []
+                        inferred = infer_project_from_paths(files_changed, projects_dir)
+                e["_project"] = inferred or {"project_short": "unknown", "project_path": "unknown"}
             events.append(e)
 
 by_type = Counter(e.get("event_type", "unknown") for e in events)
