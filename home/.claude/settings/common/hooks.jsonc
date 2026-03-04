@@ -109,6 +109,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/UserPromptSubmit/idea-classifier.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/UserPromptSubmit/session-duration-monitor.sh"
                     }
                 ]
             }
