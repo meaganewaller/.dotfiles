@@ -10,6 +10,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/loop-detector.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/principle-activator.sh"
                     }
                 ]
             },
@@ -187,6 +191,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/layering-guard.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/principle-reinforcer.sh"
                     }
                 ]
             },
