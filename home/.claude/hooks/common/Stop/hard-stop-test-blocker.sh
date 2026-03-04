@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 STREAM="$HOME/.claude/dev-os-events.jsonl"
 
@@ -9,7 +9,13 @@ if [[ ! -f "$STREAM" ]]; then
   exit 0
 fi
 
-LAST_TEST=$(tac "$STREAM" | jq -r 'select(.event_type=="test_run") | .payload.result' | head -n 1)
+# Find last test result, skipping invalid JSON lines
+LAST_TEST=""
+while read -r line; do
+  [[ -z "$line" ]] && continue
+  result=$(echo "$line" | jq -r 'select(.event_type=="test_run") | .payload.result' 2>/dev/null) || continue
+  [[ -n "$result" ]] && LAST_TEST="$result" && break
+done < <(tac "$STREAM" 2>/dev/null || true)
 
 if [[ "$LAST_TEST" == "failed" ]]; then
   jq -cn --arg reason "Cannot stop: last test_run event failed. Fix tests before stopping." \
