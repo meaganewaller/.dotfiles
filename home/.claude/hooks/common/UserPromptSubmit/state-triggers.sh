@@ -8,7 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/validate-path.sh"
 hook_register "state-triggers"
 
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""')
+# Parse JSON fields with error handling (input may contain unescaped newlines)
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""' 2>/dev/null) || SESSION_ID=""
 
 # ---- Session-start: once per session ----
 if [[ -n "$SESSION_ID" ]]; then
@@ -24,7 +25,7 @@ if [[ -n "$SESSION_ID" ]]; then
 fi
 
 # ---- Context-threshold: nag if transcript large and no tasks-active ----
-TRANSCRIPT_BYTES=$(echo "$INPUT" | jq -r '.transcript_bytes // .transcript_size // 0')
+TRANSCRIPT_BYTES=$(echo "$INPUT" | jq -r '.transcript_bytes // .transcript_size // 0' 2>/dev/null) || TRANSCRIPT_BYTES=0
 THRESHOLD_BYTES="${CLAUDE_CONTEXT_THRESHOLD_BYTES:-465000}"
 if [[ -n "$SESSION_ID" && -n "$TRANSCRIPT_BYTES" && "$TRANSCRIPT_BYTES" -gt 0 ]]; then
   if [[ "$TRANSCRIPT_BYTES" -gt "$THRESHOLD_BYTES" ]]; then

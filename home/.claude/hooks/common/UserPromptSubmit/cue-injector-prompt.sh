@@ -8,10 +8,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/validate-path.sh"
 hook_register "cue-injector-prompt"
 
-PROMPT=$(echo "$INPUT" | jq -r '.prompt // ""')
+# Parse JSON fields with error handling (input may contain unescaped newlines)
+PROMPT=$(echo "$INPUT" | jq -r '.prompt // ""' 2>/dev/null) || PROMPT=""
 [[ -z "$PROMPT" ]] && exit 0
 
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""')
+SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // ""' 2>/dev/null) || SESSION_ID=""
 
 # Include last-response topics so cues can fire on follow-up context
 SUBJECT="$PROMPT"

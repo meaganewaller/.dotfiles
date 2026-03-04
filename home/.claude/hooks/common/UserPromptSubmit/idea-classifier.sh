@@ -2,7 +2,9 @@
 set -euo pipefail
 
 INPUT=$(cat)
-PROMPT=$(echo "$INPUT" | jq -r '.prompt')
+# Parse JSON with error handling (input may contain unescaped newlines)
+PROMPT=$(echo "$INPUT" | jq -r '.prompt' 2>/dev/null) || PROMPT=""
+[[ -z "$PROMPT" ]] && exit 0
 
 # Normalize to lowercase for matching
 LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
