@@ -32,3 +32,7 @@ cask "postico"
 
 brew "colima"
 brew "qemu"
+
+brew "bash-language-server"
+brew "lua-language-server"
+brew "fish-lsp"
