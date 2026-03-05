@@ -21,4 +21,5 @@ home/.bash_secrets
 home/.config/wezterm/projects.local.lua
 home/.claude/docs/blog-drafts
 
+weekly-reviews/
 .vim/
