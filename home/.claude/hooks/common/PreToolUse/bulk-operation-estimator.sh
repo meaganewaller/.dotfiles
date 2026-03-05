@@ -21,6 +21,23 @@ if [[ "$TOOL_NAME" == "Glob" ]]; then
   [[ -z "$PATTERN" ]] && exit 0
   [[ ! -d "$SEARCH_PATH" ]] && exit 0
 
+  # ==========================================================================
+  # BLOCKING RULES (ADR-0008: Chunked Operation Pattern)
+  # Block overly broad patterns that always cause resource-limit errors
+  # ==========================================================================
+
+  # Block **/* without extension filter - too broad, always needs filtering
+  if [[ "$PATTERN" == "**/*" || "$PATTERN" == "**" || "$PATTERN" == "*" ]]; then
+    jq -n \
+      --arg pattern "$PATTERN" \
+      '{
+        "error": "Glob pattern `\($pattern)` is too broad. Add file extension or directory filter.",
+        "suggestion": "Use **/*.rb, **/*.ts, or src/**/* instead",
+        "ok": false
+      }'
+    exit 0
+  fi
+
   # Estimate file count (quick sampling, not full search)
   # Use find with maxdepth to get a quick estimate
   ESTIMATE=0

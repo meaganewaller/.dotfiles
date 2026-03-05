@@ -32,15 +32,34 @@ SIZE_THRESHOLD_KB="${RESOURCE_LARGE_FILE_SIZE_KB:-256}"
 
 # Check both line count and file size
 if (( LINE_COUNT > THRESHOLD )) || (( FILE_SIZE_KB > SIZE_THRESHOLD_KB )); then
-  # Session logs should be BLOCKED, not warned - they're never useful to read in full
+  # ==========================================================================
+  # BLOCKING RULES (ADR-0008: Chunked Operation Pattern)
+  # These operations are BLOCKED, not warned - they always cause resource-limit errors
+  # ==========================================================================
+
+  # Session logs should be BLOCKED - they're never useful to read in full
   # These cause 99% of resource-limit errors (672 errors from session logs)
   if [[ "$FILE_PATH" =~ \.claude/projects/.*\.jsonl$ ]]; then
     jq -n \
       --arg size_kb "$FILE_SIZE_KB" \
       --arg path "$FILE_PATH" \
       '{
-        "error": "Session log too large to read in full (\($size_kb)KB). Use grep to find specific content or tail for recent entries.",
+        "error": "Session log blocked (\($size_kb)KB). Use grep/tail instead.",
         "suggestion": "grep \"event_type\" \"\($path)\" | tail -20",
+        "ok": false
+      }'
+    exit 0
+  fi
+
+  # Large log files (>10MB) should be BLOCKED - tail is always better
+  LOG_BLOCK_THRESHOLD_KB="${RESOURCE_LOG_BLOCK_KB:-10240}"  # 10MB default
+  if [[ "$FILE_PATH" =~ \.(log|jsonl)$ ]] && (( FILE_SIZE_KB > LOG_BLOCK_THRESHOLD_KB )); then
+    jq -n \
+      --arg size_mb "$((FILE_SIZE_KB / 1024))" \
+      --arg path "$FILE_PATH" \
+      '{
+        "error": "Log file too large (\($size_mb)MB). Use tail to read recent entries.",
+        "suggestion": "tail -200 \"\($path)\" or grep -i \"pattern\" \"\($path)\" | tail -50",
         "ok": false
       }'
     exit 0
