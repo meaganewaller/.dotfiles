@@ -18,6 +18,7 @@ An ADR captures a significant technical decision along with its context and cons
 | [0004](0004-dev-os-event-telemetry.md) | Dev OS Event Telemetry | Accepted | 2026-03-02 |
 | [0005](0005-hook-composition-pattern.md) | Hook Composition Pattern | Accepted | 2026-03-02 |
 | [0006](0006-skill-vs-cue-design.md) | Skill vs Cue Design | Accepted | 2026-03-02 |
+| [0007](0007-template-context-pattern.md) | TemplateContext Pattern for Testable ERB | Accepted | 2026-03-05 |
 
 ## Status Definitions
 
