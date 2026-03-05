@@ -189,6 +189,94 @@ with open(stream_path, "r", encoding="utf-8") as f:
                 e["_project"] = inferred or {"project_short": "unknown", "project_path": "unknown"}
             events.append(e)
 
+# Second pass: correlate unattributed tradeoffs with write events
+# Build file->project map from write events (both full paths and basenames)
+import os.path as osp
+file_to_project = {}
+for e in events:
+    if e.get("event_type") == "tool_write":
+        proj_info = e.get("_project", {})
+        proj_short = proj_info.get("project_short", "unknown")
+        if proj_short != "unknown":
+            f = (e.get("payload") or {}).get("file", "")
+            if f:
+                # Store both full path and basename for matching
+                file_to_project[f] = proj_info
+                file_to_project[osp.basename(f)] = proj_info
+
+# Build decision journal context map (date -> project from **Context:** field)
+import re
+import glob
+journal_dir = Path.home() / ".claude" / "decision-journal"
+journal_context = {}  # Maps date prefix (e.g., "2026-03-02") to project info
+if journal_dir.exists():
+    for jf in journal_dir.glob("*.md"):
+        # Extract date from filename (e.g., 2026-03-02-1500-template-context-extraction.md)
+        match = re.match(r"(\d{4}-\d{2}-\d{2})", jf.name)
+        if not match:
+            continue
+        date_prefix = match.group(1)
+        try:
+            content = jf.read_text(encoding="utf-8")[:2000]  # Read first 2KB
+            # Look for **Context:** line
+            ctx_match = re.search(r"\*\*Context:\*\*\s*(.+)", content)
+            if ctx_match:
+                ctx_value = ctx_match.group(1).strip()
+                # Map common context values to project names
+                proj_short = None
+                if "pull" in ctx_value.lower() or "gusto" in ctx_value.lower() or "database" in ctx_value.lower():
+                    proj_short = "pull"
+                elif "dotfiles" in ctx_value.lower():
+                    proj_short = "dotfiles"
+                elif "review" in ctx_value.lower():
+                    proj_short = "reviews"
+                if proj_short:
+                    # Store all entries for this date (there can be multiple)
+                    if date_prefix not in journal_context:
+                        journal_context[date_prefix] = []
+                    journal_context[date_prefix].append({
+                        "project_short": proj_short,
+                        "project_path": proj_short,
+                        "context": ctx_value
+                    })
+        except Exception:
+            continue
+
+# Now try to attribute unattributed tradeoff events
+for e in events:
+    if e.get("event_type") != "decision_tradeoff":
+        continue
+    proj_info = e.get("_project", {})
+    if proj_info.get("project_short", "unknown") != "unknown":
+        continue  # Already attributed
+
+    # Try to match files_changed against our file->project map
+    payload = e.get("payload") or {}
+    files_changed = payload.get("files_changed") or []
+    matched = False
+    for fname in files_changed:
+        if not isinstance(fname, str):
+            continue
+        # Try exact match first, then basename
+        if fname in file_to_project:
+            e["_project"] = file_to_project[fname]
+            matched = True
+            break
+        basename = osp.basename(fname)
+        if basename in file_to_project:
+            e["_project"] = file_to_project[basename]
+            matched = True
+            break
+
+    # Fallback: try to match by date to decision journal entries
+    if not matched:
+        ts = e.get("timestamp", "")
+        if ts:
+            date_prefix = ts[:10]  # Extract YYYY-MM-DD
+            if date_prefix in journal_context:
+                # Use the first matching journal entry for this date
+                e["_project"] = journal_context[date_prefix][0]
+
 by_type = Counter(e.get("event_type", "unknown") for e in events)
 
 # Per-project aggregations
