@@ -3,6 +3,7 @@ set -euo pipefail
 
 TEMP=${TEMP:-/tmp}
 STATE="$TEMP/claude-progress-loop.json"
+LOCKFILE="$STATE.lock"
 
 WINDOW=25
 ERROR_LOOP=3
@@ -31,7 +32,11 @@ load_state() {
 }
 
 save_state() {
-  echo "$1" > "$STATE"
+  # Atomic write with temp file
+  local tmpfile
+  tmpfile=$(mktemp)
+  echo "$1" > "$tmpfile"
+  mv "$tmpfile" "$STATE"
 }
 
 extract_file() {
@@ -67,11 +72,15 @@ progress_signal() {
   echo "$score"
 }
 
-state=$(load_state)
-
 file=$(extract_file)
 error_fp=$(fingerprint_error)
 progress=$(progress_signal)
+
+# Use flock for exclusive access to state file
+exec 200>"$LOCKFILE"
+flock -w 5 200 || { echo "Failed to acquire lock" >&2; exit 0; }
+
+state=$(load_state)
 
 # --- update progress window ---
 state=$(jq --argjson p "$progress" '
@@ -105,6 +114,9 @@ if [[ "$tool" == "Write" || "$tool" == "Edit" ]]; then
 fi
 
 save_state "$state"
+
+# Release lock (fd 200 closes automatically on script exit, but explicit is clearer)
+flock -u 200
 
 # ---------------------------------------------------
 # LOOP DETECTION
