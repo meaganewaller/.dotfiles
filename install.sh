@@ -22,7 +22,13 @@ fi
 
 ensure_mise
 mise install
-mise run brew:bootstrap
+
+if [[ "${DOTFILES_DRY_RUN:-0}" -eq 1 ]]; then
+  log "Dry-run mode: skipping brew:bootstrap"
+else
+  mise run brew:bootstrap
+fi
+
 $ROOT/home/.local/bin/dotfiles link --profile "$DOTFILES_PROFILE"
 
 log "Install complete."
