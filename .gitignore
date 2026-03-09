@@ -20,6 +20,7 @@ home/.bash_secrets
 .claude/settings.local.json
 home/.config/wezterm/projects.local.lua
 home/.claude/docs/blog-drafts
+home/.claude/presentations
 
 weekly-reviews/
 .vim/
