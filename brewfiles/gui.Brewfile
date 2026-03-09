@@ -31,8 +31,6 @@ cask "little-snitch"
 cask "cloudflare-warp"
 
 # Window management
-tap "nikitabobko/tap"
-cask "aerospace"
 cask "loop"
 
 # Tools
