@@ -101,10 +101,6 @@ run ".config/git/hooks"
 run ".config/mise"
 run_to ".codex/config.toml" ".codex/config.toml"
 
-run ".tmux.conf"
-run ".tmux/settings.conf"
-run ".tmux/bindings.conf"
-run ".tmux/style.conf"
 run ".config/atuin/config.toml"
 run ".config/yazi/yazi.toml"
 
