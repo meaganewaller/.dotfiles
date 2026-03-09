@@ -1,105 +1,195 @@
-# my dotfiles
+# dotfiles
 
 [![Test Dotfiles Setup](https://github.com/meaganewaller/.dotfiles/actions/workflows/test-dotfiles-setup.yml/badge.svg)](https://github.com/meaganewaller/.dotfiles/actions/workflows/test-dotfiles-setup.yml)
 
-Profile-aware, self-healing machine bootstrap for macOS (and eventually Linux). Treats your dev env like infra: stage 0 via `curl`, then Homebrew, mise, and idempotent symlinks into `$HOME`.
+Profile-aware dotfiles and development environment for macOS. Features deep Claude Code integration ("Dev OS"), unified theming, and infrastructure-as-code approach to machine setup.
 
-## quick install (fresh machine)
+## Features
+
+- **Profile System** - `work`, `personal`, `server`, `container` profiles control which tools, configs, and git identities are active
+- **Claude Code Integration** - Hooks for telemetry, cues for contextual guidance, skills for reusable workflows, governance for policy traceability
+- **Theme System** - Unified dark/light mode across terminal, editor, and shell with `theme set <name>`
+- **Idempotent Setup** - Run install multiple times safely; symlinks and configs converge to desired state
+- **Decision Capture** - Tradeoff gates prompt for engineering reasoning on large changes
+
+## Quick Start
+
+### Fresh Machine (curl install)
 
 ```bash
-export DOTFILES_PROFILE=work   # or personal
+export DOTFILES_PROFILE=work   # or personal, server, container
 curl -fsSL https://raw.githubusercontent.com/meaganewaller/.dotfiles/main/bootstrap/remote-bootstrap.sh | bash
 ```
 
-## repo structure
+### Existing Clone
+
+```bash
+./install.sh --profile work
+```
+
+### Dry Run (preview changes)
+
+```bash
+./install.sh --profile work --dry-run
+./bin/link-dotfiles --profile work --dry-run
+```
+
+## Commands
+
+### dotfiles CLI
+
+```bash
+dotfiles doctor              # Health check - verify symlinks, tools, configs
+dotfiles link                # Re-create symlinks (--profile, --dry-run)
+dotfiles update              # Git pull + re-link
+dotfiles help                # Show all commands
+```
+
+### Theme Management
+
+```bash
+theme list                   # Show available themes
+theme set <name>             # Apply theme across all apps
+theme dark                   # Switch to dark mode
+theme light                  # Switch to light mode
+theme current                # Show active theme
+```
+
+### Tradeoff Capture
+
+```bash
+tradeoff "chose X over Y because Z"    # Quick one-liner
+tradeoff                               # Opens editor for detailed entry
+tradeoff --list                        # View recent decisions
+```
+
+### mise Tasks
+
+```bash
+mise tasks                   # List all available tasks
+mise run brew:bootstrap      # Install Homebrew packages for current profile
+mise run core:install        # Full install (brew + link)
+```
+
+## Repository Structure
 
 ```
 .dotfiles/
-├── bootstrap/      # Stage 0: remote-bootstrap.sh, Brewfiles
-├── home/           # Symlinked into $HOME
-│   ├── .config/    # XDG configs (fish, nvim, wezterm, theme)
-│   ├── .claude/    # Claude Code (hooks, skills, settings)
-│   ├── .config/.codex/ # Codex config + DevOS scaffold (allowlist-managed)
-│   └── .*          # Shell, git, ssh configs
-├── bin/            # link-dotfiles, make-symlink
-├── lib/            # Shared shell functions
-└── .mise-tasks/    # mise task definitions
+├── bootstrap/               # Stage 0: curl-able remote bootstrap
+├── brewfiles/               # Homebrew bundles by category
+│   ├── base.Brewfile        # Core CLI tools
+│   ├── gui.Brewfile         # GUI apps (work/personal only)
+│   ├── dev.Brewfile         # Development tools
+│   └── ...
+├── home/                    # Symlinked to $HOME
+│   ├── .claude/             # Claude Code configuration
+│   │   ├── hooks/           # Event-driven scripts (telemetry, guards)
+│   │   ├── cues/            # Pattern-triggered contextual guidance
+│   │   ├── skills/          # Reusable skill definitions
+│   │   ├── settings/        # Profile-merged settings
+│   │   └── governance/      # Policy traceability
+│   ├── .config/             # XDG configs (fish, nvim, wezterm, etc.)
+│   ├── .local/bin/          # CLI tools (dotfiles, theme, tradeoff)
+│   └── .*                   # Shell, git, ssh configs
+├── bin/                     # Repo scripts (link-dotfiles, make-symlink)
+├── lib/                     # Shared shell functions
+├── .mise-tasks/             # mise task definitions
+└── test/                    # BATS test suite
 ```
 
-See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the full system design.
+## Profiles
 
-## documentation
+| Profile | Use Case | Brewfiles | GUI Apps |
+|---------|----------|-----------|----------|
+| `work` | Work machine | base, gui, dev, infra | Yes |
+| `personal` | Personal machine | base, gui, creative | Yes |
+| `server` | Remote servers | base | No |
+| `container` | Devcontainers | minimal | No |
+
+Set via `DOTFILES_PROFILE` environment variable or `--profile` flag.
+
+Profiles also control:
+- Git identity (`includeIf` in `.gitconfig`)
+- SSH config includes
+- Which dotfiles are linked
+
+## Claude Code Integration
+
+This repo includes extensive Claude Code customization:
+
+### Hooks
+
+Event-driven scripts that run during Claude Code sessions:
+- **PreToolUse** - Guards for large files, bulk operations, git safety
+- **PostToolUse** - Impact tracking, loop detection, tradeoff capture
+- **SessionStart/End** - Context injection, session tracking
+
+### Cues
+
+Pattern-triggered contextual guidance injected into prompts:
+- `commit/` - Git commit best practices
+- `migration/` - Database migration guidance
+- `env/` - Secrets handling reminders
+- `large-files/` - Chunked reading strategies
+
+### Skills
+
+Reusable workflows invoked with `/skill-name`:
+- `/standup` - Generate standup from recent activity
+- `/weekly-review` - Aggregate weekly accomplishments
+- `/code-review` - Structured code review
+- `/root-cause` - 5-Whys analysis
+
+See [home/.claude/README.md](./home/.claude/README.md) for full documentation.
+
+## Global Git Hooks
+
+Pre-commit hooks run for all repositories:
+
+```bash
+# Tradeoff gate prompts for reasoning on large changes (>50 lines)
+git commit -m "large change"   # Prompted for tradeoff note
+
+# Bypass options
+SKIP_TRADEOFF=1 git commit -m "..."      # Skip tradeoff prompt
+TRADEOFF_THRESHOLD=100 git commit        # Raise line threshold
+git commit --no-verify                    # Skip all hooks
+```
+
+## Making Changes
+
+1. **Edit dotfiles** - Modify files under `home/`
+2. **Add packages** - Edit `brewfiles/*.Brewfile`
+3. **Add runtimes** - Edit `mise.toml`
+4. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles`
+
+Changes to `home/.claude/` require running the Claude install:
+```bash
+./home/.claude/install.sh --profile work
+```
+
+Or re-run the full install which includes it:
+```bash
+./install.sh --profile work
+```
+
+## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, directory structure, profile system |
-| [home/.claude/README.md](./home/.claude/README.md) | Claude Code config, Dev OS telemetry |
-| [home/.claude/skills/README.md](./home/.claude/skills/README.md) | Catalog of 16 custom skills |
-| [home/.config/.codex/README.md](./home/.config/.codex/README.md) | Codex config + allowlist boundaries |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, directory structure, data flows |
+| [home/.claude/README.md](./home/.claude/README.md) | Claude Code hooks, cues, skills, governance |
+| [home/.claude/docs/architecture/](./home/.claude/docs/architecture/) | Architecture Decision Records (ADRs) |
 | [.mise-tasks/README.md](./.mise-tasks/README.md) | mise task reference |
 
-## daily workflow
+## Testing
 
 ```bash
-dotfiles doctor    # health check
-dotfiles link      # re-link (use --profile, --dry-run as needed)
-dotfiles update    # git pull + re-link
-mise run core:install [profile]   # full install (link + brew)
-mise tasks         # list tasks
+./test/run-tests.sh          # Run all BATS tests
+bats test/hooks/             # Run hook tests only
+shellcheck bin/*             # Lint shell scripts
 ```
 
-Theme: `theme set <name>`, `theme dark`, `theme light`, etc.
-Claude Code: `mise run claude` (or `--profile=personal`).
-Codex config sync (allowlist): `mise run codex` or preview with `mise run codex:dry-run`.
+## License
 
-## profiles
-
-`work` | `personal` | `server` | `container`. Controls which Brewfiles and dotfiles are linked and git identity (includeIf). Set `DOTFILES_PROFILE` or pass `--profile` to `link-dotfiles` / install.
-
-## global git hooks
-
-This repo includes global git hooks that run for **all repositories**:
-
-```
-~/.config/git/hooks/pre-commit   # Global hook dispatcher
-~/.local/bin/codex-tradeoff-gate # Codex tradeoff gate (default backend)
-~/.local/bin/tradeoff-gate       # Claude tradeoff gate (optional backend)
-```
-
-**Tradeoff Gate**: When staged changes exceed 50 lines, pre-commit prompts for a tradeoff note.
-Default backend is profile-aware: `work -> claude`, `personal -> codex` (override with `TRADEOFF_GATE_BACKEND`).
-
-```bash
-# Bypass options
-SKIP_TRADEOFF=1 git commit -m "..."   # Skip prompt
-git commit --no-verify                 # Skip all hooks
-TRADEOFF_THRESHOLD=100 git commit      # Raise threshold
-TRADEOFF_GATE_BACKEND=claude git commit -m "..."  # Use Claude gate for one commit
-TRADEOFF_GATE_BACKEND=both git commit -m "..."    # Run both gates
-
-# Manual capture anytime
-codex-tradeoff "chose X over Y because Z"    # Quick one-liner
-codex-tradeoff                               # Opens editor
-codex-tradeoff --list                        # View recent
-```
-
-The global hooks also delegate to local repo hooks (`.git/hooks/pre-commit.local` or `pre-commit` framework).
-
-Codex DevOS decision journal helper:
-
-```bash
-codex-tradeoff "Chose X over Y because Z"   # one-liner
-codex-tradeoff                              # interactive template
-codex-tradeoff --list                       # recent entries
-codex-weekly-review                           # profile default (work=claude, personal=codex)
-codex-weekly-review --mode combined          # build from codex + claude streams
-codex-weekly-review --mode codex             # codex-only weekly review
-codex-weekly-review --mode claude            # claude-only weekly review
-dotfiles codex-governance --lint            # validate cue provenance
-```
-
-## making changes
-
-- Edit dotfiles under `home/`.
-- Add packages → `bootstrap/Brewfile.*`; runtimes/tools → `home/.config/mise/config.toml`.
-- Linking logic → `bin/link-dotfiles`. Re-run `install.sh` or `mise run core:install` to converge.
+MIT
