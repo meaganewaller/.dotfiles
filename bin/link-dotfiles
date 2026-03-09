@@ -105,7 +105,9 @@ run_to ".codex/config.toml" ".codex/config.toml"
 # Uses dedicated install script that handles profile-based merging
 if [[ -x "$ROOT/home/.claude/install.sh" ]]; then
   log "Running Claude Code install..."
-  DOTFILES_PROFILE="$PROFILE" "$ROOT/home/.claude/install.sh"
+  CLAUDE_INSTALL_ARGS=(--profile "$PROFILE")
+  [[ "$DOTFILES_DRY_RUN" -eq 1 ]] && CLAUDE_INSTALL_ARGS+=(--dry-run)
+  "$ROOT/home/.claude/install.sh" "${CLAUDE_INSTALL_ARGS[@]}"
 fi
 
 run ".config/atuin/config.toml"
