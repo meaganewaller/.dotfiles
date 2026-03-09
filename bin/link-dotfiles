@@ -101,6 +101,13 @@ run ".config/git/hooks"
 run ".config/mise"
 run_to ".codex/config.toml" ".codex/config.toml"
 
+# Claude Code configuration (hooks, cues, settings, etc.)
+# Uses dedicated install script that handles profile-based merging
+if [[ -x "$ROOT/home/.claude/install.sh" ]]; then
+  log "Running Claude Code install..."
+  DOTFILES_PROFILE="$PROFILE" "$ROOT/home/.claude/install.sh"
+fi
+
 run ".config/atuin/config.toml"
 run ".config/yazi/yazi.toml"
 
