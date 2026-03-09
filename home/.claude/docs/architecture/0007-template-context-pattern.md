@@ -162,3 +162,4 @@ Extract methods to a module included by the generator.
 - Origin: gusto-database_pull generator coverage problem (2026-03-02)
 - Related: Rails generator testing patterns
 - See also: Presenter pattern (similar extraction for view logic)
+- **Skill:** `~/.claude/skills/template-context/SKILL.md` - implementation guide

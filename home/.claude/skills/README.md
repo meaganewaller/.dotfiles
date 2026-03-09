@@ -1,6 +1,6 @@
 # Skills Catalog
 
-This directory contains 16 custom Claude Code skills for engineering workflows.
+This directory contains 17 custom Claude Code skills for engineering workflows.
 
 ## Quick Reference
 
@@ -20,6 +20,7 @@ This directory contains 16 custom Claude Code skills for engineering workflows.
 | [refactor-safely](#refactor-safely) | Plan safe refactoring | "how do I safely change this?" |
 | [risk-audit](#risk-audit) | Audit for failure modes | "what could go wrong?" |
 | [root-cause](#root-cause) | 5 Whys analysis | "why did this break?" |
+| [template-context](#template-context) | Extract template logic to testable PORO | "ERB coverage", "template testing" |
 | [tradeoff-memo](#tradeoff-memo) | Document decisions | "document this decision" |
 | [weekly-review](#weekly-review) | Weekly engineering review | "/weekly-review" |
 
@@ -232,6 +233,22 @@ This directory contains 16 custom Claude Code skills for engineering workflows.
 
 ---
 
+### template-context
+
+**Trigger phrases:** "testing Rails generators", "ERB coverage", "template branch coverage", "SimpleCov showing 0%", "untestable template logic"
+
+**What it does:**
+- Guides extraction of ERB conditionals into a TemplateContext PORO
+- Provides implementation steps and code templates
+- Ensures SimpleCov can instrument all branch logic
+- Documents file structure and naming conventions
+
+**Agent:** Runs inline
+
+**Related:** ADR-0007 (full decision record)
+
+---
+
 ### tradeoff-memo
 
 **Trigger phrases:** "why did we choose this?", "document this decision", "what were the tradeoffs?"
@@ -288,7 +305,7 @@ skills/
     │       ├── charts.py
     │       ├── render_md.sh
     │       └── render_dashboard.py
-    └── ... (14 more skills)
+    └── ... (15 more skills)
 ```
 
 ## Creating a New Skill
