@@ -204,11 +204,33 @@ for e in events:
                 file_to_project[f] = proj_info
                 file_to_project[osp.basename(f)] = proj_info
 
-# Build decision journal context map (date -> project from **Context:** field)
+# Build decision journal context map AND read decisions directly from journal
 import re
 import glob
 journal_dir = Path.home() / ".claude" / "decision-journal"
 journal_context = {}  # Maps date prefix (e.g., "2026-03-02") to project info
+journal_decisions = []  # Decisions read directly from journal files (primary source)
+
+def extract_list_items(content: str, header: str) -> list:
+    """Extract list items following a markdown header"""
+    pattern = rf"## {header}\s*\n((?:[-*]\s*.+\n?)+)"
+    match = re.search(pattern, content, re.IGNORECASE)
+    if match:
+        items = re.findall(r"[-*]\s*(.+)", match.group(1))
+        return [item.strip() for item in items if item.strip()]
+    return []
+
+def infer_project_from_content(content: str) -> str:
+    """Infer project from decision journal content"""
+    content_lower = content.lower()
+    if "pull" in content_lower or "gusto" in content_lower or "database" in content_lower:
+        return "pull"
+    elif "dotfiles" in content_lower or "claude" in content_lower:
+        return ".dotfiles"
+    elif "review" in content_lower or "weekly" in content_lower:
+        return "reviews"
+    return "unknown"
+
 if journal_dir.exists():
     for jf in journal_dir.glob("*.md"):
         # Extract date from filename (e.g., 2026-03-02-1500-template-context-extraction.md)
@@ -216,29 +238,52 @@ if journal_dir.exists():
         if not match:
             continue
         date_prefix = match.group(1)
+
+        # Only include decisions from this week
+        if date_prefix < week_start or date_prefix > week_end:
+            continue
+
         try:
-            content = jf.read_text(encoding="utf-8")[:2000]  # Read first 2KB
-            # Look for **Context:** line
-            ctx_match = re.search(r"\*\*Context:\*\*\s*(.+)", content)
-            if ctx_match:
-                ctx_value = ctx_match.group(1).strip()
-                # Map common context values to project names
-                proj_short = None
-                if "pull" in ctx_value.lower() or "gusto" in ctx_value.lower() or "database" in ctx_value.lower():
-                    proj_short = "pull"
-                elif "dotfiles" in ctx_value.lower():
-                    proj_short = "dotfiles"
-                elif "review" in ctx_value.lower():
-                    proj_short = "reviews"
-                if proj_short:
-                    # Store all entries for this date (there can be multiple)
-                    if date_prefix not in journal_context:
-                        journal_context[date_prefix] = []
-                    journal_context[date_prefix].append({
-                        "project_short": proj_short,
-                        "project_path": proj_short,
-                        "context": ctx_value
-                    })
+            content = jf.read_text(encoding="utf-8")
+
+            # Extract decision summary (first paragraph after # Tradeoff: or ## Decision Summary)
+            summary_match = re.search(r"## Decision Summary\s*\n\s*(.+?)(?:\n\n|\n##)", content, re.DOTALL)
+            if not summary_match:
+                summary_match = re.search(r"## What Was Chosen\s*\n\s*(.+?)(?:\n\n|\n##)", content, re.DOTALL)
+            decision_summary = summary_match.group(1).strip() if summary_match else jf.stem
+
+            # Extract structured fields
+            tradeoffs = extract_list_items(content, "Trade-offs")
+            alternatives = extract_list_items(content, "Alternatives Considered")
+            principles = extract_list_items(content, "Principles Applied")
+
+            # Extract source (auto-capture, subagent-capture, or manual)
+            source_match = re.search(r"\*\*Source:\*\*\s*(.+)", content)
+            source = source_match.group(1).strip() if source_match else "manual"
+
+            # Infer project
+            project = infer_project_from_content(content)
+
+            journal_decisions.append({
+                "file": jf.name,
+                "date": date_prefix,
+                "decision_summary": decision_summary[:200],  # Truncate for summary
+                "tradeoffs": tradeoffs,
+                "options_considered": alternatives,
+                "principles_invoked": principles,
+                "source": source,
+                "project": project
+            })
+
+            # Also maintain context map for attribution of JSONL events
+            if date_prefix not in journal_context:
+                journal_context[date_prefix] = []
+            journal_context[date_prefix].append({
+                "project_short": project,
+                "project_path": project,
+                "context": decision_summary[:100]
+            })
+
         except Exception:
             continue
 
@@ -342,6 +387,15 @@ for e in events:
             if isinstance(p, str) and p.strip():
                 principles[p.strip()] += 1
 
+# Count journal decisions (primary source) - add to totals and principles
+journal_tradeoffs = len(journal_decisions)
+for jd in journal_decisions:
+    project = jd.get("project", "unknown")
+    project_stats[project]["tradeoffs"] += 1
+    for p in jd.get("principles_invoked") or []:
+        if isinstance(p, str) and p.strip():
+            principles[p.strip()] += 1
+
     if et == "test_run":
         r = (payload.get("result") or "").strip().lower()
         if r:
@@ -437,7 +491,9 @@ summary = {
         "failures": failures,
         "large_changes": len(large_change_files),
         "reversals": reversals,
-        "decisions_documented": tradeoffs,
+        "decisions_documented": tradeoffs + journal_tradeoffs,
+        "decisions_from_journal": journal_tradeoffs,
+        "decisions_from_events": tradeoffs,
         "test_runs": total_tests,
         "dependency_changes": dependency_changes,
         "files_modified": len(files_modified)
@@ -458,6 +514,23 @@ summary = {
     "top_friction_domains": [{"domain": d, "count": c} for d, c in friction_domains.most_common(10)],
     "top_friction_subdomains": [{"subdomain": d, "count": c} for d, c in friction_subdomains.most_common(10)],
     "top_principles_invoked": [{"principle": p, "count": c} for p, c in principles.most_common(10)],
+    "decisions": {
+        "from_journal": [
+            {
+                "file": d["file"],
+                "date": d["date"],
+                "summary": d["decision_summary"],
+                "project": d["project"],
+                "source": d["source"],
+                "tradeoffs_count": len(d.get("tradeoffs", [])),
+                "principles_count": len(d.get("principles_invoked", []))
+            }
+            for d in journal_decisions
+        ],
+        "total_from_journal": journal_tradeoffs,
+        "total_from_events": tradeoffs,
+        "capture_sources": Counter(d["source"] for d in journal_decisions).most_common()
+    },
     "top_skills_used": [{"skill": s, "count": c} for s, c in skills_used.most_common(10)],
     "top_files_modified": sorted(files_modified)[:20],
     "cue_engagement": {
@@ -531,6 +604,12 @@ summary_file: ${WEEK_START}-summary.json
 ## Executive Summary
 
 _(AI synthesis will populate this section.)_
+
+<!-- PLACEHOLDER:DECISIONS_DOCUMENTED -->
+
+## Decisions Documented
+
+_(Summary of architectural decisions from the week.)_
 
 <!-- PLACEHOLDER:FRICTION_ANALYSIS -->
 

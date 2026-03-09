@@ -50,16 +50,21 @@ Analyze the data and prepare content for these sections:
    - **Key Wins** (2-3 bullets): What went well
    - **Concerns** (2-3 bullets): What needs attention
    - **Week Character** (1 sentence): The nature/theme of the work
-2. **Friction Analysis**: pick top 1–2 friction domains, explain why they’re happening, and propose a deliberate practice plan. Use headers and bullet points.
-3. **Architecture & Principles**: interpret which principles dominate and what that implies (strengths + blindspots). Use **Strengths:** and **Blindspots:** subsections.
-4. **Discipline Flags**: call out large-change-without-tradeoff, reversals, dependency churn. Use bold headers for each flag type.
-5. **Cue Engagement**: analyze which cues fired this week from summary.cue_engagement:
+2. **Decisions Documented**: Summarize architectural decisions from the week:
+   - Read from `summary.decisions.from_journal` (primary source - version controlled)
+   - Include count and sources (auto-capture, subagent-capture, manual)
+   - Highlight notable decisions with their tradeoffs
+   - Note if decision documentation is sparse (< 2 decisions for active weeks)
+3. **Friction Analysis**: pick top 1–2 friction domains, explain why they’re happening, and propose a deliberate practice plan. Use headers and bullet points.
+4. **Architecture & Principles**: interpret which principles dominate and what that implies (strengths + blindspots). Use **Strengths:** and **Blindspots:** subsections.
+5. **Discipline Flags**: call out large-change-without-tradeoff, reversals, dependency churn. Use bold headers for each flag type.
+6. **Cue Engagement**: analyze which cues fired this week from summary.cue_engagement:
    - **Active cues**: which cues are actually providing guidance
    - **Trigger patterns**: prompt vs bash vs file triggers
    - **Dormant cues**: if unique_cues_fired is low relative to total cues, suggest reviewing cue triggers
    - **Hotspots**: frequently firing cues may indicate friction areas or well-designed guidance
-6. **Promotion-Ready Impact Bullets**: 4–6 bullets; specific and measurable; grounded in patterns. Each bullet should start with a bold action verb.
-6. **Precision Moves**: exactly 3 moves for next week, each with a bold title and 2-3 sentence explanation:
+7. **Promotion-Ready Impact Bullets**: 4–6 bullets; specific and measurable; grounded in patterns. Each bullet should start with a bold action verb.
+8. **Precision Moves**: exactly 3 moves for next week, each with a bold title and 2-3 sentence explanation:
    - 1 architecture focus
    - 1 skill deepening focus
    - 1 leverage move (documentation/abstraction/thought leadership)
@@ -77,15 +82,16 @@ _Placeholder text here._
 
 Replace the **entire block** (including both comment markers and the placeholder text) with your content.
 
-### Required edits (7 total):
+### Required edits (8 total):
 
 1. **EXECUTIVE_SUMMARY** — Replace with your 3-6 sentence synthesis
-2. **FRICTION_ANALYSIS** — Replace with your friction domain analysis and practice plan
-3. **ARCHITECTURE_ANALYSIS** — Replace with your principles interpretation
-4. **DISCIPLINE_FLAGS** — Replace with flags for large changes, reversals, churn
-5. **CUE_ENGAGEMENT** — Replace with cue firing analysis and recommendations
-6. **IMPACT_BULLETS** — Replace with 4-6 promotion-ready bullets
-7. **PRECISION_MOVES** — Replace with exactly 3 moves (architecture, skill, leverage)
+2. **DECISIONS_DOCUMENTED** — Replace with summary of architectural decisions from the week
+3. **FRICTION_ANALYSIS** — Replace with your friction domain analysis and practice plan
+4. **ARCHITECTURE_ANALYSIS** — Replace with your principles interpretation
+5. **DISCIPLINE_FLAGS** — Replace with flags for large changes, reversals, churn
+6. **CUE_ENGAGEMENT** — Replace with cue firing analysis and recommendations
+7. **IMPACT_BULLETS** — Replace with 4-6 promotion-ready bullets
+8. **PRECISION_MOVES** — Replace with exactly 3 moves (architecture, skill, leverage)
 
 ### Example edit:
 

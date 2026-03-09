@@ -1,7 +1,7 @@
 ---
 status: accepted
 date: 2026-02-27
-updated: 2026-03-02
+updated: 2026-03-09
 deciders: [meaganewaller]
 ---
 
@@ -53,7 +53,9 @@ When Claude Code edits a file with >250 lines changed:
 1. `large-diff-escalator.sh` (PostToolUse) creates a pending marker and displays an advisory message encouraging inline tradeoff discussion
 2. `tradeoff-context-prep.sh` (Stop) prepares context about pending markers for the agent
 3. An agent-type Stop hook analyzes the session's `last_assistant_message` for tradeoff reasoning
-4. If meaningful reasoning is found, the agent extracts structured data and emits a `decision_tradeoff` event to `dev-os-events.jsonl`
+4. If meaningful reasoning is found, the agent:
+   - Writes a markdown file to `~/.claude/decision-journal/` (version controlled)
+   - Emits a `decision_tradeoff` event to `dev-os-events.jsonl` (telemetry)
 5. The agent marks markers as captured and always returns `{"ok": true}` (never blocks)
 
 This approach captures tradeoffs automatically from the conversation context while inline discussion enriches what the agent can extract.
@@ -126,10 +128,10 @@ Both thresholds are configurable via environment variables (`TRADEOFF_THRESHOLD`
 
 ### Neutral
 
-- Documentation lives in `~/.claude/decision-journal/` (git) and `dev-os-events.jsonl` (Claude)
+- Documentation lives in `~/.claude/decision-journal/` (primary, version controlled) and `dev-os-events.jsonl` (telemetry)
 - Integrates with existing telemetry
 - Template structure is suggestive, not enforced
-- Auto-captured events marked with `source: "auto-capture"` for traceability
+- Auto-captured entries marked with `Source: auto-capture` or `Source: subagent-capture` for traceability
 
 ## Alternatives Considered
 
