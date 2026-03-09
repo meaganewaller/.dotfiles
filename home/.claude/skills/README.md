@@ -1,6 +1,6 @@
 # Skills Catalog
 
-This directory contains 17 custom Claude Code skills for engineering workflows.
+This directory contains 20 custom Claude Code skills for engineering workflows.
 
 ## Quick Reference
 
@@ -9,7 +9,9 @@ This directory contains 17 custom Claude Code skills for engineering workflows.
 | [abstraction-check](#abstraction-check) | Evaluate if abstraction is justified | "should I extract this?" |
 | [api-conventions](#api-conventions) | API design principles | "how should this API work?" |
 | [assumption-scan](#assumption-scan) | Surface hidden assumptions | "what are we assuming?" |
+| [code-review](#code-review) | Review code quality and security | "review this code" |
 | [complexity-audit](#complexity-audit) | Find accidental complexity | "why is this hard to change?" |
+| [debug-session](#debug-session) | Systematic debugging methodology | "help me debug this" |
 | [dependency-evaluator](#dependency-evaluator) | Assess third-party deps | "should we add this library?" |
 | [design-review](#design-review) | Review technical designs | "review my approach" |
 | [experiment-design](#experiment-design) | Design experiments | "how do I test this idea?" |
@@ -20,6 +22,7 @@ This directory contains 17 custom Claude Code skills for engineering workflows.
 | [refactor-safely](#refactor-safely) | Plan safe refactoring | "how do I safely change this?" |
 | [risk-audit](#risk-audit) | Audit for failure modes | "what could go wrong?" |
 | [root-cause](#root-cause) | 5 Whys analysis | "why did this break?" |
+| [standup](#standup) | Daily standup from dev-os events | "/standup", "daily standup" |
 | [template-context](#template-context) | Extract template logic to testable PORO | "ERB coverage", "template testing" |
 | [tradeoff-memo](#tradeoff-memo) | Document decisions | "document this decision" |
 | [weekly-review](#weekly-review) | Weekly engineering review | "/weekly-review" |
@@ -70,6 +73,20 @@ This directory contains 17 custom Claude Code skills for engineering workflows.
 
 ---
 
+### code-review
+
+**Trigger phrases:** "review this code", "code review", "check this implementation", "what's wrong here", "review my changes"
+
+**What it does:**
+- Reviews code across dimensions: correctness, security, performance, maintainability, testing
+- Structures feedback: critical issues, suggestions, questions, positive notes
+- Provides checklist for systematic review
+- Avoids anti-patterns (nitpicking, vague feedback, missing critical bugs)
+
+**Agent:** Runs inline
+
+---
+
 ### complexity-audit
 
 **Trigger phrases:** "is this module too complex?", "why is this hard to change?", "what's causing coupling?"
@@ -95,6 +112,21 @@ This directory contains 17 custom Claude Code skills for engineering workflows.
 - Decision: adopt / reject / defer / build in-house
 
 **Agent:** Plan (forked)
+
+---
+
+### debug-session
+
+**Trigger phrases:** "help me debug", "why isn't this working", "this is broken", "find the bug", "debug this"
+
+**What it does:**
+- Follows debug loop: Observe → Hypothesize → Test → Conclude
+- Gathers evidence systematically (errors, logs, context)
+- Ranks hypotheses by likelihood, testability, recency
+- Provides debugging techniques (binary search, minimal reproduction, diff analysis)
+- Documents root cause, fix, and prevention
+
+**Agent:** Runs inline
 
 ---
 
@@ -233,6 +265,23 @@ This directory contains 17 custom Claude Code skills for engineering workflows.
 
 ---
 
+### standup
+
+**Trigger phrases:** "standup", "daily standup", "what did I do yesterday", "standup summary", "/standup"
+
+**What it does:**
+- Aggregates dev-os events from yesterday
+- Generates standup format: Yesterday (completed, sessions, decisions), Today (priorities), Blockers
+- Identifies friction patterns and incomplete work
+- Sources data from `~/.claude/dev-os-events.jsonl`
+
+**Agent:** Runs inline
+
+**Scripts:**
+- `aggregate-standup.sh` - Collects and summarizes daily events
+
+---
+
 ### template-context
 
 **Trigger phrases:** "testing Rails generators", "ERB coverage", "template branch coverage", "SimpleCov showing 0%", "untestable template logic"
@@ -305,7 +354,7 @@ skills/
     │       ├── charts.py
     │       ├── render_md.sh
     │       └── render_dashboard.py
-    └── ... (15 more skills)
+    └── ... (18 more skills)
 ```
 
 ## Creating a New Skill
