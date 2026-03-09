@@ -37,6 +37,10 @@ When this skill is invoked:
 ### Sessions
 - [Number of sessions, total duration]
 
+### Pull Requests
+- [PRs opened/merged yesterday]
+- [PRs awaiting your review]
+
 ## Today
 [Based on incomplete work, pending items, and patterns]
 
@@ -59,6 +63,10 @@ The standup aggregates from:
 - Session duration data
 - Friction patterns
 - Decision tradeoffs documented
+- **GitHub CLI** (if authenticated):
+  - PRs opened yesterday by you
+  - PRs merged yesterday by you
+  - PRs awaiting your review
 
 ## Standup Questions
 
@@ -86,6 +94,17 @@ If the script output is insufficient, ask:
 ### Decisions Made
 - Chose auto-capture over blocking for tradeoff documentation
 - Extended marker expiry to support full-day sessions
+
+### Pull Requests
+**Opened (1):**
+- [gusto-database_pull] Add validation audit generator (OPEN)
+
+**Merged (2):**
+- [.dotfiles] Enhance loop-detector state management
+- [gusto-database_pull] Fix template context spec coverage
+
+### Pending Reviews (1)
+- [zenpayroll] Update GraphQL federation config
 
 ## Today
 

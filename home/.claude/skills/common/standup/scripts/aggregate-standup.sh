@@ -4,16 +4,40 @@ set -euo pipefail
 
 EVENTS_LOG="${CLAUDE_EVENTS_LOG:-$HOME/.claude/dev-os-events.jsonl}"
 
-if [[ ! -f "$EVENTS_LOG" ]]; then
-  echo "No events log found at $EVENTS_LOG"
-  exit 0
-fi
-
 # Get yesterday's date range (UTC)
 YESTERDAY=$(date -u -v-1d +%Y-%m-%d 2>/dev/null || date -u -d "yesterday" +%Y-%m-%d)
 TODAY=$(date -u +%Y-%m-%d)
 
-python3 - <<PY "$EVENTS_LOG" "$YESTERDAY" "$TODAY"
+# ============================================================================
+# GitHub PR Data (optional - requires gh CLI)
+# ============================================================================
+
+GH_DATA=""
+if command -v gh &>/dev/null && gh auth status &>/dev/null; then
+  # Fetch PRs opened yesterday
+  PRS_OPENED=$(gh pr list --author @me --search "created:>=$YESTERDAY created:<$TODAY" --json number,title,url,state,repository 2>/dev/null || echo "[]")
+
+  # Fetch PRs merged yesterday
+  PRS_MERGED=$(gh pr list --author @me --state merged --search "merged:>=$YESTERDAY merged:<$TODAY" --json number,title,url,repository 2>/dev/null || echo "[]")
+
+  # Fetch PRs where review was requested from me (still open)
+  PRS_REVIEW=$(gh pr list --search "review-requested:@me" --json number,title,url,repository --limit 5 2>/dev/null || echo "[]")
+
+  GH_DATA=$(cat <<EOF
+{
+  "prs_opened": $PRS_OPENED,
+  "prs_merged": $PRS_MERGED,
+  "prs_review_requested": $PRS_REVIEW
+}
+EOF
+)
+fi
+
+# ============================================================================
+# Aggregate and Output
+# ============================================================================
+
+python3 - <<PY "$EVENTS_LOG" "$YESTERDAY" "$TODAY" "$GH_DATA"
 import json
 import sys
 from collections import Counter, defaultdict
@@ -22,24 +46,39 @@ from datetime import datetime
 events_log = sys.argv[1]
 yesterday = sys.argv[2]
 today = sys.argv[3]
+gh_data_raw = sys.argv[4] if len(sys.argv) > 4 else ""
+
+# Parse GitHub data
+gh_data = {}
+if gh_data_raw:
+    try:
+        gh_data = json.loads(gh_data_raw)
+    except:
+        pass
 
 # Read and filter yesterday's events
 events = []
-with open(events_log, 'r') as f:
-    for line in f:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            e = json.loads(line)
-            ts = e.get('timestamp', '')[:10]
-            if ts == yesterday:
-                events.append(e)
-        except:
-            continue
+try:
+    with open(events_log, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+                ts = e.get('timestamp', '')[:10]
+                if ts == yesterday:
+                    events.append(e)
+            except:
+                continue
+except FileNotFoundError:
+    pass
 
-if not events:
-    print(f"No events found for {yesterday}")
+has_events = len(events) > 0
+has_gh_data = bool(gh_data.get('prs_opened') or gh_data.get('prs_merged'))
+
+if not has_events and not has_gh_data:
+    print(f"No events or PR activity found for {yesterday}")
     sys.exit(0)
 
 # Aggregate metrics
@@ -126,6 +165,42 @@ if failures > 0:
     print(f"- Total failures: {failures}")
     for domain, count in friction_domains.most_common(3):
         print(f"- {domain}: {count}")
+    print()
+
+# GitHub PR Activity
+prs_opened = gh_data.get('prs_opened', [])
+prs_merged = gh_data.get('prs_merged', [])
+prs_review = gh_data.get('prs_review_requested', [])
+
+if prs_opened or prs_merged:
+    print(f"### Pull Requests")
+    if prs_opened:
+        print(f"**Opened ({len(prs_opened)}):**")
+        for pr in prs_opened[:5]:
+            repo = pr.get('repository', {}).get('name', '')
+            title = pr.get('title', '')[:60]
+            url = pr.get('url', '')
+            state = pr.get('state', '').upper()
+            repo_prefix = f"[{repo}] " if repo else ""
+            print(f"- {repo_prefix}{title} ({state})")
+        print()
+    if prs_merged:
+        print(f"**Merged ({len(prs_merged)}):**")
+        for pr in prs_merged[:5]:
+            repo = pr.get('repository', {}).get('name', '')
+            title = pr.get('title', '')[:60]
+            repo_prefix = f"[{repo}] " if repo else ""
+            print(f"- {repo_prefix}{title}")
+        print()
+
+if prs_review:
+    print(f"### Pending Reviews ({len(prs_review)})")
+    for pr in prs_review[:5]:
+        repo = pr.get('repository', {}).get('name', '')
+        title = pr.get('title', '')[:60]
+        url = pr.get('url', '')
+        repo_prefix = f"[{repo}] " if repo else ""
+        print(f"- {repo_prefix}{title}")
     print()
 
 print(f"### Blockers")

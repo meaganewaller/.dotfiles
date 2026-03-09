@@ -274,11 +274,14 @@ This directory contains 20 custom Claude Code skills for engineering workflows.
 - Generates standup format: Yesterday (completed, sessions, decisions), Today (priorities), Blockers
 - Identifies friction patterns and incomplete work
 - Sources data from `~/.claude/dev-os-events.jsonl`
+- Fetches GitHub PR activity via `gh` CLI (if authenticated):
+  - PRs opened/merged yesterday
+  - PRs awaiting your review
 
 **Agent:** Runs inline
 
 **Scripts:**
-- `aggregate-standup.sh` - Collects and summarizes daily events
+- `aggregate-standup.sh` - Collects daily events and GitHub PR data
 
 ---
 
