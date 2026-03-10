@@ -30,6 +30,35 @@ if [[ -z "${ERROR}${CMD}" ]]; then
 fi
 
 # ============================================================================
+# EPHEMERAL FILE SUPPRESSION
+# ============================================================================
+# Some file-not-found errors are expected behavior, not friction:
+# - Subagent session files are cleaned up after completion
+# - Tradeoff markers are processed and removed
+# Skip logging these to reduce noise in friction metrics.
+
+if [[ -n "$FILE_PATH" ]]; then
+  IS_EPHEMERAL_EXPECTED="false"
+
+  # Subagent session files are ephemeral - don't log missing as friction
+  if [[ "$FILE_PATH" =~ /.claude/projects/.*/subagents/ ]] && \
+     echo "$ERROR" | grep -qiE "file does not exist|no such file|not found"; then
+    IS_EPHEMERAL_EXPECTED="true"
+  fi
+
+  # Tradeoff markers are processed and removed
+  if [[ "$FILE_PATH" =~ /.claude/pending-tradeoffs/ ]] && \
+     echo "$ERROR" | grep -qiE "file does not exist|no such file|not found"; then
+    IS_EPHEMERAL_EXPECTED="true"
+  fi
+
+  if [[ "$IS_EPHEMERAL_EXPECTED" == "true" ]]; then
+    # Silent exit - this is expected behavior, not friction
+    exit 0
+  fi
+fi
+
+# ============================================================================
 # CONTEXT DETECTION - Understand WHERE the failure occurred
 # ============================================================================
 

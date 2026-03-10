@@ -14,14 +14,14 @@ TODAY=$(date -u +%Y-%m-%d)
 
 GH_DATA=""
 if command -v gh &>/dev/null && gh auth status &>/dev/null; then
-  # Fetch PRs opened yesterday
-  PRS_OPENED=$(gh pr list --author @me --search "created:>=$YESTERDAY created:<$TODAY" --json number,title,url,state,repository 2>/dev/null || echo "[]")
+  # Fetch PRs opened yesterday (across ALL repos)
+  PRS_OPENED=$(gh search prs --author=@me --limit 50 "created:$YESTERDAY" --json number,title,url,repository,state 2>/dev/null || echo "[]")
 
-  # Fetch PRs merged yesterday
-  PRS_MERGED=$(gh pr list --author @me --state merged --search "merged:>=$YESTERDAY merged:<$TODAY" --json number,title,url,repository 2>/dev/null || echo "[]")
+  # Fetch PRs merged yesterday (across ALL repos)
+  PRS_MERGED=$(gh search prs --author=@me --merged --limit 50 "merged:$YESTERDAY" --json number,title,url,repository 2>/dev/null || echo "[]")
 
-  # Fetch PRs where review was requested from me (still open)
-  PRS_REVIEW=$(gh pr list --search "review-requested:@me" --json number,title,url,repository --limit 5 2>/dev/null || echo "[]")
+  # Fetch PRs where review was requested from me (across ALL repos)
+  PRS_REVIEW=$(gh search prs --review-requested=@me --state=open --limit 20 --json number,title,url,repository 2>/dev/null || echo "[]")
 
   GH_DATA=$(cat <<EOF
 {
