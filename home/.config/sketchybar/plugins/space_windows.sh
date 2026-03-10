@@ -10,19 +10,19 @@ if [ "$SENDER" = "aerospace_workspace_change" ]; then
     apps=$(aerospace list-windows --workspace "$workspace" | awk -F'|' '{gsub(/^ *| *$/, "", $2); print $2}')
 
     if [ "$is_focused" = "true" ]; then
-      sketchybar --set space.$workspace background.color=0xff003547
+      sketchybar --set space."$workspace" background.color=0xff003547
     else
-      sketchybar --set space.$workspace background.color=0x44FFFFFF
+      sketchybar --set space."$workspace" background.color=0x44FFFFFF
     fi
 
     if [ "${apps}" != "" ]; then
       icon_strip=" "
       while read -r app; do
-        icon_strip+=" $($CONFIG_DIR/plugins/icon_map_fn.sh "$app")"
+        icon_strip+=" $("$CONFIG_DIR"/plugins/icon_map_fn.sh "$app")"
       done <<<"${apps}"
-      sketchybar --set space.$workspace label="$icon_strip"
+      sketchybar --set space."$workspace" label="$icon_strip"
     else
-      sketchybar --set space.$workspace label=""
+      sketchybar --set space."$workspace" label=""
     fi
   done
 fi
