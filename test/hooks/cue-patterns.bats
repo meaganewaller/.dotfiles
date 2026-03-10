@@ -256,6 +256,19 @@ pattern_does_not_match() {
   pattern_matches "$pattern" "update the schema"
 }
 
+@test "recovery pattern matches failure and retry phrases" {
+  local pattern
+  pattern=$(get_pattern "$CUES_DIR/recovery/cue.md")
+  [[ -n "$pattern" ]] || skip "No pattern defined"
+
+  # Should match
+  pattern_matches "$pattern" "it didn't work"
+  pattern_matches "$pattern" "let me try again"
+  pattern_matches "$pattern" "still failing"
+  pattern_matches "$pattern" "same error as before"
+  pattern_matches "$pattern" "I'm stuck"
+}
+
 # ============================================================================
 # Integration: match-cues.sh finds cues correctly
 # ============================================================================

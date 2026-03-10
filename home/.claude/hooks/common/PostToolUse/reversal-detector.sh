@@ -113,6 +113,38 @@ if (( REMOVED > 50 && REMOVED > ADDED )); then
     }')
 
   echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" reversal "$PAYLOAD"
+
+  # Count recent reversals on this file
+  RECENT_REVERSALS=$(tail -50 "$EVENTS_FILE" 2>/dev/null | jq -r --arg f "$FILE" 'select(.event_type=="reversal" and .payload.file_path==$f) | .timestamp' | wc -l | tr -d ' ')
+
+  # Inject recovery guidance if this is a repeated reversal
+  if (( RECENT_REVERSALS >= 2 )); then
+    RECOVERY_CONTEXT="# Recovery Check
+
+**Reversal detected** on \`$(basename "$FILE")\` ($RECENT_REVERSALS recent reversals)
+
+## Two-Attempt Rule
+
+After two attempts with different strategies, escalate or pivot:
+- **Understand the failure?** Fix root cause, then retry
+- **Don't understand?** Ask user for guidance
+- **Wrong approach?** Propose an alternative
+
+Before your next attempt:
+1. Can you explain why the previous attempt failed?
+2. Is your next attempt meaningfully different?
+3. Would the user want to know about this difficulty?
+
+Reference: \`~/.claude/principles/recovery-principles.md\`"
+
+    jq -n --arg ctx "$RECOVERY_CONTEXT" '{
+      hookSpecificOutput: {
+        hookEventName: "PostToolUse",
+        additionalContext: $ctx
+      }
+    }'
+    exit 0
+  fi
 fi
 
 exit 0
