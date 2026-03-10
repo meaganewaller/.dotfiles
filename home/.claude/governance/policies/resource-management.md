@@ -103,6 +103,6 @@ for batch in chunks(files, 10):
 
 ## References
 
-- Helper functions in `~/.claude/hooks/common/validate-path.sh`
-- Large file guard hook: `~/.claude/hooks/common/PreToolUse/large-file-guard.sh`
+- Helper functions in `~/.claude/hooks/validate-path.sh`
+- Large file guard hook: `~/.claude/hooks/PreToolUse/large-file-guard.sh`
 - Large files cue: `~/.claude/cues/large-files/cue.md`

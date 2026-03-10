@@ -109,7 +109,7 @@ Add hooks to `settings/common/hooks.jsonc`:
     "PostToolUse": [
       {
         "matcher": "Write|Edit",  // Optional: limit to specific tools
-        "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/common/PostToolUse/my-hook.sh"
+        "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/PostToolUse/my-hook.sh"
       }
     ]
   }
@@ -182,9 +182,9 @@ hook_register "my-hook-name"
 Check health with:
 
 ```bash
-~/.claude/hooks/common/hook-health.sh           # 24h summary
-~/.claude/hooks/common/hook-health.sh --recent  # Last 10 runs
-~/.claude/hooks/common/hook-health.sh --failures
+~/.claude/hooks/hook-health.sh           # 24h summary
+~/.claude/hooks/hook-health.sh --recent  # Last 10 runs
+~/.claude/hooks/hook-health.sh --failures
 ```
 
 ## Testing

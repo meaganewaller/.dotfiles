@@ -56,17 +56,17 @@ ls -la ~/.claude/hooks/PostToolUse/
 jq '.hooks.PostToolUse' ~/.claude/settings.json
 
 # Check for syntax errors
-bash -n ~/.claude/hooks/common/PostToolUse/my-hook.sh
+bash -n ~/.claude/hooks/PostToolUse/my-hook.sh
 ```
 
 ### Hook errors
 
 ```bash
 # Check hook health
-~/.claude/hooks/common/hook-health.sh --failures
+~/.claude/hooks/hook-health.sh --failures
 
 # Test hook manually
-echo '{"tool_name": "Write"}' | ~/.claude/hooks/common/PostToolUse/impact-extractor.sh
+echo '{"tool_name": "Write"}' | ~/.claude/hooks/PostToolUse/impact-extractor.sh
 
 # Check exit code
 echo $?
@@ -76,7 +76,7 @@ echo $?
 
 ```bash
 # For Stop hooks, check what's blocking
-~/.claude/hooks/common/PostToolUse/hard-stop-test-blocker.sh < /dev/null
+~/.claude/hooks/PostToolUse/hard-stop-test-blocker.sh < /dev/null
 
 # Check pending tradeoffs
 ls ~/.claude/pending-tradeoffs/
@@ -127,7 +127,7 @@ mv ~/.claude/dev-os-events.jsonl.tmp ~/.claude/dev-os-events.jsonl
 
 ```bash
 # Test matching directly
-bash ~/.claude/hooks/common/match-cues.sh prompt "your test prompt"
+bash ~/.claude/hooks/match-cues.sh prompt "your test prompt"
 
 # Check cue frontmatter
 head -20 ~/.claude/cues/my-cue/cue.md
@@ -162,10 +162,10 @@ SESSION_ID=test CUE_DIR=~/.claude/cues/my-cue ~/.claude/cues/my-cue/macro.sh
 
 ```bash
 # Check skill file exists
-ls -la ~/.claude/skills/common/my-skill/SKILL.md
+ls -la ~/.claude/skills/my-skill/SKILL.md
 
 # Verify frontmatter
-head -10 ~/.claude/skills/common/my-skill/SKILL.md
+head -10 ~/.claude/skills/my-skill/SKILL.md
 
 # Refresh configuration
 mise run claude:refresh
@@ -251,7 +251,7 @@ ls -la ~/.claude/
 jq '.hooks | keys' ~/.claude/settings.json
 
 # Recent errors
-~/.claude/hooks/common/hook-health.sh --failures
+~/.claude/hooks/hook-health.sh --failures
 ```
 
 ### Common environment issues

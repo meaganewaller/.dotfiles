@@ -117,7 +117,7 @@ dotfiles governance --lint       # Validate integrity
 | Task | Command |
 |------|---------|
 | Refresh settings | `mise run claude:refresh` |
-| Check hook health | `~/.claude/hooks/common/hook-health.sh` |
+| Check hook health | `~/.claude/hooks/hook-health.sh` |
 | Run weekly review | `/weekly-review` |
 | Check governance | `dotfiles governance` |
 | Debug issues | See [Troubleshooting](docs/troubleshooting.md) |

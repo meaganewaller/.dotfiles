@@ -78,7 +78,7 @@ Edit("/path/to/file.rb", old, new)
 When writing shell scripts, use the validation utilities from `validate-path.sh`:
 
 ```bash
-source "$HOME/.claude/hooks/common/validate-path.sh"
+source "$HOME/.claude/hooks/validate-path.sh"
 
 # Validation (returns 0/1, never exits)
 validate_file_exists "/path/to/file"

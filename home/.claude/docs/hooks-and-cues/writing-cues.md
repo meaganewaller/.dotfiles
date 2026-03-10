@@ -197,7 +197,7 @@ dotfiles governance --lint
 - Test with `match-cues.sh`:
 
 ```bash
-bash ~/.claude/hooks/common/match-cues.sh prompt "your test prompt"
+bash ~/.claude/hooks/match-cues.sh prompt "your test prompt"
 ```
 
 ### Scope
@@ -209,12 +209,12 @@ bash ~/.claude/hooks/common/match-cues.sh prompt "your test prompt"
 
 ```bash
 # Test matching
-bash ~/.claude/hooks/common/match-cues.sh prompt "commit my changes"
-bash ~/.claude/hooks/common/match-cues.sh bash "git push origin main"
-bash ~/.claude/hooks/common/match-cues.sh file ".env.local"
+bash ~/.claude/hooks/match-cues.sh prompt "commit my changes"
+bash ~/.claude/hooks/match-cues.sh bash "git push origin main"
+bash ~/.claude/hooks/match-cues.sh file ".env.local"
 
 # Test cue output (with marker gating)
-bash ~/.claude/hooks/common/show-cue.sh ~/.claude/cues/commit test-session
+bash ~/.claude/hooks/show-cue.sh ~/.claude/cues/commit test-session
 
 # Check governance
 dotfiles governance --trace commit

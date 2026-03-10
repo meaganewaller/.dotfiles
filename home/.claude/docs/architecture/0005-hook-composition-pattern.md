@@ -128,7 +128,7 @@ Health data writes to `~/.claude/hook-health.jsonl`:
 
 ### Hook Wiring (hooks.jsonc)
 
-Hooks are wired in `~/.claude/settings/common/hooks.jsonc`:
+Hooks are wired in `$DOTFILES_DIR/home/.claude/settings/common/hooks.jsonc` (gets merged and linked to `$HOME/.claude/settings.json`) via `mise run claude`.
 
 ```jsonc
 {
