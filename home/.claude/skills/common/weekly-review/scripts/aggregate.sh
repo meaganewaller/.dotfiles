@@ -387,15 +387,6 @@ for e in events:
             if isinstance(p, str) and p.strip():
                 principles[p.strip()] += 1
 
-# Count journal decisions (primary source) - add to totals and principles
-journal_tradeoffs = len(journal_decisions)
-for jd in journal_decisions:
-    project = jd.get("project", "unknown")
-    project_stats[project]["tradeoffs"] += 1
-    for p in jd.get("principles_invoked") or []:
-        if isinstance(p, str) and p.strip():
-            principles[p.strip()] += 1
-
     if et == "test_run":
         r = (payload.get("result") or "").strip().lower()
         if r:
@@ -451,6 +442,15 @@ for jd in journal_decisions:
             "message_count": payload.get("message_count", 0),
             "compaction_number": payload.get("compaction_number", 1)
         })
+
+# Count journal decisions (primary source) - add to totals and principles
+journal_tradeoffs = len(journal_decisions)
+for jd in journal_decisions:
+    project = jd.get("project", "unknown")
+    project_stats[project]["tradeoffs"] += 1
+    for p in jd.get("principles_invoked") or []:
+        if isinstance(p, str) and p.strip():
+            principles[p.strip()] += 1
 
 total_tests = test_results.get("passed", 0) + test_results.get("failed", 0)
 pass_tests = test_results.get("passed", 0)
