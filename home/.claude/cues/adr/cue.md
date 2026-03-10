@@ -1,6 +1,6 @@
 ---
 # Triggers when discussing architecture decisions, design patterns, or trade-offs
-pattern: \badr\b|architect|decision|design.?pattern|technical.?choice|trade.?off
+pattern: (^|[^a-zA-Z])adr([^a-zA-Z]|$)|architect|decision|design.?pattern|technical.?choice|trade.?off
 files: docs/architecture/.*\.md|adr/.*\.md|decisions?/.*\.md
 scope: agent, subagent
 macro: prepend

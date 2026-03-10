@@ -1,5 +1,5 @@
 ---
-pattern: \b(file|path|directory|folder|exists?|missing|not.?found|no.?such|ENOENT|read|write|edit|create|delete|move|copy)\b
+pattern: (file|path|directory|folder).*(exist|missing|check|verify|read|write|create|delete|move|copy)|(read|write|create|delete|move|copy|check|verify).*(file|path|directory|folder)|ENOENT|not.?found|no.?such.*(file|directory)
 commands: touch|mkdir|rm|mv|cp|cat|ls
 files: ["*.sh", "*.rb", "*.py", "*.ts", "*.js"]
 scope: agent, subagent
