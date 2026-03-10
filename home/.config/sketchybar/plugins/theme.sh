@@ -79,18 +79,18 @@ export C_VPN=$PASTEL_BLUE
 # -----------------------------
 # Update bar appearance
 # -----------------------------
-sketchybar --bar color=$BAR_BG
+sketchybar --bar color="$BAR_BG"
 
 # Update default text colors
 sketchybar --default \
-  icon.color=$TEXT \
-  label.color=$TEXT
+  icon.color="$TEXT" \
+  label.color="$TEXT"
 
 # Update individual items
-sketchybar --set front_app icon.color=$C_APP label.color=$TEXT
-sketchybar --set media label.color=$TEXT
-sketchybar --set clock icon.color=$C_CLOCK label.color=$TEXT
-sketchybar --set battery icon.color=$C_BATTERY label.color=$TEXT
-sketchybar --set vpn icon.color=$C_VPN label.color=$TEXT
-sketchybar --set vpn.popup background.color=$BAR_BG label.color=$TEXT
-sketchybar --set volume icon.color=$C_VOLUME label.color=$TEXT
+sketchybar --set front_app icon.color="$C_APP" label.color="$TEXT"
+sketchybar --set media label.color="$TEXT"
+sketchybar --set clock icon.color="$C_CLOCK" label.color="$TEXT"
+sketchybar --set battery icon.color="$C_BATTERY" label.color="$TEXT"
+sketchybar --set vpn icon.color="$C_VPN" label.color="$TEXT"
+sketchybar --set vpn.popup background.color="$BAR_BG" label.color="$TEXT"
+sketchybar --set volume icon.color="$C_VOLUME" label.color="$TEXT"

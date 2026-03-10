@@ -7,17 +7,17 @@ update_space_icons() {
     local apps
     apps=$(aerospace list-windows --workspace "$sid" | awk -F'|' '{gsub(/^ *| *$/, "", $2); print $2}')
 
-    sketchybar --set space.$sid drawing=on
+    sketchybar --set space."$sid" drawing=on
 
     if [ "${apps}" != "" ]; then
         icon_strip=" "
         while read -r app; do
-            icon_strip+=" $($CONFIG_DIR/plugins/icon_map_fn.sh "$app")"
+            icon_strip+=" $("$CONFIG_DIR"/plugins/icon_map_fn.sh "$app")"
         done <<<"${apps}"
     else
         icon_strip=""
     fi
-    sketchybar --set space.$sid label="$icon_strip"
+    sketchybar --set space."$sid" label="$icon_strip"
 }
 
 # Update all workspaces to ensure clean state

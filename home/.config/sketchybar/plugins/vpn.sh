@@ -2,7 +2,10 @@
 set -euo pipefail
 
 CONFIG_DIR="$HOME/.config/sketchybar"
+# shellcheck source=/dev/null
 source "$CONFIG_DIR/icons.sh"
+
+# shellcheck source=/dev/null
 source "$CONFIG_DIR/colors.sh"
 
 # Heuristic:
@@ -46,7 +49,7 @@ fi
 
 # Always update the icon state (for normal timed updates too)
 if [[ "$vpn_on" -eq 1 ]]; then
-  sketchybar --set "$NAME" icon="$ICON_LOCK" icon.color=$SUCCESS
+  sketchybar --set "$NAME" icon="$ICON_LOCK" icon.color="$SUCCESS"
 else
-  sketchybar --set "$NAME" icon="$ICON_UNLOCK" icon.color=$SUBTEXT
+  sketchybar --set "$NAME" icon="$ICON_UNLOCK" icon.color="$SUBTEXT"
 fi

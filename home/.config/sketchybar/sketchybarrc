@@ -41,8 +41,8 @@ sketchybar --default \
   icon.color="$SUBTEXT" \
   label.font="$REGULAR_FONT" \
   label.color="$TEXT" \
-  label.padding_left=4 \
-  label.padding_right=4 \
+  label.padding_left=2 \
+  label.padding_right=2 \
   icon.padding_left=2 \
   icon.padding_right=2 \
   updates=on
@@ -57,9 +57,15 @@ for monitor in $(aerospace list-monitors --format "%{monitor-appkit-nsscreen-scr
   for sid in $(aerospace list-workspaces --monitor "$monitor"); do
     # Determine which display this workspace should be shown on
     display_id="1"
+
     if [ "$sid" -ge 8 ] && [ "$sid" -le 10 ]; then
+      display_id="3"
+    fi
+
+    if [ "$sid" -ge 11 ]; then
       display_id="2"
     fi
+
 
     sketchybar --add item "space.$sid" left \
       --set "space.$sid" display="$display_id" \
