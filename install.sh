@@ -6,6 +6,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export DOTFILES_ROOT="$ROOT"
 
+# shellcheck source=/dev/null
 source "$ROOT/lib/common.sh"
 
 parse_args "$@"
@@ -29,6 +30,6 @@ else
   mise run brew:bootstrap
 fi
 
-$ROOT/home/.local/bin/dotfiles link --profile "$DOTFILES_PROFILE"
+"$ROOT"/home/.local/bin/dotfiles link --profile "$DOTFILES_PROFILE"
 
 log "Install complete."
