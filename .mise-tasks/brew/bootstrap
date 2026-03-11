@@ -38,6 +38,13 @@ DECLARED_CASKS="$TMP_DIR/declared.casks"
 ACTUAL_FORMULAE="$TMP_DIR/actual.formulae"
 ACTUAL_CASKS="$TMP_DIR/actual.casks"
 
+# Brewfile entries can be tap-qualified (e.g. owner/tap/name),
+# while brew list outputs canonical tokens (e.g. name).
+normalize_brew_token() {
+  local raw="$1"
+  printf '%s\n' "${raw##*/}"
+}
+
 # ----------------------------------------
 # Collect declared formulae & casks
 # ----------------------------------------
@@ -53,11 +60,17 @@ for layer in $LAYERS; do
   grep -E '^brew ' "$FILE" \
     | awk '{print $2}' \
     | tr -d '"' \
+    | while IFS= read -r entry; do
+        normalize_brew_token "$entry"
+      done \
     >> "$DECLARED_FORMULAE" || true
 
   grep -E '^cask ' "$FILE" \
       | awk '{print $2}' \
       | tr -d '"' \
+      | while IFS= read -r entry; do
+          normalize_brew_token "$entry"
+        done \
       >> "$DECLARED_CASKS" || true
 done
 
@@ -68,8 +81,17 @@ sort -u "$DECLARED_CASKS" -o "$DECLARED_CASKS"
 # Collect actual installed
 # ----------------------------------------
 
-brew leaves | sort -u > "$ACTUAL_FORMULAE"
-brew list --cask | sort -u > "$ACTUAL_CASKS"
+brew leaves \
+  | while IFS= read -r entry; do
+      normalize_brew_token "$entry"
+    done \
+  | sort -u > "$ACTUAL_FORMULAE"
+
+brew list --cask \
+  | while IFS= read -r entry; do
+      normalize_brew_token "$entry"
+    done \
+  | sort -u > "$ACTUAL_CASKS"
 
 echo
 echo "==> Evaluating drift..."

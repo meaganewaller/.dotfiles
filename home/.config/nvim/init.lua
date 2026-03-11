@@ -44,4 +44,3 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.api.nvim_win_set_width(0, 40)
   end,
 })
-

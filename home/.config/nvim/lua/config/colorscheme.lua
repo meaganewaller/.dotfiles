@@ -26,7 +26,7 @@ if vim.fn.has("osx") == 1 then
           end)
         end
       end)
-  
+
       if handle and stdout then
         vim.loop.read_start(stdout, function(err, data)
           if err then
@@ -40,14 +40,14 @@ if vim.fn.has("osx") == 1 then
         end)
       end
     end
-  
+
     local handle = io.popen("dark-notify -e 2>/dev/null")
     if handle then
       local result = handle:read("*a")
       handle:close()
       vim.o.background = result:match("[dD]ark") and "dark" or "light"
     end
-  
+
     start_dark_notify()
   end
   vim.cmd.colorscheme("catppuccin")

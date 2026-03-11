@@ -3,14 +3,6 @@
 # Run manually: pre-commit run --all-files
 
 repos:
-  # Shellcheck - lint shell scripts
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.10.0
-    hooks:
-      - id: shellcheck
-        args: ["--severity=warning", "--shell=bash"]
-        files: \.(sh|bash)$|^bin/|sketchybarrc$
-
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
@@ -36,6 +28,14 @@ repos:
   # Local hooks
   - repo: local
     hooks:
+      - id: shellcheck
+        name: ShellCheck
+        entry: shellcheck
+        language: system
+        args: ["--severity=warning", "--shell=bash"]
+        types: [shell]
+        files: \.(sh|bash)$|^bin/|sketchybarrc$
+
       - id: validate-themes
         name: validate theme JSON
         entry: ./bin/validate-themes

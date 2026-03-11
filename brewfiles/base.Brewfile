@@ -20,6 +20,7 @@
 # Core CLI
 # ----------------------------
 brew "git"
+brew "git-delta"
 brew "gh"
 brew "coreutils"
 brew "curl"
@@ -58,6 +59,7 @@ brew "mise"
 # Containers (Primary Infra Layer)
 # ----------------------------
 cask "docker-desktop"
+brew "docker-compose"
 
 # ----------------------------
 # Editors

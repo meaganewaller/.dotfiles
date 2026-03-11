@@ -96,7 +96,7 @@ autocmd("User", {
     pattern = "DarkNotify",
     callback = function()
       local mode = vim.fn.system("dark-notify -e"):gsub("\n", "")
-  
+
       if mode == "dark" then
         vim.cmd.colorscheme("catppuccin-mocha")
       else

@@ -109,10 +109,10 @@ vim.filetype.add({
       [".*/.?ssh/config.*"] = "sshconfig",
     },
   })
-  
+
   vim.filetype.add({
     extension = { mdx = "markdown" },
   })
-  
+
   vim.o.statuscolumn = "%l%s"
   vim.o.signcolumn = "yes:1"

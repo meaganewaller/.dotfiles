@@ -6,22 +6,22 @@ vim.pack.add({
     local map = function(mode, lhs, rhs)
       vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true })
     end
-  
+
     map("n", "gd", vim.lsp.buf.definition)
     map("n", "gr", vim.lsp.buf.references)
     map("n", "K", vim.lsp.buf.hover)
     map("n", "<leader>rn", vim.lsp.buf.rename)
     map("n", "<leader>ca", vim.lsp.buf.code_action)
-  
+
     map("n", "<leader>e", vim.diagnostic.open_float)
     map("n", "[d", vim.diagnostic.goto_prev)
     map("n", "]d", vim.diagnostic.goto_next)
   end
-  
+
   --------------------------------------------------
   -- Lua
   --------------------------------------------------
-  
+
   vim.lsp.config("lua_ls", {
     on_attach = on_attach,
     settings = {
@@ -35,58 +35,58 @@ vim.pack.add({
       },
     },
   })
-  
+
   vim.lsp.enable("lua_ls")
-  
+
   --------------------------------------------------
   -- Ruby
   --------------------------------------------------
-  
+
   vim.lsp.config("ruby_lsp", {
     on_attach = on_attach,
   })
-  
+
   vim.lsp.enable("ruby_lsp")
-  
+
   --------------------------------------------------
   -- TypeScript
   --------------------------------------------------
-  
+
   vim.lsp.config("tsserver", {
     on_attach = on_attach,
   })
-  
+
   vim.lsp.enable("tsserver")
-  
+
   --------------------------------------------------
   -- Bash
   --------------------------------------------------
-  
+
   vim.lsp.config("bashls", {
     on_attach = on_attach,
   })
-  
+
   vim.lsp.enable("bashls")
-  
+
   --------------------------------------------------
   -- Rust
   --------------------------------------------------
-  
+
   vim.lsp.config("rust_analyzer", {
     on_attach = on_attach,
   })
-  
+
   vim.lsp.enable("rust_analyzer")
-  
+
   --------------------------------------------------
   -- Fish
   --------------------------------------------------
-  
+
   vim.lsp.config("fish_lsp", {
     cmd = { "fish-lsp", "start" },
     on_attach = on_attach,
   })
-  
+
   vim.lsp.enable("fish_lsp")
 
 
@@ -103,7 +103,7 @@ vim.api.nvim_create_user_command("Symbols", function(opts)
     if query == "" then
       query = vim.fn.input("Workspace Symbols: ")
     end
-  
+
     vim.lsp.buf.workspace_symbol(query)
   end, {
     nargs = "?",
@@ -119,14 +119,14 @@ vim.api.nvim_create_user_command("Symbols", function(opts)
         if err or not result then
           return
         end
-  
+
         local items = vim.lsp.util.symbols_to_items(result, ctx.client_id)
-  
+
         vim.fn.setqflist({}, " ", {
           title = "LSP Workspace Symbols",
           items = items,
         })
-  
+
         vim.cmd("copen")
       end
     )
