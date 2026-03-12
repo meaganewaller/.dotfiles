@@ -18,8 +18,6 @@ jobs:
           jekyll-version: [4.4.1]
     steps:
     - uses: actions/checkout@v4
-    - name: Build the site in the jekyll/jekyll container
+    - name: Build the site
       run: |
-        docker run --rm \
-        --volume="${{ github.workspace }}/weekly-reviews:/srv/jekyll" \
-        jekyll/jekyll:${{ matrix.jekyll-version }} /bin/bash -c "gem install bundler && chmod -R 777 /srv/jekyll && bundle install && bundle exec jekyll build"
+        cd weekly-reviews && bundle install && bundle exec jekyll build
