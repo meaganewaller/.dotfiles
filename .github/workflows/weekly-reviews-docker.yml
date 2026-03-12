@@ -1,0 +1,23 @@
+name: Weekly Reviews Jekyll Site CI
+
+on:
+  push: 
+    branches: [main]
+    paths:
+      - 'weekly-reviews/**/*'
+      - '.github/workflows/*.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the site in the jekyll/builder container
+      run: |
+        docker run \
+        --volume ${{ github.workspace }}/weekly-reviews:/srv/jekyll \
+        --volume ${{ github.workspace }}/weekly-reviews/_site:/srv/jekyll/_site \
+        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"

@@ -1,0 +1,12 @@
+{% assign post = include.post %}
+<a class="underline decoration-2 decoration-wavy underline-offset-2 text-xl text-yellow-600 dark:text-orange-200" 
+    href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+    <time class="text-md pl-1 text-yellow-500 italic" datetime="{{ post.date | date: '%Y-%m-%d' }}">
+  <a href="{{ post.url | prepend: site.baseurl }}">{{ post.date | date: "%B %-d, %Y" }}</a>
+</time> 
+
+<div class="flex flex-wrap gap-2 my-2">
+{% for tag in post.tags %}
+  {% include tag.html tag=tag %}
+{% endfor %}
+</div>

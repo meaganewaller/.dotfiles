@@ -1,0 +1,9 @@
+<div class="bg-indigo-100 p-4 rounded-lg border-2 border-indigo-500/20 mb-8">
+  <h3 class="mt-4 text-center text-xl text-indigo-500">View posts by tag</h3>
+
+  <div class="mt-4 flex flex-wrap justify-center gap-5 ">
+    {% for tag in site.tags %}
+    {% include tag.html tag=tag.first %}
+    {% endfor %}
+  </div>
+</div>

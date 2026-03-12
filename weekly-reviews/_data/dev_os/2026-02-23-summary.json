@@ -1,0 +1,271 @@
+{
+  "schema_version": "1.0.0",
+  "week": {
+    "start": "2026-02-23",
+    "end": "2026-03-01",
+    "generated_at": "2026-02-27T21:13:33.148571Z"
+  },
+  "totals": {
+    "events": 1932,
+    "sessions": 29,
+    "projects_touched": 4,
+    "writes": 816,
+    "failures": 848,
+    "large_changes": 12,
+    "reversals": 11,
+    "decisions_documented": 10,
+    "test_runs": 219,
+    "dependency_changes": 0,
+    "files_modified": 291
+  },
+  "derived_metrics": {
+    "failure_rate": 0.4389,
+    "test_stability_rate": 0.5525,
+    "test_runs_passed": 121
+  },
+  "projects": [
+    {
+      "project": "pull",
+      "events": 893,
+      "sessions": 11,
+      "writes": 302,
+      "failures": 362,
+      "tradeoffs": 0,
+      "large_changes": 0,
+      "reversals": 7
+    },
+    {
+      "project": "dotfiles",
+      "events": 868,
+      "sessions": 10,
+      "writes": 424,
+      "failures": 417,
+      "tradeoffs": 2,
+      "large_changes": 11,
+      "reversals": 2
+    },
+    {
+      "project": "reviews",
+      "events": 163,
+      "sessions": 6,
+      "writes": 90,
+      "failures": 69,
+      "tradeoffs": 0,
+      "large_changes": 1,
+      "reversals": 2
+    },
+    {
+      "project": "unknown",
+      "events": 8,
+      "sessions": 2,
+      "writes": 0,
+      "failures": 0,
+      "tradeoffs": 8,
+      "large_changes": 0,
+      "reversals": 0
+    }
+  ],
+  "events_by_type": {
+    "tool_failure": 848,
+    "tool_write": 816,
+    "test_run": 219,
+    "large_change": 15,
+    "cue_fired": 13,
+    "reversal": 11,
+    "decision_tradeoff": 10
+  },
+  "top_friction_domains": [
+    {
+      "domain": "state",
+      "count": 790
+    },
+    {
+      "domain": "unknown",
+      "count": 48
+    },
+    {
+      "domain": "dependency",
+      "count": 3
+    },
+    {
+      "domain": "syntax",
+      "count": 2
+    },
+    {
+      "domain": "type",
+      "count": 2
+    },
+    {
+      "domain": "permission",
+      "count": 2
+    },
+    {
+      "domain": "network",
+      "count": 1
+    }
+  ],
+  "top_friction_subdomains": [
+    {
+      "subdomain": "state:file-not-found",
+      "count": 354
+    },
+    {
+      "subdomain": "state:resource-limit",
+      "count": 351
+    },
+    {
+      "subdomain": "state:command-failed",
+      "count": 71
+    },
+    {
+      "subdomain": "state:type-mismatch",
+      "count": 9
+    },
+    {
+      "subdomain": "state:command-file-missing",
+      "count": 5
+    },
+    {
+      "subdomain": "dependency:ruby-bundler",
+      "count": 3
+    },
+    {
+      "subdomain": "syntax:parse",
+      "count": 2
+    },
+    {
+      "subdomain": "type:ruby-sorbet",
+      "count": 2
+    },
+    {
+      "subdomain": "network:timeout",
+      "count": 1
+    },
+    {
+      "subdomain": "permission:auth",
+      "count": 1
+    }
+  ],
+  "top_principles_invoked": [
+    {
+      "principle": "Role separation (AI excels at consistency, not judgment)",
+      "count": 1
+    },
+    {
+      "principle": "Context provision responsibility (human's role is context provision)",
+      "count": 1
+    },
+    {
+      "principle": "Measurement-driven design (telemetry reveals actual needs)",
+      "count": 1
+    },
+    {
+      "principle": "Feedback and enforcement (trains both parties)",
+      "count": 1
+    },
+    {
+      "principle": "Continuous improvement (system is never done)",
+      "count": 1
+    },
+    {
+      "principle": "Guardrails over autonomy (explicit 'What This Isn't' constraints)",
+      "count": 1
+    },
+    {
+      "principle": "self-contained artifacts",
+      "count": 1
+    },
+    {
+      "principle": "progressive enhancement",
+      "count": 1
+    },
+    {
+      "principle": "convention over configuration",
+      "count": 1
+    },
+    {
+      "principle": "skills should be self-contained",
+      "count": 1
+    }
+  ],
+  "top_skills_used": [
+    {
+      "skill": "application development",
+      "count": 776
+    },
+    {
+      "skill": "developer tooling",
+      "count": 27
+    },
+    {
+      "skill": "domain modeling",
+      "count": 13
+    }
+  ],
+  "top_files_modified": [
+    "/Users/meagan.waller/.claude/decision-journal/2026-02-27-1400-resource-management-implementation.md",
+    "/Users/meagan.waller/.claude/decision-journal/2026-02-27-1430-principles-macro-design.md",
+    "/Users/meagan.waller/.claude/decision-journal/2026-02-27-1500-project-claude-config.md",
+    "/Users/meagan.waller/.claude/hooks/Stop/leverage-evaluator.sh",
+    "/Users/meagan.waller/.claude/plans/delightful-shimmying-cookie.md",
+    "/Users/meagan.waller/.claude/plans/luminous-wondering-steele.md",
+    "/Users/meagan.waller/.claude/plans/mighty-roaming-wreath.md",
+    "/Users/meagan.waller/.claude/plans/scalable-dazzling-minsky.md",
+    "/Users/meagan.waller/.claude/plans/tranquil-bubbling-liskov.md",
+    "/Users/meagan.waller/.claude/reviews/week-of-2026-02-23/review.md",
+    "/Users/meagan.waller/.claude/settings.json",
+    "/Users/meagan.waller/.claude/skills/weekly-review/scripts/aggregate.sh",
+    "/Users/meagan.waller/.claude/skills/weekly-review/scripts/publish_to_jekyll.sh",
+    "/Users/meagan.waller/github/meaganewaller/.dotfiles/.claude/CLAUDE.md",
+    "/Users/meagan.waller/github/meaganewaller/.dotfiles/.claude/cues/dotfiles-dev/cue.md",
+    "/Users/meagan.waller/github/meaganewaller/.dotfiles/.github/workflows/test-dotfiles-setup.yml",
+    "/Users/meagan.waller/github/meaganewaller/.dotfiles/.gitignore",
+    "/Users/meagan.waller/github/meaganewaller/.dotfiles/.mise-tasks/README.md",
+    "/Users/meagan.waller/github/meaganewaller/.dotfiles/.pre-commit-config.yaml",
+    "/Users/meagan.waller/github/meaganewaller/.dotfiles/ARCHITECTURE.md"
+  ],
+  "cue_engagement": {
+    "total_fires": 13,
+    "unique_cues_fired": 7,
+    "by_cue": [
+      {
+        "cue": "migration",
+        "count": 2
+      },
+      {
+        "cue": "commit",
+        "count": 2
+      },
+      {
+        "cue": "principles",
+        "count": 2
+      },
+      {
+        "cue": "env",
+        "count": 2
+      },
+      {
+        "cue": "large-files",
+        "count": 2
+      },
+      {
+        "cue": "adr",
+        "count": 2
+      },
+      {
+        "cue": "dotfiles-dev",
+        "count": 1
+      }
+    ],
+    "by_trigger": [
+      {
+        "trigger": "bash",
+        "count": 10
+      },
+      {
+        "trigger": "prompt",
+        "count": 3
+      }
+    ]
+  }
+}

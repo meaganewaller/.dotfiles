@@ -1,0 +1,360 @@
+{
+  "schema_version": "1.0.0",
+  "week": {
+    "start": "2026-03-02",
+    "end": "2026-03-08",
+    "generated_at": "2026-03-05T23:02:46.545482Z"
+  },
+  "totals": {
+    "events": 3167,
+    "sessions": 26,
+    "projects_touched": 4,
+    "writes": 916,
+    "failures": 1485,
+    "large_changes": 4,
+    "reversals": 11,
+    "decisions_documented": 14,
+    "test_runs": 367,
+    "dependency_changes": 0,
+    "files_modified": 297
+  },
+  "derived_metrics": {
+    "failure_rate": 0.4689,
+    "test_stability_rate": 0.7084,
+    "test_runs_passed": 260,
+    "test_counts": {
+      "passed": 65972,
+      "failed": 52,
+      "skipped": 47,
+      "total": 66071
+    }
+  },
+  "projects": [
+    {
+      "project": "pull",
+      "events": 1778,
+      "sessions": 14,
+      "writes": 414,
+      "failures": 792,
+      "tradeoffs": 1,
+      "large_changes": 1,
+      "reversals": 7
+    },
+    {
+      "project": "dotfiles",
+      "events": 1263,
+      "sessions": 11,
+      "writes": 425,
+      "failures": 652,
+      "tradeoffs": 10,
+      "large_changes": 2,
+      "reversals": 2
+    },
+    {
+      "project": "reviews",
+      "events": 122,
+      "sessions": 1,
+      "writes": 77,
+      "failures": 41,
+      "tradeoffs": 0,
+      "large_changes": 1,
+      "reversals": 2
+    },
+    {
+      "project": "unknown",
+      "events": 4,
+      "sessions": 2,
+      "writes": 0,
+      "failures": 0,
+      "tradeoffs": 3,
+      "large_changes": 0,
+      "reversals": 0
+    }
+  ],
+  "events_by_type": {
+    "tool_failure": 1485,
+    "tool_write": 916,
+    "test_run": 367,
+    "cue_fired": 221,
+    "cue_matched": 62,
+    "large_change": 21,
+    "session_end": 17,
+    "session_start": 17,
+    "session_duration": 15,
+    "decision_tradeoff": 14,
+    "prompt_opinion": 12,
+    "reversal": 11,
+    "context_compact": 6,
+    "decision": 1,
+    "domain_modeling": 1,
+    "session_health": 1
+  },
+  "top_friction_domains": [
+    {
+      "domain": "state",
+      "count": 1467
+    },
+    {
+      "domain": "syntax",
+      "count": 9
+    },
+    {
+      "domain": "type",
+      "count": 5
+    },
+    {
+      "domain": "permission",
+      "count": 2
+    },
+    {
+      "domain": "network",
+      "count": 2
+    }
+  ],
+  "top_friction_subdomains": [
+    {
+      "subdomain": "state:file-not-found",
+      "count": 682
+    },
+    {
+      "subdomain": "state:resource-limit",
+      "count": 674
+    },
+    {
+      "subdomain": "state:command-failed",
+      "count": 94
+    },
+    {
+      "subdomain": "state:type-mismatch",
+      "count": 10
+    },
+    {
+      "subdomain": "state:command-file-missing",
+      "count": 7
+    },
+    {
+      "subdomain": "syntax:parse",
+      "count": 6
+    },
+    {
+      "subdomain": "type:ruby-sorbet",
+      "count": 5
+    },
+    {
+      "subdomain": "syntax:json",
+      "count": 3
+    },
+    {
+      "subdomain": "network:timeout",
+      "count": 2
+    },
+    {
+      "subdomain": "permission:auth",
+      "count": 1
+    }
+  ],
+  "top_principles_invoked": [
+    {
+      "principle": "Role separation (AI excels at consistency, not judgment)",
+      "count": 1
+    },
+    {
+      "principle": "Context provision responsibility (human's role is context provision)",
+      "count": 1
+    },
+    {
+      "principle": "Measurement-driven design (telemetry reveals actual needs)",
+      "count": 1
+    },
+    {
+      "principle": "Feedback and enforcement (trains both parties)",
+      "count": 1
+    },
+    {
+      "principle": "Continuous improvement (system is never done)",
+      "count": 1
+    },
+    {
+      "principle": "Guardrails over autonomy (explicit 'What This Isn't' constraints)",
+      "count": 1
+    },
+    {
+      "principle": "Code coverage: Coverage tools need named constructs to track code execution",
+      "count": 1
+    },
+    {
+      "principle": "Test maintainability: Named helpers are more readable and debuggable than inline blocks",
+      "count": 1
+    },
+    {
+      "principle": "Separation of concerns: Test helpers separated into named module (ParallelMapSpecHelpers)",
+      "count": 1
+    },
+    {
+      "principle": "Simplicity: Data verification is simpler and more direct than method call spying",
+      "count": 1
+    }
+  ],
+  "top_skills_used": [
+    {
+      "skill": "application development",
+      "count": 816
+    },
+    {
+      "skill": "developer tooling",
+      "count": 57
+    },
+    {
+      "skill": "domain modeling",
+      "count": 43
+    }
+  ],
+  "top_files_modified": [
+    "/Users/meagan.waller/.claude/decision-journal/2026-02-27-1400-resource-management-implementation.md",
+    "/Users/meagan.waller/.claude/decision-journal/2026-02-27-1430-principles-macro-design.md",
+    "/Users/meagan.waller/.claude/decision-journal/2026-02-27-1500-project-claude-config.md",
+    "/Users/meagan.waller/.claude/decision-journal/2026-03-02-1130-template-test-coverage-strategy.md",
+    "/Users/meagan.waller/.claude/decision-journal/2026-03-02-1145-generator-test-coverage-strategy.md",
+    "/Users/meagan.waller/.claude/decision-journal/2026-03-02-1500-template-context-extraction.md",
+    "/Users/meagan.waller/.claude/dev-os-events-new.jsonl",
+    "/Users/meagan.waller/.claude/hooks/Stop/hard-stop-test-blocker.sh",
+    "/Users/meagan.waller/.claude/hooks/Stop/leverage-evaluator.sh",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772227896-governance.sh.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772469727-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772470909-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772471014-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772471124-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772471135-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772475056-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772475116-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772475135-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772475153-install_generator_spec.rb.json",
+    "/Users/meagan.waller/.claude/pending-tradeoffs/1772475625-install_generator_spec.rb.json"
+  ],
+  "cue_engagement": {
+    "total_fires": 221,
+    "unique_cues_fired": 13,
+    "by_cue": [
+      {
+        "cue": "migration",
+        "count": 29
+      },
+      {
+        "cue": "adr",
+        "count": 29
+      },
+      {
+        "cue": "principles",
+        "count": 28
+      },
+      {
+        "cue": "commit",
+        "count": 27
+      },
+      {
+        "cue": "large-files",
+        "count": 27
+      },
+      {
+        "cue": "env",
+        "count": 25
+      },
+      {
+        "cue": "dotfiles-dev",
+        "count": 12
+      },
+      {
+        "cue": "code-quality",
+        "count": 8
+      },
+      {
+        "cue": "shell-scripts",
+        "count": 8
+      },
+      {
+        "cue": "model-first",
+        "count": 7
+      }
+    ],
+    "by_trigger": [
+      {
+        "trigger": "bash",
+        "count": 136
+      },
+      {
+        "trigger": "prompt",
+        "count": 74
+      },
+      {
+        "trigger": "file",
+        "count": 9
+      },
+      {
+        "trigger": "subagent",
+        "count": 2
+      }
+    ]
+  },
+  "session_duration": {
+    "sessions_tracked": 13,
+    "total_minutes": 4891,
+    "average_minutes": 376.2,
+    "median_minutes": 134,
+    "longest_session": 1341,
+    "by_category": [
+      {
+        "category": "quick",
+        "count": 2
+      },
+      {
+        "category": "short",
+        "count": 4
+      },
+      {
+        "category": "medium",
+        "count": 2
+      },
+      {
+        "category": "long",
+        "count": 2
+      },
+      {
+        "category": "marathon",
+        "count": 3
+      }
+    ],
+    "by_project": [
+      {
+        "project": "dotfiles",
+        "sessions": 5,
+        "avg_minutes": 400.8
+      },
+      {
+        "project": "pull",
+        "sessions": 8,
+        "avg_minutes": 360.9
+      }
+    ]
+  },
+  "skill_usage": {
+    "total_invocations": 0,
+    "unique_skills": 0,
+    "by_skill": []
+  },
+  "context_compaction": {
+    "total_compactions": 6,
+    "sessions_with_compaction": 5,
+    "avg_compactions_per_session": 1.2,
+    "total_bytes_compacted": 19924700,
+    "by_project": [
+      {
+        "project": "dotfiles",
+        "compactions": 4
+      },
+      {
+        "project": "pull",
+        "compactions": 2
+      }
+    ]
+  }
+}
