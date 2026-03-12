@@ -15,9 +15,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-          jekyll-version: [4.4.1]
+          ruby-version: [3.4.6]
     steps:
     - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+    - name: Install Jekyll dependencies
+      run: |
+        cd weekly-reviews && bundle install
     - name: Build the site
       run: |
         cd weekly-reviews && bundle install && bundle exec jekyll build
