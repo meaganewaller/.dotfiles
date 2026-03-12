@@ -1,23 +1,25 @@
 name: Weekly Reviews Jekyll Site CI
 
 on:
-  push: 
+  push:
     branches: [main]
     paths:
       - 'weekly-reviews/**/*'
       - '.github/workflows/*.yml'
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
-  build:
+  jekyll-build:
+    name: Build Weekly Reviews Jekyll Site
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+          jekyll-version: [4.4.1]
     steps:
     - uses: actions/checkout@v4
-    - name: Build the site in the jekyll/builder container
+    - name: Build the site in the jekyll/jekyll container
       run: |
-        docker run \
-        --volume ${{ github.workspace }}/weekly-reviews:/srv/jekyll \
-        --volume ${{ github.workspace }}/weekly-reviews/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+        docker run --rm \
+        --volume="${{ github.workspace }}/weekly-reviews:/srv/jekyll" \
+        jekyll/jekyll:${{ matrix.jekyll-version }} /bin/bash -c "gem install bundler && chmod -R 777 /srv/jekyll && bundle install && bundle exec jekyll build"
