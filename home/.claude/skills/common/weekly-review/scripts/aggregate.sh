@@ -8,7 +8,7 @@ set -euo pipefail
 OUT_DIR_BASE="$HOME/.claude/reviews"
 PROJECTS_DIR="$HOME/.claude/projects"
 GLOBAL_STREAM="$HOME/.claude/dev-os-events.jsonl"
-JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/weekly-reviews}"
+JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/.dotfiles/weekly-reviews}"
 
 # ============================================================================
 # Validation

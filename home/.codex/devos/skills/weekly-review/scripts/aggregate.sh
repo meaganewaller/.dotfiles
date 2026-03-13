@@ -7,7 +7,7 @@ set -euo pipefail
 
 OUT_DIR_BASE="$HOME/.codex/devos/reviews"
 PROJECTS_DIR="${CODEX_PROJECTS_DIR:-$HOME/.codex/projects}"
-JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/weekly-reviews}"
+JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/.dotfiles/weekly-reviews}"
 
 # ============================================================================
 # Validation

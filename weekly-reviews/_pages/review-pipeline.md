@@ -401,7 +401,7 @@ weekly-reviews/
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `JEKYLL_ROOT` | `~/github/meaganewaller/weekly-reviews` | Jekyll site root |
+| `JEKYLL_ROOT` | `~/github/meaganewaller/.dotfiles/weekly-reviews` | Jekyll site root |
 | `JEKYLL_PORT` | `4000` | Local server port |
 | `SKIP_SERVER` | `0` | Set to `1` to skip server start |
 
@@ -448,7 +448,7 @@ Total: ~80 seconds for a full week's review (excluding server startup).
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `JEKYLL_ROOT` | `~/github/meaganewaller/weekly-reviews` | Jekyll site location |
+| `JEKYLL_ROOT` | `~/github/meaganewaller/.dotfiles/weekly-reviews` | Jekyll site location |
 | `JEKYLL_PORT` | `4000` | Local server port |
 | `SKIP_SERVER` | `0` | Skip Jekyll server on publish |
 

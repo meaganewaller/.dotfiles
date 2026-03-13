@@ -12,7 +12,7 @@ if [[ -z "$REVIEW_DIR" || ! -d "$REVIEW_DIR" ]]; then
   exit 1
 fi
 
-JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/weekly-reviews}"
+JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/.dotfiles/weekly-reviews}"
 JEKYLL_PORT="${JEKYLL_PORT:-4000}"
 SKIP_SERVER="${SKIP_SERVER:-0}"
 
