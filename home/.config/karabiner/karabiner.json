@@ -25,6 +25,50 @@
           "to": [{ "key_code": "f18" }]
         }
       ],
+      "complex_modifications": {
+        "rules": [
+          {
+            "description": "F18 + / → Aerospace keybindings cheatsheet",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "slash",
+                  "modifiers": {
+                    "mandatory": ["f18"],
+                    "optional": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "/bin/bash -c '$HOME/.local/bin/aerospace-keys-popup'"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Ctrl+Alt+/ → Aerospace keybindings cheatsheet (alternative)",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "slash",
+                  "modifiers": {
+                    "mandatory": ["control", "option"],
+                    "optional": ["caps_lock"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "/bin/bash -c '$HOME/.local/bin/aerospace-keys-popup'"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
     }
   ]

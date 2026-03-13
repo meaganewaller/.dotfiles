@@ -116,6 +116,11 @@ run = 'layout floating'
 if.app-name-regex-substring = '[Ss]ystem [Ss]ettings'
 run = 'layout floating'
 
+# Aerospace keybindings cheatsheet popup
+[[on-window-detected]]
+if.window-title-regex-substring = 'aerospace-keys'
+run = 'layout floating'
+
 # Communication → Dell vertical (S, M, C)
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'

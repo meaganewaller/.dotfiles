@@ -96,6 +96,8 @@ run ".local/bin/codex-tradeoff"
 run ".local/bin/codex-tradeoff-gate"
 run ".local/bin/codex-weekly-review"
 run ".local/bin/codex-governance"
+run ".local/bin/aerospace-keys"
+run ".local/bin/aerospace-keys-popup"
 run ".aerospace.toml"
 
 run ".config/git/hooks"
