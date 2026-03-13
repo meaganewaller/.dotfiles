@@ -1,8 +1,9 @@
 -- Aerospace workspace integration for sketchybar
+-- Dynamically detects monitor order and assigns workspaces accordingly
 -- Multi-monitor setup:
---   Display 1: DELL U2417H (vertical, left) - Communication
---   Display 2: S34J55x (main, center)       - Primary work
---   Display 3: Built-in Retina (right)      - Entertainment
+--   DELL U2417H (vertical, left) - Communication: S, M, D, C
+--   S34J55x (main, center)       - Primary work: 1-7
+--   Built-in Retina (right)      - Entertainment: E, Y, P, 8, 9
 -- Single monitor: All workspaces on display 1
 
 local colors = require("colors")
@@ -12,21 +13,18 @@ local app_icons = require("helpers.app_icons")
 -- Register the aerospace workspace change event
 sbar.add("event", "aerospace_workspace_change")
 
--- Workspace to display mapping (multi-monitor)
--- Sketchybar display order (macOS main display = 1):
---   1 = S34J55x (main, center)
---   2 = Built-in Retina (right)
---   3 = DELL U2417H (left, vertical)
-local workspace_display_multi = {
-  -- Main monitor (center) - Primary work
-  ["1"] = 1, ["2"] = 1, ["3"] = 1, ["4"] = 1,
-  ["5"] = 1, ["6"] = 1, ["7"] = 1,
+-- Workspace assignments by monitor NAME (not display number)
+local workspace_monitors = {
+  -- Main monitor (Samsung ultrawide) - Primary work
+  ["1"] = "S34J55x", ["2"] = "S34J55x", ["3"] = "S34J55x", ["4"] = "S34J55x",
+  ["5"] = "S34J55x", ["6"] = "S34J55x", ["7"] = "S34J55x",
 
   -- Dell vertical (left) - Communication
-  ["S"] = 3, ["M"] = 3, ["D"] = 3, ["C"] = 3,
+  ["S"] = "DELL", ["M"] = "DELL", ["D"] = "DELL", ["C"] = "DELL",
 
   -- Built-in (right) - Entertainment
-  ["E"] = 2, ["Y"] = 2, ["P"] = 2, ["8"] = 2, ["9"] = 2,
+  ["E"] = "Built-in", ["Y"] = "Built-in", ["P"] = "Built-in",
+  ["8"] = "Built-in", ["9"] = "Built-in",
 }
 
 -- Helper to get app icons for a workspace
@@ -57,16 +55,29 @@ local workspace_order = {
 -- Track created workspaces
 local spaces = {}
 
--- Initialize workspaces after detecting monitor count
+-- Detect monitor count and set up display mapping
 sbar.exec("aerospace list-monitors 2>/dev/null | wc -l", function(result)
   local monitor_count = tonumber(result:match("%d+")) or 1
 
-  -- Get display for workspace, adapting to single/multi monitor
+  -- Hardcoded display mapping based on your setup:
+  -- Display 1 = S34J55x (main, center) - workspaces 1-7
+  -- Display 2 = Built-in (right) - workspaces E, Y, P, 8, 9
+  -- Display 3 = DELL (left, vertical) - workspaces S, M, D, C
+  --
+  -- If workspaces appear on wrong monitors, swap the numbers below:
+  local monitor_to_display = {
+    ["S34J55x"] = 1,
+    ["Built-in"] = 3,  -- swapped
+    ["DELL"] = 2,      -- swapped
+  }
+
+  -- Get display for workspace based on monitor name
   local function get_display_for_workspace(sid)
     if monitor_count <= 1 then
       return 1  -- Single monitor: everything on display 1
     end
-    return workspace_display_multi[sid] or 2
+    local monitor_name = workspace_monitors[sid] or "S34J55x"
+    return monitor_to_display[monitor_name] or 1
   end
 
   -- Create workspace items
