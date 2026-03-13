@@ -10,8 +10,15 @@
 @theme {
   --font-serif: "Instrument Serif", serif;
   --font-sans: "Inter", sans-serif;
+  --font-mono: "Space Mono", monospace;
+
   --color-gray-*: initial;
-  --color-black: oklch(0.1821 0.0139 94.03);
+  --color-black: #262626;
+  --color-black-5: #2626260d;
+  --color-white: #ffffff;
+  --color-blue: #bfd2d8;
+  --color-green: #d4d5c3;
+
   --color-paper: oklch(97.53% 0.004 106.47);
 
   --color-gray-50: oklch(95.37% 0.004 106.47);
@@ -44,6 +51,11 @@
 	--color-purple-600: oklch(45.40% 0.145 294.83);
 	--color-magenta-400: oklch(63.48% 0.156 350.47);
 	--color-magenta-600: oklch(49.54% 0.161 349.76);
+
+  --radius-pill: 999999px;
+  --radius-small: 16px;
+  --radius-medium: 24px;
+  --radius-large: 32px;
 }
 
 :root {
@@ -119,168 +131,42 @@
   @apply prose-lg font-sans leading-7 [&>p:first-of-type]:mt-0 prose-headings:font-serif prose-headings:font-normal prose-h1:text-4xl prose-h1:mb-6 prose-h2:text-3xl prose-h2:font-medium prose-h2:mt-8 prose-h2:mb-3 prose-h3:text-2xl prose-h3:italic prose-h3:tracking-wide prose-h4:text-lg prose-h4:font-semibold prose-h4:mb-5 prose-h5:text-base prose-h5:font-sans prose-h5:font-semibold prose-h5:uppercase prose-h5:mb-4 prose-h6:text-base prose-h6:font-sans prose-h6:uppercase prose-h6:mb-2 prose-blockquote:border-l-primary prose-blockquote:not-italic prose-blockquote:font-normal prose-blockquote:py-1 prose-blockquote:bg-gray-50 dark:prose-blockquote:bg-gray-900 prose-th:font-sans prose-th:font-semibold prose-thead:border-gray-100 dark:prose-thead:border-b-gray-800 prose-tr:border-gray-100 dark:prose-tr:border-gray-800 prose-a:font-normal prose-a:hover:text-primary;
 }
 
-.internal-link {
-	@apply underline bg-primary/10 decoration-primary;
+@layer base {
+  html {
+    @apply h-full;
   }
 
-pre {
-	@apply border border-gray-850 bg-black;
+  body {
+    @apply min-h-full bg-white text-black font-sans;
+  }
+
+  img {
+    @apply max-w-full align-middle;
+  }
+
+  a {
+    @apply transition-opacity;
+  }
+
+  a:hover {
+    @apply opacity-50;
+  }
+
+  blockquote {
+    @apply border-l-2 border-black bg-black-5 px-5 py-3;
+  }
+
+  ul, ol {
+    @apply flex flex-col gap-4 my-4;
+  }
 }
 
-.prose blockquote p::before,
-.prose blockquote p::after {
-	display: none;
-}
+@layer components {
+  .btn {
+    @apply rounded-pill bg-black text-white px-4 py-2 font-mono transition-opacity;
+  }
 
-.prose.blog > :where(p):last-of-type::after {
-	content: " ■";
-	color: var(--color-primary);
-}
-
-.theme-icon-dark,
-.theme-icon-light {
-	display: none;
-}
-
-.dark .theme-icon-dark,
-.dark .theme-icon-light {
-	display: none;
-}
-
-.theme-dark .theme-icon-dark {
-	display: inline-block;
-}
-
-.theme-dark .theme-icon-system {
-display: none;
-}
-
-.light .theme-icon-system,
-.light .theme-icon-dark {
-	display: none;
-}
-
-.light .theme-icon-light {
-	display: inline-block;
-}
-
-.prose .highlight pre code,
-.highlight pre code {
-	color: unset !important;
-}
-
-#scroll-indicator {
-  transition: transform 120ms linear;
-}
-
-/* Comments */
-.highlight .c {color:var(--color-gray-700)}
-.highlight .cm{color:var(--color-gray-700)}
-.highlight .cp{color:var(--color-gray-700)}
-.highlight .c1{color:var(--color-gray-700)}
-.highlight .cs{color:var(--color-gray-700)}
-.highlight .gh{color:var(--color-gray-700)}
-.highlight .w{color:var(--color-gray-700)}
-.highlight .bp{color:var(--color-gray-700)}
-
-/* Punctuation, operators */
-.highlight .p{color:var(--color-gray-500)}
-.highlight .go{color:var(--color-gray-500)}
-.highlight .gp{color:var(--color-gray-500)}
-.highlight .gu{color:var(--color-gray-500)}
-.highlight .nn{color:var(--color-gray-500)}
-
-/* Invalid, imports */
-.highlight .err{color:var(--color-red-400)}
-.highlight .gt{color:var(--color-red-400)}
-.highlight .ge{font-style:italic}
-.highlight .gr{color:var(--color-red-400)}
-.highlight .o{color:var(--color-red-400)}
-.highlight .se{color:var(--color-red-400)}
-.highlight .sr{color:var(--color-red-400)}
-.highlight .ss{color:var(--color-red-400)}
-
-/* Functions */
-.highlight .na{color:var(--color-orange-400)}
-
-/* Keywords */
-.highlight .k{color:var(--color-green-400)}
-.highlight .s{color:var(--color-green-400)}
-.highlight .nb{color:var(--color-green-400)}
-.highlight .sb{color:var(--color-green-400)}
-.highlight .sc{color:var(--color-green-400)}
-.highlight .sd{color:var(--color-green-400)}
-.highlight .sh{color:var(--color-green-400)}
-.highlight .si{color:var(--color-green-400)}
-.highlight .sx{color:var(--color-green-400)}
-
-/* Strings */
-.highlight .no{color:var(--color-cyan-400)}
-.highlight .nv{color:var(--color-cyan-400)}
-.highlight .s2{color:var(--color-cyan-400)}
-.highlight .s1{color:var(--color-cyan-400)}
-.highlight .vc{color:var(--color-cyan-400)}
-.highlight .vg{color:var(--color-cyan-400)}
-.highlight .vi{color:var(--color-cyan-400)}
-
-/* Variables, attributes */
-.highlight .kc{color:var(--color-blue-400)}
-.highlight .kd{color:var(--color-blue-400)}
-.highlight .kp{color:var(--color-blue-400)}
-.highlight .kr{color:var(--color-blue-400)}
-.highlight .kt{color:var(--color-blue-400)}
-.highlight .nc{color:var(--color-blue-400)}
-
-/* Numbers */
-.highlight .m{color:var(--color-purple-400)}
-.highlight .mf{color:var(--color-purple-400)}
-.highlight .mh{color:var(--color-purple-400)}
-.highlight .mi{color:var(--color-purple-400)}
-.highlight .mo{color:var(--color-purple-400)}
-.highlight .il{color:var(--color-purple-400)}
-
-/* Table of Contents Styles */
-.toc-item {
-  @apply mb-1;
-}
-
-.toc-link {
-  @apply block py-1 px-2 text-sm text-gray-600 dark:text-gray-400 hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors duration-200 no-underline first:mt-3;
-}
-
-.toc-link.active {
-  @apply text-primary bg-gray-50 dark:bg-gray-800 font-medium;
-}
-
-.toc-level-2 .toc-link {
-  @apply font-medium;
-}
-
-.toc-level-3 .toc-link,
-.toc-level-4 .toc-link,
-.toc-level-5 .toc-link,
-.toc-level-6 .toc-link {
-  @apply text-xs text-gray-500 dark:text-gray-500;
-}
-
-/* TOC Collapsible Styles */
-#toc-toggle {
-  @apply cursor-pointer focus:outline-none;
-}
-
-#toc-toggle:hover svg {
-  @apply text-primary;
-}
-
-a {
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-  transition:
-    color 160ms ease,
-    text-decoration-color 160ms ease,
-    text-decoration-thickness 160ms ease;
-}
-
-a:hover {
-  text-decoration-thickness: 3px;
+  .btn:hover {
+    @apply opacity-50;
+  }
 }

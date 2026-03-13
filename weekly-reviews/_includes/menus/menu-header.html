@@ -1,47 +1,54 @@
-{% assign current_url = page.url | split: "/" | last %}
-{% comment %}
-  Build a list of categories sorted by post count (descending), limited to 3.
-  Only categories that actually have posts are included.
-{% endcomment %}
-{% assign sorted_categories = "" | split: "" %}
-{% for cat_posts in site.categories %}
-  {% assign cat_name = cat_posts[0] %}
-  {% assign cat_count = cat_posts[1] | size %}
-  {% assign sorted_categories = sorted_categories | push: cat_name %}
-{% endfor %}
+{% assign current_url = page.url | split: "/" | reject: "" | first %}
 
 {% comment %}
-  Sort by post count descending using a simple approach:
-  jekyll-archives creates site.categories as { name => [posts] }.
-  We iterate and build a sortable string, then extract top 3.
+Build sortable list: "count|category"
 {% endcomment %}
-{% assign category_with_counts = "" | split: "" %}
-{% for cat_posts in site.categories %}
-  {% assign cat_name = cat_posts[0] %}
-  {% assign cat_size = cat_posts[1] | size %}
-  {% assign padded_count = cat_size | prepend: "00000" | slice: -5, 5 %}
-  {% assign entry = padded_count | append: "|" | append: cat_name %}
-  {% assign category_with_counts = category_with_counts | push: entry %}
-{% endfor %}
-{% assign category_with_counts = category_with_counts | sort | reverse %}
+{% assign categories = "" | split: "" %}
 
-<ul class="flex flex-wrap justify-center lg:justify-start">
-  <li>
-    <a class="p-1 sm:p-4 hover:text-primary dark:hover:text-primary_dark {% if current_url == 'archive' %}text-primary dark:text-primary_dark{% endif %}" href="/archive/">Posts</a>
-  </li>
-  <li>
-    <a class="p-1 sm:p-4 hover:text-primary dark:hover:text-primary_dark {% if current_url == 'reviews' %}text-primary dark:text-primary_dark{% endif %}" href="/reviews/">Reviews</a>
-  </li>
-  {% for entry in category_with_counts limit:3 %}
-    {% assign category = entry | split: "|" | last %}
-    {% assign meta = site.data.meta[category] %}
-    {% if meta %}
-      {% assign display_name = meta.label %}
-    {% else %}
-      {% assign display_name = category | replace: "-", " " %}
-    {% endif %}
+{% for category in site.categories %}
+  {% assign name = category[0] %}
+  {% assign count = category[1] | size %}
+  {% assign entry = count | append: "|" | append: name %}
+  {% assign categories = categories | push: entry %}
+{% endfor %}
+
+{% assign categories = categories | sort | reverse %}
+
+<ul class="flex flex-wrap items-center gap-4 lg:gap-6">
+
     <li>
-      <a class="p-1 sm:p-4 hover:text-primary dark:hover:text-primary_dark {% if current_url == category %}text-primary dark:text-primary_dark{% endif %}" href="/{{ category }}/">{{ display_name }}</a>
+      <a
+        href="/archive/"
+        class="py-1 px-2 hover:text-primary dark:hover:text-primary_dark
+        {% if current_url == 'archive' %}text-primary dark:text-primary_dark{% endif %}">
+        Posts
+      </a>
     </li>
-  {% endfor %}
-</ul>
+
+    <li>
+      <a
+        href="/reviews/"
+        class="py-1 px-2 hover:text-primary dark:hover:text-primary_dark
+        {% if current_url == 'reviews' %}text-primary dark:text-primary_dark{% endif %}">
+        Reviews
+      </a>
+    </li>
+
+    {% for entry in categories limit:3 %}
+
+      {% assign category = entry | split: "|" | last %}
+      {% assign meta = site.data.meta[category] %}
+      {% assign label = meta.label | default: category | replace: "-", " " %}
+
+      <li>
+        <a
+          href="/{{ category }}/"
+          class="py-1 px-2 hover:text-primary dark:hover:text-primary_dark
+          {% if current_url == category %}text-primary dark:text-primary_dark{% endif %}">
+          {{ label }}
+        </a>
+      </li>
+
+    {% endfor %}
+
+  </ul>

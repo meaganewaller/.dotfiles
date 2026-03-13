@@ -1,0 +1,28 @@
+{% assign featured = site.posts | where_exp: "p", "p.tags contains 'featured'" | first %}
+
+<section class="mx-auto max-w-7xl px-6 py-16">
+
+  <h2 class="text-xl font-semibold mb-8">
+    In The Spotlight
+  </h2>
+
+  <a href="{{ featured.url }}" class="block group">
+
+    <div class="aspect-video overflow-hidden rounded-xl">
+      <img
+        src="{{ featured.image }}"
+        class="w-full h-full object-cover group-hover:scale-105 transition">
+    </div>
+
+    <div class="flex items-center gap-3 mt-4 text-sm text-neutral-500">
+      <span class="font-mono">{{ featured.category }}</span>
+      <span>{{ featured.date | date: "%B %d, %Y" }}</span>
+    </div>
+
+    <h2 class="text-3xl font-semibold mt-3">
+      {{ featured.title }}
+    </h2>
+
+  </a>
+
+</section>
