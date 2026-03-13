@@ -1,0 +1,48 @@
+# Categories
+tutorials:
+  description: Let's build something together. We'll walk through the process of building or configuring something step-by-step.
+  name: Tutorials
+
+architecture:
+  description: Learn how the system is designed and why we made the decisions we did.
+  name: Architecture
+
+logs:
+  description: Our engineering lab notebook. We'll document the process of building the system.
+  name: Build Logs
+
+reviews:
+  description: The automated weekly reviews of our development activity.
+  name: Weekly Reviews
+
+tips:
+  description: Short and sweet tips and tricks.
+  name: Tips & Tricks
+
+deep_dives:
+  description: Deep dives into specific topics.
+  name: Deep Dives
+
+opinions:
+  description: My personal opinions on specific topics.
+  name: Opinions
+
+tool_reviews:
+  description: Reviews of specific tools.
+  name: Tool Reviews
+
+patterns:
+  description: Short and reusable ideas.
+  name: Patterns & Recipes
+
+postmortems:
+  description: Post-mortems of specific projects.
+  name: Postmortems
+
+concepts:
+  description: Concepts and ideas.
+  name: Concepts
+
+workflows:
+  description: My workflows for specific tasks.
+  name: Workflows

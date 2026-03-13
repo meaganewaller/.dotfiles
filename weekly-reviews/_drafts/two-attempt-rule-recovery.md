@@ -1,8 +1,10 @@
 ---
 title: "The Two-Attempt Rule: Teaching AI (and Myself) When to Quit"
 date: 2026-03-10
-status: draft
-tags: [claude-code, developer-tools, productivity, decision-making, hooks]
+layout: post
+tags: [claude-code, developer-tools, productivity, decision-making, hooks, telemetry]
+category: architecture
+summary: "While reviewing telemetry from my development workflow, I noticed a troubling signal: eleven reversals in a single week—code written, then deleted entirely. The pattern revealed a subtle failure mode: persistence without learning. This post introduces the **Two-Attempt Rule**, a simple heuristic for detecting unproductive loops and a system of hooks and cues that surfaces the rule at exactly the moment you need it."
 ---
 
 # The Two-Attempt Rule: Teaching AI (and Myself) When to Quit

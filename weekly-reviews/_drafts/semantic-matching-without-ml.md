@@ -1,11 +1,12 @@
 ---
-title: "Quick Tip: Semantic Matching Without ML (Just Gzip)"
+title: "Semantic Matching Without ML (Just Gzip)"
 date: 2026-03-10
 status: draft
-tags: [claude-code, developer-tools, quick-tip, algorithms, text-matching]
+layout: post
+tags: [claude-code, developer-tools, quick-tip, algorithms, text-matching, bash, information-theory, compression, ncd]
+category: patterns
+summary: "While building my Claude Code cue system, I needed a way to match prompts to cues even when the wording changed. Instead of embeddings, I used a trick from information theory: texts that share **patterns compress well together**. With about 50 lines of bash and gzip, you can get surprisingly good semantic matching."
 ---
-
-# Quick Tip: Semantic Matching Without ML (Just Gzip)
 
 I needed to match user prompts to contextual cues. Regex works for obvious cases—"commit" triggers the commit cue—but what about fuzzy matches? "push my changes" should probably trigger the same cue, but writing regex for every variation is a losing game.
 

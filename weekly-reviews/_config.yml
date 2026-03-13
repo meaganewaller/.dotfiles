@@ -71,11 +71,13 @@ kramdown:
     mdash: "---"
 
 mermaid:
-  src: '/assets/js/mermaid.js'
+  src: '/assets/js/vendor/mermaid.min.js'
+  bundle: true
 
 collections:
   reviews:
     output: true
+    sort_by: date
   glossary:
     output: true
     permalink: /glossary/:name/

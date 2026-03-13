@@ -2,7 +2,19 @@
 title: The Tradeoff Gate Pattern
 date: 2026-03-02
 layout: post
-tags: [developer-tooling, decision-records, claude-code, workflow-automation, productivity]
+category: patterns
+tags:
+  - claude-code
+  - developer-tools
+  - workflow-automation
+  - decision-records
+  - productivity
+  - software-design
+summary: >
+  Large code changes embed decisions that are rarely documented. The Tradeoff
+  Gate pattern introduces lightweight enforcement at commit time and AI session
+  boundaries, prompting developers to capture the tradeoffs behind their
+  decisions while the context is still fresh.
 ---
 
 # The Tradeoff Gate: Enforcing Decision Documentation at Commit Time

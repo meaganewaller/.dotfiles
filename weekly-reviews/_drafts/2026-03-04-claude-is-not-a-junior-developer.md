@@ -2,7 +2,9 @@
 title: Claude Is Not Your Junior Developer
 date: 2026-03-04
 layout: post
-tags: ["claude-code", "productivity", "architecture", "systems-thinking"]
+tags: ["claude-code", "productivity", "architecture", "systems-thinking", "workflow-automation", "llm-systems"]
+summary: "Many developers treat AI coding tools like junior teammates: give them tasks, review their work, and correct them when they make mistakes. But that metaphor quietly breaks down. Large language models don’t have memory, goals, or responsibility—they’re pattern engines operating inside a context window. Once you adopt the right mental model, the real work stops being prompt writing and starts becoming systems design."
+category: opinions
 ---
 
 
@@ -14,7 +16,7 @@ You assign it tasks, it writes code; sometimes correctly, sometimes with some mu
 
 Cute metaphor, but it's completely wrong. People will design workflows based on their framing of a system, so we want to make sure we have the most accurate frame.
 
-With that in mind, I propose that Claude is more like a CPU for language than it is a "junior developer". 
+With that in mind, I propose that Claude is more like a CPU for language than it is a "junior developer".
 
 ## Junior Developers Have Things Claude Does Not
 
@@ -63,7 +65,7 @@ Claude builds temporary probabilistic patterns inside a single context window, s
 
 ### Responsibility
 
-Junior developers can be held accountable. When they break something, you talk about it, they'll learn from it, their behavior changes. 
+Junior developers can be held accountable. When they break something, you talk about it, they'll learn from it, their behavior changes.
 
 Claude cannot learn from mistakes inside your environment, UNLESS you build the mechanism.
 

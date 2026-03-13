@@ -1,0 +1,30 @@
+<!-- Search Modal -->
+<div id="search-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 p-4 sm:p-0 transition-opacity duration-200 opacity-0 pointer-events-none">
+    <div class="relative mt-[20vh] mx-auto w-full max-w-2xl bg-paper dark:bg-gray-900 rounded-xl shadow-lg">
+        <!-- Top Row -->
+        <div class="flex items-center border-b border-gray-100 dark:border-gray-800 px-4 py-3 relative">
+        <!-- Search Icon + Input -->
+        <div class="relative flex-grow">
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input type="text" id="search-input" placeholder="Search" class="w-full pl-10 pr-4 py-2 border border-transparent focus:outline-none focus:ring-0 focus:border-transparent bg-paper dark:bg-gray-900 text-gray-800 dark:text-gray-400" />
+        </div>
+        <!-- ESC Button -->
+        <button id="modal-close" class="ml-4 text-xs px-2 py-1 border border-gray-200 dark:border-gray-800 dark:hover:bg-gray-800 rounded text-gray-500 dark:text-gray-200 hover:bg-gray-100 cursor-pointer">esc</button>
+        </div>
+        <!-- Results Area -->
+        <div id="search-results" class="p-6 text-center text-gray-400 dark:text-gray-400">
+        Quick search for anything
+        </div>
+    </div>
+</div>
+<noscript>
+    <style>
+    #search-trigger,
+    #search-trigger-mobile,
+    #search-modal {
+        display: none !important;
+    }
+    </style>
+</noscript>

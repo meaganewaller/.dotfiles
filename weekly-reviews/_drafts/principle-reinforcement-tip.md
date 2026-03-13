@@ -2,7 +2,10 @@
 title: "Quick Tip: Make Your Principles Sticky"
 date: 2026-03-10
 status: draft
-tags: [claude-code, developer-tools, quick-tip, hooks, productivity]
+tags: [claude-code, developer-tools, quick-tip, hooks, productivity, workflow, telemetry, systems-thinking]
+layout: post
+category: tips
+summary: "In my Claude Code workflow, principles like “security” or “test with purpose” often got mentioned early in a session and then quietly disappeared. A pair of small hooks fixes that: one activates principles when they appear in context, and another reinforces them when relevant files are edited."
 ---
 
 # Quick Tip: Make Your Principles Sticky

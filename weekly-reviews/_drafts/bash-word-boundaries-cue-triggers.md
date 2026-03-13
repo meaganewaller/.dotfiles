@@ -1,6 +1,10 @@
 ---
+title: "Why Your Bash Regex Word Boundaries Aren't Working"
+date: 2026-03-11
 layout: post
-title: Why Your Bash Regex Word Boundaries Aren't Working
+tags: [bash, regex, debugging, quick-tip, claude-code, posix, shell]
+summary: "A regex pattern that should have matched file operations never fired once. The culprit: Bash’s `[[ =~ ]]` operator uses `POSIX ERE`, which doesn’t support `/b` word boundaries. A quick debugging story about regex portability and silent failures."
+category: postmortems
 ---
 
 # Why Your Bash Regex Word Boundaries Aren't Working

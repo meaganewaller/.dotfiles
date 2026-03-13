@@ -2,39 +2,26 @@
 layout: default
 ---
 
-<article class="page bg-pink-50 rounded-lg p-4 border border-pink-200">
-  {% if page.title %}
-  <header class="mb-8">
-    <h1 class="text-2xl font-bold text-pink-600 mb-2">
-      {{ page.title }}
-    </h1>
-    {% if page.subtitle %}
-    <p class="text-sm text-pink-500">
-      {{ page.subtitle }}
-    </p>
-    {% endif %}
-    {% if page.updated_at %}
-    <p class="text-xs text-stone-400 mt-2">
-      Last updated: {{ page.updated_at | date: "%B %d, %Y" }}
-    </p>
-    {% endif %}
-  </header>
-  {% endif %}
+{% include layout/header.html %}
 
-  <section class="prose prose-stone prose-sm max-w-none
-                  prose-headings:font-semibold prose-headings:text-stone-800
-                  prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-stone-200
-                  prose-h3:text-base prose-h3:mt-6
-                  prose-p:text-stone-600
-                  prose-li:text-stone-600
-                  prose-strong:text-stone-700
-                  prose-a:text-blue-600
-                  prose-code:text-xs prose-code:px-1 prose-code:py-0.5 prose-code:rounded
-                  prose-pre:text-xs prose-pre:overflow-x-auto
-                  prose-table:text-xs
-                  prose-th:text-left prose-th:text-stone-700 prose-th:font-semibold prose-th:border-b prose-th:border-stone-300 prose-th:pb-2
-                  prose-td:border-b prose-td:border-stone-200 prose-td:py-2
-                  prose-img:rounded-lg prose-img:shadow-md">
-    {{ content }}
+<main class="mx-auto max-w-screen-xl px-6 lg:px-24 mt-8">
+  <section class="grid grid-cols-6 py-4">
+    <div class="col-span-full lg:col-start-2 lg:col-span-4">
+      <div class="lg:col-start-2 col-span-4">
+        <div class="border-b border-primary/10 dark:border-primary/20">
+          <h1 class="text-4xl font-serif capitalize mb-4 sm:leading-tight">{{ page.title }}</h1>
+          <p class="text-gray-600 dark:text-gray-400 mb-8 leading-7 text-lg">{{ page.description }}</p>
+        </div>
+      </div>
+    </div>
   </section>
-</article>
+
+  <section class="grid grid-cols-6 py-4">
+    <div class="col-span-full lg:col-start-2 lg:col-span-4">
+      <div class="lg:col-start-2 col-span-4 lg:max-w-[720px] lg:mx-auto prose dark:prose-invert">
+        {{ content }}
+      </div>
+    </div>
+  </section>
+</main>
+{% include layout/footer.html %}

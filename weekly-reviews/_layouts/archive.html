@@ -1,0 +1,71 @@
+---
+layout: default
+---
+
+<main class="mx-auto max-w-screen-xl px-6 lg:px-24 my-8">
+  <section class="grid grid-cols-6 py-4">
+    <div class="col-span-full lg:col-start-2 lg:col-span-4">
+      <div class="lg:col-start-2 col-span-4">
+			<div class="border-b border-gray-100 dark:border-gray-800">
+      {% if page.type == "category" %}
+        {% assign meta = site.data.meta[page.title] %}
+        {% if meta %}
+          <h1 class="text-4xl font-serif mb-4 sm:leading-tight">{{ meta.label }}</h1>
+        {% else %}
+          <h1 class="text-4xl font-serif capitalize mb-4 sm:leading-tight">{{ page.title | replace: "-", " " }}</h1>
+        {% endif %}
+      	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          {% if meta.description %}
+            <p class="text-gray-600 dark:text-gray-400 text-lg leading-8">{{ meta.description }}</p>
+          {% else %}
+            {% assign post_count = page.posts | size %}
+            <p class="text-gray-600 dark:text-gray-400 text-lg leading-8">
+              {{ post_count }} post{% if post_count != 1 %}s{% endif %} in {{ page.title | replace: "-", " " }}
+            </p>
+          {% endif %}
+          <a href="/feed/{{ page.title }}.xml" data-fathom="RSS subscription" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors mt-2 sm:mt-0 sm:ml-4 flex-shrink-0">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 3a1 1 0 000 2c5.523 0 10 4.477 10 10a1 1 0 102 0C17 8.373 11.627 3 5 3z"></path>
+              <path d="M4 9a1 1 0 011-1 7 7 0 017 7 1 1 0 11-2 0A5 5 0 005 10a1 1 0 01-1-1zM3 15a2 2 0 114 0 2 2 0 01-4 0z"></path>
+            </svg>
+            Subscribe
+          </a>
+        </div>
+      {% else %}
+        <h1 class="text-4xl sm:text-5xl font-serif capitalize mb-4 sm:leading-tight">
+          <span class="text-gray-600 dark:text-gray-500">Topics / </span><span>{{ page.title | replace: "-", " " }}</span>
+        </h1>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          {% assign post_count = page.posts | size %}
+          <p class="text-gray-600 dark:text-gray-400 text-lg leading-8">
+            {% if post_count == 1 %}
+              {{ post_count }} essay, guide, or note related to {{ page.title | replace: "-", " " }}
+            {% else %}
+              {{ post_count }} essays, guides, and notes related to {{ page.title | replace: "-", " " }}
+            {% endif %}
+          </p>
+          <a href="/feed/topics/{{ page.title }}.xml" data-fathom="RSS subscription" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors mt-2 sm:mt-0 sm:ml-4 flex-shrink-0">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 3a1 1 0 000 2c5.523 0 10 4.477 10 10a1 1 0 102 0C17 8.373 11.627 3 5 3z"></path>
+              <path d="M4 9a1 1 0 011-1 7 7 0 017 7 1 1 0 11-2 0A5 5 0 005 10a1 1 0 01-1-1zM3 15a2 2 0 114 0 2 2 0 01-4 0z"></path>
+            </svg>
+            Subscribe
+          </a>
+        </div>
+      {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="grid grid-cols-6 py-4">
+    <div class="col-span-full lg:col-start-2 lg:col-span-4">
+      <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+        {% for post in page.posts %}
+        <li class="py-8">
+          {% include helpers/posts-loop.html %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+</main>

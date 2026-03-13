@@ -2,7 +2,9 @@
 title: The TemplateContext Pattern for Testable Rails Generators
 date: 2026-03-11
 layout: post
-tags: [ruby, rails, generators, testing, coverage, patterns]
+tags: [ruby, rails, generators, testing, coverage]
+category: patterns
+summary: "Rails generators are great until your ERB templates start growing conditionals. At that point, coverage tools like SimpleCov quietly lose visibility into your branch logic, reporting 0% coverage even when your tests exercise every path. The **TemplateContext** pattern fixes this by extracting template decisions into a plain Ruby object, making conditional logic fully testable while keeping templates declarative."
 ---
 
 # The TemplateContext Pattern: Getting Real Coverage from ERB Templates

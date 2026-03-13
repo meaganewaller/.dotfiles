@@ -3,6 +3,8 @@ layout: review
 title: "Weekly Engineering Review — 2026-03-02"
 date: 2026-03-02
 summary_file: 2026-03-02-summary.json
+category: reviews
+summary: Weekly engineering review for March 2nd, 2026 through March 8th, 2026.
 ---
 
 **Window:** 2026-03-02 → 2026-03-08

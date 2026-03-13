@@ -1,0 +1,14 @@
+<footer class="mx-auto max-w-screen-2xl px-6 lg:px-16 border-t border-gray-100 dark:border-gray-800 mt-12">
+    <div class="py-8 flex flex-col items-center">
+      <div class="my-2 text-sm text-gray-600 dark:text-gray-400">
+        <div class="text-center flex flex-wrap justify-center sm:my-2 my-6">
+          {% include menus/menu-footer.html %}
+        </div>
+        <div class="text-center flex flex-wrap justify-center">
+          <span>&copy; 2026-{{ site.time | date: '%Y' }} {{ site.author.name }}</span>
+          <span class="px-1">•</span>
+          <span><a class="text-black dark:text-paper underline underline-offset-4" href="/privacy/">This website isn't tracking you</a></span>
+        </div>
+      </div>
+    </div>
+  </footer>

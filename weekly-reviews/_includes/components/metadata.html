@@ -1,0 +1,59 @@
+<div class="pb-8 prose dark:prose-invert font-sans text-base">
+	<h5 class="text-sm font-semibold pb-4 mb-0">Catalog Entry</h5>
+	<table class="mt-0">
+		<tbody class="border-y border-y-gray-100 dark:border-y-gray-800">
+		<tr>
+			<td class="uppercase">Title</td>
+			<td>{{ page.title }}</td>
+		</tr>
+		<tr>
+			<td class="uppercase">Published</td>
+			<td>{{ page.date | date: "%-d %b %Y" }}</td>
+		</tr>
+		{% assign pubDate = page.date | date: "%Y%m%d" %}
+		{% assign modDate = page.last_modified_at | date: "%Y%m%d" %}
+		{% if modDate != pubDate %}
+		<tr>
+			<td class="uppercase">Revised</td>
+			<td><time date="{{ page.last_modified_at | date_to_xmlschema }}" itemprop="dateModified">{{ page.last_modified_at | date: "%-d %b %Y" }}</time></td>
+		</tr>
+		{% endif %}
+		<tr>
+			<td class="uppercase">Length</td>
+			<td>{{ page.content | number_of_words }} words</td>
+		</tr>
+		<tr>
+			<td class="uppercase">Type</td>
+			<td class="capitalize"><a class="font-normal hover:text-primary" href="{{site.baseurl}}/{{ page.category | downcase }}/">{{ page.category }}</a></td>
+		</tr>
+		{% if page.stage %}
+		<tr>
+			<td class="uppercase">Stage</td>
+			<td class="capitalize">{{ page.stage }}</td>
+		</tr>
+		{% endif %}
+		<tr>
+			<td class="uppercase">Tags</td>
+			<td class="flex flex-wrap">
+			{% for tag in page.tags %}
+			<span class="not-prose text-sm capitalize bg-gray-100 dark:bg-gray-800 rounded mr-3 px-2 py-1 my-1">
+				<a class="no-underline text-gray-600 dark:text-gray-200" href="{{site.baseurl}}/topics/{{ tag | slugify }}">{{tag | replace: "-", " "}}</a>
+			</span>
+			{% endfor %}
+			</td>
+		</tr>
+		<tr>
+			<td class="uppercase">Permalink</td>
+			<td><div class="relative">
+				<button id="share-btn" data-fathom="Share" class="flex items-center gap-1 text-sm text-black dark:text-paper underline hover:text-primary transition-colors duration-200 cursor-pointer" data-url="{{ site.url }}{{ page.url }}">
+				  <span>{{ site.url }}{{ page.url }}</span>
+				</button>
+				<div id="copied-popup" class="absolute mt-1 px-2 py-1 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800 text-xs rounded opacity-0 pointer-events-none transition-opacity duration-200">
+				  Copied
+				</div>
+			  </div>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+  </div>

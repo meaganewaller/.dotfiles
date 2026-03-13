@@ -1,80 +1,14 @@
 <!DOCTYPE html>
-<html lang="{{ site.lang | default: " en-US" }}">
+<html lang="{{ site.lang | default: " en-US" }}" id="html-tag" class="scroll-smooth">
+  {% include layout/head.html %}
 
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta charset="utf-8">
-  <title>{{ page.title }} - {{ site.title }}</title>
-  <link rel="stylesheet" href="{{ "/assets/css/styles.css" | relative_url }}">
-</head>
+  <body class="bg-paper text-black dark:bg-gray-950 dark:text-gray-100 antialiased selection:bg-primary/10 dark:selection:bg-primary/20">
+    {{ content }}
+    {% include components/lightbox.html %}
+    {% include components/search.html %}
 
-<body class="m-auto max-w-4xl p-10 font-mono">
-  {% include header.html %}
-
-  {{ content }}
-  {% include footer.html %}
-
-  <script>
-        let colors = [
-          "#ff3b8d", // hot pink
-          "#ff6ec7", // bubblegum pink
-          "#ff4fa3", // rose pink
-          "#ff8fab", // strawberry milk
-          "#ff5e5b", // coral red
-          "#ff7a45", // peachy coral
-          "#ffa552", // orange creamsicle
-          "#ffd166", // honey yellow
-          "#ffe066", // lemon candy
-          "#a3e635", // lime pop
-          "#24d05a", // bright green
-          "#2dd4bf", // aqua mint
-          "#10a2f5", // sky blue
-          "#5aa9ff", // cornflower
-          "#7c7cff", // periwinkle
-          "#a78bfa", // lavender
-          "#c084fc", // lilac purple
-          "#eb4888", // raspberry
-          "#f472b6", // pink pop
-          "#ff9de2"  // cotton candy
-        ];
-
-        function getRandomColor() {
-          return colors[Math.floor(Math.random() * colors.length)];
-        }
-
-        function setInitialLinkColors() {
-          document.querySelectorAll("a").forEach((el) => {
-            el.style.textDecorationColor = getRandomColor();
-          });
-        }
-
-        function setRandomColor(e) {
-          const el = e.currentTarget;
-          const color = getRandomColor();
-
-          if (el.tagName === "A") {
-            el.style.textDecorationColor = color;
-          } else {
-            el.style.color = color;
-          }
-        }
-
-        function setColorHoverListener() {
-          document.querySelectorAll("a, button").forEach((el) => {
-            el.addEventListener("mouseenter", setRandomColor);
-          });
-        }
-        function setHoverListeners() {
-          document.querySelectorAll("a, button").forEach((el) => {
-            el.addEventListener("mouseenter", setRandomColor);
-          });
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-          setInitialLinkColors();
-          setHoverListeners();
-        });
-  </script>
-</body>
+    <!-- Scripts-->
+    <script defer src="{% if jekyll.environment == 'production' %}/assets/js/bundle.min.js{% else %}/assets/js/bundle.js{% endif %}"></script>
+  </body>
 
 </html>
