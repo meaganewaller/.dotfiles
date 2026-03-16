@@ -156,7 +156,9 @@
     @apply border-l-2 border-black bg-black-5 px-5 py-3;
   }
 
-  ul, ol {
+  .prose ul, .prose ol,
+  article ul, article ol,
+  main > ul, main > ol {
     @apply flex flex-col gap-4 my-4;
   }
 }
