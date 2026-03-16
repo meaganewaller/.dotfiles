@@ -14,41 +14,35 @@ Build sortable list: "count|category"
 
 {% assign categories = categories | sort | reverse %}
 
-<ul class="flex flex-wrap items-center gap-4 lg:gap-6">
+<li>
+  <a
+    href="/archive/"
+    class="hover:text-primary dark:hover:text-primary_dark transition-colors
+    {% if current_url == 'archive' %}text-primary dark:text-primary_dark{% endif %}">
+    Posts
+  </a>
+</li>
 
-    <li>
-      <a
-        href="/archive/"
-        class="py-1 px-2 hover:text-primary dark:hover:text-primary_dark
-        {% if current_url == 'archive' %}text-primary dark:text-primary_dark{% endif %}">
-        Posts
-      </a>
-    </li>
+<li>
+  <a
+    href="/reviews/"
+    class="hover:text-primary dark:hover:text-primary_dark transition-colors
+    {% if current_url == 'reviews' %}text-primary dark:text-primary_dark{% endif %}">
+    Reviews
+  </a>
+</li>
 
-    <li>
-      <a
-        href="/reviews/"
-        class="py-1 px-2 hover:text-primary dark:hover:text-primary_dark
-        {% if current_url == 'reviews' %}text-primary dark:text-primary_dark{% endif %}">
-        Reviews
-      </a>
-    </li>
+{% for entry in categories limit:3 %}
+  {% assign category = entry | split: "|" | last %}
+  {% assign meta = site.data.meta[category] %}
+  {% assign label = meta.label | default: category | replace: "-", " " %}
 
-    {% for entry in categories limit:3 %}
-
-      {% assign category = entry | split: "|" | last %}
-      {% assign meta = site.data.meta[category] %}
-      {% assign label = meta.label | default: category | replace: "-", " " %}
-
-      <li>
-        <a
-          href="/{{ category }}/"
-          class="py-1 px-2 hover:text-primary dark:hover:text-primary_dark
-          {% if current_url == category %}text-primary dark:text-primary_dark{% endif %}">
-          {{ label }}
-        </a>
-      </li>
-
-    {% endfor %}
-
-  </ul>
+  <li>
+    <a
+      href="/{{ category }}/"
+      class="hover:text-primary dark:hover:text-primary_dark transition-colors
+      {% if current_url == category %}text-primary dark:text-primary_dark{% endif %}">
+      {{ label }}
+    </a>
+  </li>
+{% endfor %}
