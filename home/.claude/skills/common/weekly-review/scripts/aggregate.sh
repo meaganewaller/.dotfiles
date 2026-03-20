@@ -349,6 +349,7 @@ session_durations = []  # List of (session_id, project, duration_minutes, catego
 duration_categories = Counter()
 skills_invoked = Counter()  # Track skill usage
 context_compacts = []  # Track compaction events
+test_runs_by_session = defaultdict(list)  # Track test runs by session for stability analysis
 
 for e in events:
     et = e.get("event_type")
@@ -398,6 +399,13 @@ for e in events:
         test_results["_passed_count"] = test_results.get("_passed_count", 0) + passed_count
         test_results["_failed_count"] = test_results.get("_failed_count", 0) + failed_count
         test_results["_skipped_count"] = test_results.get("_skipped_count", 0) + skipped_count
+        # Track by session for stable session analysis (ADR-0009)
+        error_excerpt = payload.get("error_excerpt", "")
+        test_runs_by_session[session_id].append({
+            "result": r,
+            "error_excerpt": error_excerpt,
+            "is_sqlite_error": "SQLite3" in (error_excerpt or "")
+        })
 
     if et == "large_change":
         f = payload.get("file_path", "")
@@ -452,6 +460,45 @@ for jd in journal_decisions:
         if isinstance(p, str) and p.strip():
             principles[p.strip()] += 1
 
+# ============================================================================
+# Stable Session Metrics (ADR-0009)
+# ============================================================================
+# Classify sessions by stability pattern:
+# - stable: >=70% pass rate (working code, occasional failures are flaky)
+# - dev-iteration: >=70% fail rate (expected TDD cycle)
+# - mixed: transitional states
+def classify_session(runs):
+    if not runs:
+        return "empty"
+    passed = sum(1 for r in runs if r["result"] == "passed")
+    total = len(runs)
+    pass_rate = passed / total
+    if pass_rate >= 0.7:
+        return "stable"
+    elif pass_rate <= 0.3:
+        return "dev-iteration"
+    return "mixed"
+
+session_classifications = {}
+stable_session_runs = []
+sqlite_errors = 0
+for sid, runs in test_runs_by_session.items():
+    classification = classify_session(runs)
+    session_classifications[sid] = classification
+    # Count SQLite environmental errors
+    sqlite_errors += sum(1 for r in runs if r.get("is_sqlite_error"))
+    # Collect runs from stable sessions for true stability calculation
+    if classification == "stable":
+        stable_session_runs.extend(runs)
+
+# Calculate metrics
+stable_session_passed = sum(1 for r in stable_session_runs if r["result"] == "passed")
+stable_session_total = len(stable_session_runs)
+stable_session_stability = (stable_session_passed / stable_session_total) if stable_session_total else None
+
+session_pattern_counts = Counter(session_classifications.values())
+
+# Original (raw) metrics for comparison
 total_tests = test_results.get("passed", 0) + test_results.get("failed", 0)
 pass_tests = test_results.get("passed", 0)
 test_stability_rate = (pass_tests / total_tests) if total_tests else None
@@ -500,8 +547,21 @@ summary = {
     },
     "derived_metrics": {
         "failure_rate": round(failure_rate, 4),
-        "test_stability_rate": round(test_stability_rate, 4) if test_stability_rate is not None else None,
-        "test_runs_passed": pass_tests,
+        # ADR-0009: Stable session stability is the primary metric
+        "test_stability": {
+            "stable_session_rate": round(stable_session_stability, 4) if stable_session_stability is not None else None,
+            "stable_session_runs": stable_session_total,
+            "stable_session_passed": stable_session_passed,
+            "raw_rate": round(test_stability_rate, 4) if test_stability_rate is not None else None,
+            "raw_runs": total_tests,
+            "raw_passed": pass_tests,
+            "sqlite_environmental_errors": sqlite_errors,
+            "session_patterns": {
+                "stable": session_pattern_counts.get("stable", 0),
+                "dev_iteration": session_pattern_counts.get("dev-iteration", 0),
+                "mixed": session_pattern_counts.get("mixed", 0)
+            }
+        },
         "test_counts": {
             "passed": detailed_passed,
             "failed": detailed_failed,

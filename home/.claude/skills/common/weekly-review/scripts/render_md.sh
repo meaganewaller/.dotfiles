@@ -25,10 +25,19 @@ TRADEOFFS=$(jq -r '.totals.decisions_documented // .counts.tradeoff_events // 0'
 LARGE=$(jq -r '.totals.large_changes // .counts.large_change_events // 0' "$SUMMARY_JSON")
 REVERSALS=$(jq -r '.totals.reversals // .counts.reversal_events // 0' "$SUMMARY_JSON")
 DEPS=$(jq -r '.totals.dependency_changes // .counts.dependency_change_events // 0' "$SUMMARY_JSON")
-TESTS_TOTAL=$(jq -r '.totals.test_runs // .counts.test_runs_total // 0' "$SUMMARY_JSON")
-TESTS_PASSED=$(jq -r '.derived_metrics.test_runs_passed // .counts.test_runs_passed // 0' "$SUMMARY_JSON")
-TEST_RATE=$(jq -r '.derived_metrics.test_stability_rate // .counts.test_stability_rate // "N/A"' "$SUMMARY_JSON")
 FAILURE_RATE=$(jq -r '.derived_metrics.failure_rate // 0' "$SUMMARY_JSON")
+
+# ADR-0009: Stable session metrics (primary) with fallback to raw metrics
+STABLE_SESSION_RATE=$(jq -r '.derived_metrics.test_stability.stable_session_rate // .derived_metrics.test_stability_rate // "N/A"' "$SUMMARY_JSON")
+STABLE_SESSION_RUNS=$(jq -r '.derived_metrics.test_stability.stable_session_runs // 0' "$SUMMARY_JSON")
+STABLE_SESSION_PASSED=$(jq -r '.derived_metrics.test_stability.stable_session_passed // 0' "$SUMMARY_JSON")
+RAW_TEST_RATE=$(jq -r '.derived_metrics.test_stability.raw_rate // .derived_metrics.test_stability_rate // "N/A"' "$SUMMARY_JSON")
+RAW_TEST_PASSED=$(jq -r '.derived_metrics.test_stability.raw_passed // .derived_metrics.test_runs_passed // 0' "$SUMMARY_JSON")
+RAW_TEST_RUNS=$(jq -r '.derived_metrics.test_stability.raw_runs // .totals.test_runs // 0' "$SUMMARY_JSON")
+SQLITE_ERRORS=$(jq -r '.derived_metrics.test_stability.sqlite_environmental_errors // 0' "$SUMMARY_JSON")
+STABLE_SESSIONS=$(jq -r '.derived_metrics.test_stability.session_patterns.stable // 0' "$SUMMARY_JSON")
+DEV_ITERATION_SESSIONS=$(jq -r '.derived_metrics.test_stability.session_patterns.dev_iteration // 0' "$SUMMARY_JSON")
+MIXED_SESSIONS=$(jq -r '.derived_metrics.test_stability.session_patterns.mixed // 0' "$SUMMARY_JSON")
 
 # Format failure rate as percentage
 if [[ "$FAILURE_RATE" != "null" && "$FAILURE_RATE" != "N/A" ]]; then
@@ -37,11 +46,17 @@ else
   FAILURE_PCT="0"
 fi
 
-# Format test rate as percentage
-if [[ "$TEST_RATE" != "null" && "$TEST_RATE" != "N/A" ]]; then
-  TEST_PCT=$(echo "scale=1; $TEST_RATE * 100" | bc 2>/dev/null || echo "N/A")
+# Format test rates as percentages (one decimal place)
+if [[ "$STABLE_SESSION_RATE" != "null" && "$STABLE_SESSION_RATE" != "N/A" ]]; then
+  STABLE_TEST_PCT=$(printf "%.1f" "$(echo "$STABLE_SESSION_RATE * 100" | bc)" 2>/dev/null || echo "N/A")
 else
-  TEST_PCT="N/A"
+  STABLE_TEST_PCT="N/A"
+fi
+
+if [[ "$RAW_TEST_RATE" != "null" && "$RAW_TEST_RATE" != "N/A" ]]; then
+  RAW_TEST_PCT=$(printf "%.1f" "$(echo "$RAW_TEST_RATE * 100" | bc)" 2>/dev/null || echo "N/A")
+else
+  RAW_TEST_PCT="N/A"
 fi
 
 {
@@ -70,7 +85,18 @@ fi
   echo "| Large changes | $LARGE |"
   echo "| Reversals | $REVERSALS |"
   echo "| Dependency changes | $DEPS |"
-  echo "| Test runs | $TESTS_PASSED / $TESTS_TOTAL passed ($TEST_PCT%) |"
+  echo
+  echo "### Test Stability (ADR-0009)"
+  echo
+  echo "| Metric | Value |"
+  echo "|--------|-------|"
+  echo "| **Stable session stability** | $STABLE_SESSION_PASSED / $STABLE_SESSION_RUNS ($STABLE_TEST_PCT%) |"
+  echo "| Raw stability (all runs) | $RAW_TEST_PASSED / $RAW_TEST_RUNS ($RAW_TEST_PCT%) |"
+  echo "| SQLite environmental errors | $SQLITE_ERRORS |"
+  echo "| Session patterns | stable: $STABLE_SESSIONS, dev-iteration: $DEV_ITERATION_SESSIONS, mixed: $MIXED_SESSIONS |"
+  echo
+  echo "> **Note:** Stable session stability excludes expected dev-iteration failures (TDD cycle)."
+  echo "> See [ADR-0009](../architecture/0009-test-stability-analysis.md) for methodology."
   echo
   echo "### Per-Project Breakdown"
   echo
