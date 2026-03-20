@@ -21,6 +21,7 @@ An ADR captures a significant technical decision along with its context and cons
 | [0007](0007-template-context-pattern.md) | TemplateContext Pattern for Testable ERB | Accepted | 2026-03-05 |
 | [0008](0008-chunked-operation-pattern.md) | Chunked Operation Pattern | Accepted | 2026-03-05 |
 | [0009](0009-test-stability-analysis.md) | Test Stability Analysis | Accepted | 2026-03-20 |
+| [0010](0010-preflight-size-estimation.md) | Pre-flight Size Estimation | Accepted | 2026-03-20 |
 
 ## Status Definitions
 

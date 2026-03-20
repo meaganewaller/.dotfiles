@@ -381,6 +381,185 @@ file_line_count() {
   [[ -f "$path" ]] && wc -l < "$path" 2>/dev/null | tr -d ' ' || echo "0"
 }
 
+# ============================================================================
+# PRE-FLIGHT SIZE ESTIMATION (ADR-0008)
+# ============================================================================
+
+# Comprehensive pre-flight size estimate for a file
+# Returns JSON with size info, recommendations, and block status
+# Usage: size_estimate "/path/to/file"
+# Output: JSON object with size_kb, lines, file_type, should_block, recommendation
+size_estimate() {
+  local path="$1"
+  local size_kb=0 lines=0 file_type="unknown" should_block="false"
+  local recommendation="" block_reason="" chunk_suggestion=""
+
+  # Check if file exists
+  if [[ ! -f "$path" ]]; then
+    jq -n '{exists: false, should_block: false, recommendation: "File does not exist"}'
+    return 0
+  fi
+
+  # Get file size in KB
+  size_kb=$(( $(stat -f%z "$path" 2>/dev/null || stat -c%s "$path" 2>/dev/null || echo 0) / 1024 ))
+
+  # Get line count
+  lines=$(wc -l < "$path" 2>/dev/null | tr -d ' ' || echo 0)
+
+  # Determine file type and blocking rules
+  case "$path" in
+    # HARD BLOCK: Session logs - these always cause problems
+    *.claude/projects/*.jsonl)
+      file_type="session-log"
+      should_block="true"
+      block_reason="Session logs are blocked - they always exceed context limits"
+      recommendation="Use: grep 'pattern' \"$path\" | tail -20"
+      ;;
+
+    # HARD BLOCK: Very large log files (>10MB)
+    *.log|*.jsonl)
+      file_type="log-file"
+      if (( size_kb > 10240 )); then
+        should_block="true"
+        block_reason="Log file exceeds 10MB"
+        recommendation="Use: tail -200 \"$path\" or grep 'pattern' \"$path\" | tail -50"
+      elif (( size_kb > 256 )); then
+        recommendation="Large log - use tail: tail -100 \"$path\" | jq '.'"
+        chunk_suggestion="offset=\$((lines-100)) limit=100"
+      fi
+      ;;
+
+    # CSV files - read header first
+    *.csv)
+      file_type="csv"
+      if (( lines > 1000 )); then
+        recommendation="Read header first (limit=1), then chunk data rows"
+        chunk_suggestion="offset=2 limit=500"
+      fi
+      ;;
+
+    # Database dumps - use grep to locate sections
+    *.sql|*dump*|*.bak)
+      file_type="database-dump"
+      if (( size_kb > 256 )); then
+        recommendation="Use grep to find specific tables: grep -n 'CREATE TABLE' \"$path\""
+      fi
+      ;;
+
+    # Source code - use Grep to find functions first
+    *.rb|*.py|*.ts|*.js|*.go|*.rs|*.java|*.c|*.cpp|*.h)
+      file_type="source-code"
+      if (( lines > 1000 )); then
+        recommendation="Use Grep to find specific functions/classes, then Read with offset/limit"
+        chunk_suggestion="offset=1 limit=500"
+      fi
+      ;;
+
+    # Markdown/text - chunk if large
+    *.md|*.txt|*.rst)
+      file_type="text"
+      if (( lines > 1000 )); then
+        recommendation="Read in chunks of 500 lines"
+        chunk_suggestion="offset=1 limit=500"
+      fi
+      ;;
+
+    # Default handling
+    *)
+      file_type="other"
+      if (( size_kb > 256 || lines > 1000 )); then
+        recommendation="Large file - read with offset/limit parameters"
+        chunk_suggestion="offset=1 limit=500"
+      fi
+      ;;
+  esac
+
+  # Calculate chunk parameters if file is large
+  local num_chunks=1 chunk_size=500
+  if (( lines > 500 )); then
+    chunk_size=500
+    num_chunks=$(( (lines + chunk_size - 1) / chunk_size ))
+  fi
+
+  # Output JSON result
+  jq -n \
+    --arg path "$path" \
+    --argjson size_kb "$size_kb" \
+    --argjson lines "$lines" \
+    --arg file_type "$file_type" \
+    --argjson should_block "$should_block" \
+    --arg block_reason "$block_reason" \
+    --arg recommendation "$recommendation" \
+    --arg chunk_suggestion "$chunk_suggestion" \
+    --argjson num_chunks "$num_chunks" \
+    --argjson chunk_size "$chunk_size" \
+    '{
+      exists: true,
+      path: $path,
+      size_kb: $size_kb,
+      lines: $lines,
+      file_type: $file_type,
+      should_block: $should_block,
+      block_reason: (if $block_reason == "" then null else $block_reason end),
+      recommendation: (if $recommendation == "" then null else $recommendation end),
+      chunk_suggestion: (if $chunk_suggestion == "" then null else $chunk_suggestion end),
+      chunks: {
+        recommended_size: $chunk_size,
+        total_chunks: $num_chunks
+      }
+    }'
+}
+
+# Quick check if a file should be blocked from full read
+# Usage: if should_block_read "/path/to/file"; then echo "blocked"; fi
+should_block_read() {
+  local path="$1"
+
+  # Session logs - always block
+  if [[ "$path" =~ \.claude/projects/.*\.jsonl$ ]]; then
+    return 0  # true - should block
+  fi
+
+  # Check size thresholds
+  local size_kb
+  size_kb=$(( $(stat -f%z "$path" 2>/dev/null || stat -c%s "$path" 2>/dev/null || echo 0) / 1024 ))
+
+  # Large log files (>10MB) - block
+  if [[ "$path" =~ \.(log|jsonl)$ ]] && (( size_kb > 10240 )); then
+    return 0  # true - should block
+  fi
+
+  return 1  # false - ok to read
+}
+
+# Get a safe read recommendation for a file
+# Usage: safe_read_cmd "/path/to/file"
+# Returns: A command string that safely reads the file
+safe_read_cmd() {
+  local path="$1"
+  local lines
+  lines=$(wc -l < "$path" 2>/dev/null | tr -d ' ' || echo 0)
+
+  case "$path" in
+    *.claude/projects/*.jsonl)
+      echo "tail -50 \"$path\" | jq '.'"
+      ;;
+    *.jsonl)
+      echo "tail -100 \"$path\" | jq '.'"
+      ;;
+    *.log)
+      echo "tail -200 \"$path\""
+      ;;
+    *)
+      if (( lines > 1000 )); then
+        echo "Read with offset=1 limit=500"
+      else
+        echo "Read \"$path\""
+      fi
+      ;;
+  esac
+}
+
 # Read file in chunks, calling processor for each chunk
 # Usage: read_file_chunked "/path/to/file" 1000 process_chunk_func
 # Processor receives: chunk_content, chunk_number, start_line, end_line

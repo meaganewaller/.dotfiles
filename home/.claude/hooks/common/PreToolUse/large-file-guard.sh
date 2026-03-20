@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# PreToolUse (Read): warn when reading large files without offset/limit
-# Provides specific chunked reading recommendations based on file type
+# PreToolUse (Read): Pre-flight size estimation and blocking for large files
+# Implements ADR-0008: Chunked Operation Pattern
+#
+# Features:
+# - Hard blocks for session logs and very large files (>10MB)
+# - Advisory warnings with chunked reading recommendations
+# - Telemetry for tracking block/warn events
 set -euo pipefail
 
 INPUT=$(cat)
@@ -17,130 +22,136 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
 [[ -z "$FILE_PATH" ]] && exit 0
 [[ ! -f "$FILE_PATH" ]] && exit 0
 
-# Check if offset/limit provided
+# Check if offset/limit provided - if so, they're reading safely
 OFFSET=$(echo "$INPUT" | jq -r '.tool_input.offset // ""')
 LIMIT=$(echo "$INPUT" | jq -r '.tool_input.limit // ""')
-
-# If offset or limit provided, they know what they're doing
 [[ -n "$OFFSET" || -n "$LIMIT" ]] && exit 0
 
-# Check file size (lines and bytes)
-LINE_COUNT=$(file_line_count "$FILE_PATH")
-FILE_SIZE_KB=$(( $(stat -f%z "$FILE_PATH" 2>/dev/null || stat -c%s "$FILE_PATH" 2>/dev/null || echo 0) / 1024 ))
-THRESHOLD="${RESOURCE_LARGE_FILE_THRESHOLD:-1000}"
-SIZE_THRESHOLD_KB="${RESOURCE_LARGE_FILE_SIZE_KB:-256}"
+# ============================================================================
+# PRE-FLIGHT SIZE ESTIMATION
+# ============================================================================
 
-# Check both line count and file size
-if (( LINE_COUNT > THRESHOLD )) || (( FILE_SIZE_KB > SIZE_THRESHOLD_KB )); then
-  # ==========================================================================
-  # BLOCKING RULES (ADR-0008: Chunked Operation Pattern)
-  # These operations are BLOCKED, not warned - they always cause resource-limit errors
-  # ==========================================================================
+# Get comprehensive size estimate
+ESTIMATE=$(size_estimate "$FILE_PATH")
+SIZE_KB=$(echo "$ESTIMATE" | jq -r '.size_kb')
+LINES=$(echo "$ESTIMATE" | jq -r '.lines')
+FILE_TYPE=$(echo "$ESTIMATE" | jq -r '.file_type')
+SHOULD_BLOCK=$(echo "$ESTIMATE" | jq -r '.should_block')
+BLOCK_REASON=$(echo "$ESTIMATE" | jq -r '.block_reason // empty')
+RECOMMENDATION=$(echo "$ESTIMATE" | jq -r '.recommendation // empty')
+CHUNK_SUGGESTION=$(echo "$ESTIMATE" | jq -r '.chunk_suggestion // empty')
+NUM_CHUNKS=$(echo "$ESTIMATE" | jq -r '.chunks.total_chunks')
+CHUNK_SIZE=$(echo "$ESTIMATE" | jq -r '.chunks.recommended_size')
 
-  # Session logs should be BLOCKED - they're never useful to read in full
-  # These cause 99% of resource-limit errors (672 errors from session logs)
-  if [[ "$FILE_PATH" =~ \.claude/projects/.*\.jsonl$ ]]; then
-    jq -n \
-      --arg size_kb "$FILE_SIZE_KB" \
-      --arg path "$FILE_PATH" \
-      '{
-        "error": "Session log blocked (\($size_kb)KB). Use grep/tail instead.",
-        "suggestion": "grep \"event_type\" \"\($path)\" | tail -20",
-        "ok": false
-      }'
-    exit 0
-  fi
+# Thresholds (can be overridden via environment)
+WARN_THRESHOLD_LINES="${RESOURCE_LARGE_FILE_THRESHOLD:-1000}"
+WARN_THRESHOLD_KB="${RESOURCE_LARGE_FILE_SIZE_KB:-256}"
 
-  # Large log files (>10MB) should be BLOCKED - tail is always better
-  LOG_BLOCK_THRESHOLD_KB="${RESOURCE_LOG_BLOCK_KB:-10240}"  # 10MB default
-  if [[ "$FILE_PATH" =~ \.(log|jsonl)$ ]] && (( FILE_SIZE_KB > LOG_BLOCK_THRESHOLD_KB )); then
-    jq -n \
-      --arg size_mb "$((FILE_SIZE_KB / 1024))" \
-      --arg path "$FILE_PATH" \
-      '{
-        "error": "Log file too large (\($size_mb)MB). Use tail to read recent entries.",
-        "suggestion": "tail -200 \"\($path)\" or grep -i \"pattern\" \"\($path)\" | tail -50",
-        "ok": false
-      }'
-    exit 0
-  fi
+# ============================================================================
+# HARD BLOCKS (ADR-0008)
+# ============================================================================
 
-  # Get chunk recommendations
-  total_lines="" num_chunks="" chunk_size=""
-  eval "$(get_chunk_params "$FILE_PATH")"
+if [[ "$SHOULD_BLOCK" == "true" ]]; then
+  # Emit telemetry for tracking
+  emit_event "preflight_block" "{
+    \"file_path\": \"$FILE_PATH\",
+    \"file_type\": \"$FILE_TYPE\",
+    \"size_kb\": $SIZE_KB,
+    \"lines\": $LINES,
+    \"reason\": \"$BLOCK_REASON\"
+  }" 2>/dev/null || true
 
-  # Determine file type and provide specific chunked reading strategy
-  STRATEGY=""
-  EXAMPLE=""
+  # Get safe alternative command
+  SAFE_CMD=$(safe_read_cmd "$FILE_PATH")
 
-  case "$FILE_PATH" in
-    *dev-os-events.jsonl|*friction-log.jsonl|*impact-log.jsonl)
-      STRATEGY="Telemetry log - filter by event_type instead of reading entire file."
-      EXAMPLE="Use Bash: grep '\"event_type\":\"test_run\"' \"$FILE_PATH\" | tail -20 | jq -s '.'"
-      ;;
-    *.jsonl)
-      STRATEGY="JSONL files are append-only logs. Read from the end for recent entries."
-      EXAMPLE="Use Bash: tail -100 \"$FILE_PATH\" | jq '.'"
-      ;;
-    *.log)
-      STRATEGY="Log file - read recent entries or grep for specific patterns."
-      EXAMPLE="Use Bash: tail -200 \"$FILE_PATH\" or grep -i 'error' \"$FILE_PATH\" | tail -50"
-      ;;
-    *.csv)
-      STRATEGY="CSV file - read header first, then specific row ranges."
-      EXAMPLE="Read with limit=1 for header, then offset=2 limit=$chunk_size for data chunks."
-      ;;
-    *.sql|*dump*|*.bak)
-      STRATEGY="Database dump - use grep to locate specific tables/sections."
-      EXAMPLE="Use Bash: grep -n 'CREATE TABLE' \"$FILE_PATH\" to find table locations."
-      ;;
-    *.md|*.txt)
-      STRATEGY="Text file - read in chunks or search for specific sections."
-      EXAMPLE="Read with offset=1 limit=$chunk_size, then offset=$((chunk_size + 1)) limit=$chunk_size"
-      ;;
-    *.rb|*.py|*.ts|*.js|*.go|*.rs)
-      STRATEGY="Source file - use Grep to find specific functions/classes first."
-      EXAMPLE="Use Grep to find 'def method_name' or 'class ClassName', then Read with offset/limit."
-      ;;
-    *)
-      STRATEGY="Large file - read in chunks of $chunk_size lines."
-      EXAMPLE="Read with offset=1 limit=$chunk_size for first chunk."
-      ;;
-  esac
+  jq -n \
+    --arg size_kb "$SIZE_KB" \
+    --arg reason "$BLOCK_REASON" \
+    --arg safe_cmd "$SAFE_CMD" \
+    '{
+      "error": "BLOCKED: \($reason) (\($size_kb)KB)",
+      "suggestion": $safe_cmd,
+      "ok": false
+    }'
+  exit 0
+fi
+
+# ============================================================================
+# ADVISORY WARNINGS (large but not blocked)
+# ============================================================================
+
+if (( LINES > WARN_THRESHOLD_LINES )) || (( SIZE_KB > WARN_THRESHOLD_KB )); then
+  # Emit telemetry for tracking
+  emit_event "preflight_warn" "{
+    \"file_path\": \"$FILE_PATH\",
+    \"file_type\": \"$FILE_TYPE\",
+    \"size_kb\": $SIZE_KB,
+    \"lines\": $LINES
+  }" 2>/dev/null || true
 
   # Build chunked reading guide
   CHUNK_GUIDE=""
-  if (( num_chunks <= 5 )); then
-    # Show all chunk ranges for small number of chunks
-    CHUNK_GUIDE="Chunk ranges:"
-    for ((i=1; i<=num_chunks; i++)); do
-      start=$(( (i-1) * chunk_size + 1 ))
-      end=$(( i * chunk_size ))
-      (( end > total_lines )) && end=$total_lines
+  if (( NUM_CHUNKS <= 5 )); then
+    CHUNK_GUIDE="**Chunk ranges:**"
+    for ((i=1; i<=NUM_CHUNKS; i++)); do
+      start=$(( (i-1) * CHUNK_SIZE + 1 ))
+      end=$(( i * CHUNK_SIZE ))
+      (( end > LINES )) && end=$LINES
       CHUNK_GUIDE="$CHUNK_GUIDE
-  - Chunk $i: offset=$start limit=$((end - start + 1))"
+- Chunk $i: \`offset=$start limit=$((end - start + 1))\`"
     done
   else
-    # Show first, middle, and last chunk for large files
-    mid=$((num_chunks / 2))
-    CHUNK_GUIDE="Sample chunk ranges (of $num_chunks total):
-  - First: offset=1 limit=$chunk_size
-  - Middle: offset=$(( (mid-1) * chunk_size + 1 )) limit=$chunk_size
-  - Last: offset=$(( (num_chunks-1) * chunk_size + 1 )) limit=$chunk_size"
+    mid=$((NUM_CHUNKS / 2))
+    CHUNK_GUIDE="**Sample chunk ranges** (of $NUM_CHUNKS total):
+- First: \`offset=1 limit=$CHUNK_SIZE\`
+- Middle: \`offset=$(( (mid-1) * CHUNK_SIZE + 1 )) limit=$CHUNK_SIZE\`
+- Last: \`offset=$(( (NUM_CHUNKS-1) * CHUNK_SIZE + 1 )) limit=$CHUNK_SIZE\`"
   fi
 
+  # File-type specific strategy
+  STRATEGY=""
+  case "$FILE_TYPE" in
+    session-log)
+      STRATEGY="**Strategy:** Session logs should use grep/tail, not full read."
+      ;;
+    log-file)
+      STRATEGY="**Strategy:** Log files are append-only. Read from the end with \`tail\`."
+      ;;
+    csv)
+      STRATEGY="**Strategy:** Read header first (\`limit=1\`), then chunk data rows."
+      ;;
+    database-dump)
+      STRATEGY="**Strategy:** Use \`grep -n 'CREATE TABLE'\` to find table locations."
+      ;;
+    source-code)
+      STRATEGY="**Strategy:** Use Grep to find functions/classes first, then Read with offset/limit."
+      ;;
+    text)
+      STRATEGY="**Strategy:** Read in chunks of $CHUNK_SIZE lines."
+      ;;
+    *)
+      STRATEGY="**Strategy:** Read with offset/limit parameters."
+      ;;
+  esac
+
+  # Build recommendation
+  REC_TEXT=""
+  [[ -n "$RECOMMENDATION" ]] && REC_TEXT="
+**Recommended:** $RECOMMENDATION"
+  [[ -n "$CHUNK_SUGGESTION" ]] && REC_TEXT="$REC_TEXT
+**Quick fix:** \`$CHUNK_SUGGESTION\`"
+
   jq -n \
-    --arg lines "$LINE_COUNT" \
-    --arg size_kb "$FILE_SIZE_KB" \
-    --arg chunks "$num_chunks" \
-    --arg chunk_size "$chunk_size" \
+    --arg lines "$LINES" \
+    --arg size_kb "$SIZE_KB" \
+    --arg file_type "$FILE_TYPE" \
     --arg strategy "$STRATEGY" \
-    --arg example "$EXAMPLE" \
+    --arg rec_text "$REC_TEXT" \
     --arg chunk_guide "$CHUNK_GUIDE" \
     '{
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        additionalContext: ("**Large file detected** (\($lines) lines, \($size_kb)KB)\n\n**Strategy:** \($strategy)\n\n**Example:** \($example)\n\n\($chunk_guide)")
+        additionalContext: ("# Large File Warning\n\n**Size:** \($lines) lines, \($size_kb)KB (\($file_type))\n\n\($strategy)\($rec_text)\n\n\($chunk_guide)")
       }
     }'
 fi

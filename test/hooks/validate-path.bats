@@ -259,3 +259,73 @@ teardown() {
 @test "guard_log_size returns 0 for missing log" {
   guard_log_size "$TEST_TMPDIR/missing.log" 50
 }
+
+# ============================================================================
+# size_estimate (ADR-0008)
+# ============================================================================
+
+@test "size_estimate returns JSON for existing file" {
+  echo -e "line1\nline2\nline3" > "$TEST_TMPDIR/test.txt"
+  result=$(size_estimate "$TEST_TMPDIR/test.txt")
+  [[ $(echo "$result" | jq -r '.exists') == "true" ]]
+  [[ $(echo "$result" | jq -r '.lines') == "3" ]]
+}
+
+@test "size_estimate returns exists=false for missing file" {
+  result=$(size_estimate "$TEST_TMPDIR/nonexistent.txt")
+  [[ $(echo "$result" | jq -r '.exists') == "false" ]]
+}
+
+@test "size_estimate identifies session logs for blocking" {
+  mkdir -p "$TEST_TMPDIR/.claude/projects"
+  echo '{}' > "$TEST_TMPDIR/.claude/projects/test-session.jsonl"
+  result=$(size_estimate "$TEST_TMPDIR/.claude/projects/test-session.jsonl")
+  [[ $(echo "$result" | jq -r '.file_type') == "session-log" ]]
+  [[ $(echo "$result" | jq -r '.should_block') == "true" ]]
+}
+
+@test "size_estimate identifies log files" {
+  echo "log entry" > "$TEST_TMPDIR/app.log"
+  result=$(size_estimate "$TEST_TMPDIR/app.log")
+  [[ $(echo "$result" | jq -r '.file_type') == "log-file" ]]
+}
+
+@test "size_estimate calculates chunk parameters" {
+  # Create a file with 1500 lines
+  seq 1 1500 > "$TEST_TMPDIR/large.txt"
+  result=$(size_estimate "$TEST_TMPDIR/large.txt")
+  [[ $(echo "$result" | jq -r '.chunks.total_chunks') == "3" ]]
+  [[ $(echo "$result" | jq -r '.chunks.recommended_size') == "500" ]]
+}
+
+# ============================================================================
+# should_block_read
+# ============================================================================
+
+@test "should_block_read returns true for session logs" {
+  mkdir -p "$TEST_TMPDIR/.claude/projects"
+  echo '{}' > "$TEST_TMPDIR/.claude/projects/session.jsonl"
+  should_block_read "$TEST_TMPDIR/.claude/projects/session.jsonl"
+}
+
+@test "should_block_read returns false for normal files" {
+  echo "content" > "$TEST_TMPDIR/normal.txt"
+  ! should_block_read "$TEST_TMPDIR/normal.txt"
+}
+
+# ============================================================================
+# safe_read_cmd
+# ============================================================================
+
+@test "safe_read_cmd returns tail for session logs" {
+  mkdir -p "$TEST_TMPDIR/.claude/projects"
+  echo '{}' > "$TEST_TMPDIR/.claude/projects/session.jsonl"
+  result=$(safe_read_cmd "$TEST_TMPDIR/.claude/projects/session.jsonl")
+  [[ "$result" == *"tail"* ]]
+}
+
+@test "safe_read_cmd returns tail for jsonl files" {
+  echo '{}' > "$TEST_TMPDIR/data.jsonl"
+  result=$(safe_read_cmd "$TEST_TMPDIR/data.jsonl")
+  [[ "$result" == *"tail"* ]]
+}
