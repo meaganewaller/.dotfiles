@@ -51,7 +51,7 @@ When `git commit` stages >50 lines of changes:
 When Claude Code edits a file with >250 lines changed:
 
 1. `large-diff-escalator.sh` (PostToolUse) creates a pending marker and displays an advisory message encouraging inline tradeoff discussion
-2. `tradeoff-context-prep.sh` (Stop) prepares context about pending markers for the agent
+2. `tradeoff-auto-capture.sh` (Stop) prepares context about pending markers for the agent
 3. An agent-type Stop hook analyzes the session's `last_assistant_message` for tradeoff reasoning
 4. If meaningful reasoning is found, the agent:
    - Writes a markdown file to `~/.claude/decision-journal/` (version controlled)
@@ -180,6 +180,6 @@ Block session stop until tradeoffs are manually documented.
 - `home/.local/bin/tradeoff-gate` - Git pre-commit hook
 - `home/.local/bin/tradeoff` - Standalone CLI
 - `home/.claude/hooks/PostToolUse/large-diff-escalator.sh` - Creates pending markers, displays advisory
-- `home/.claude/hooks/Stop/tradeoff-context-prep.sh` - Prepares context for agent
+- `home/.claude/hooks/Stop/tradeoff-auto-capture.sh` - Prepares context for agent
 - `home/.claude/settings/common/hooks.jsonc` - Agent hook definition for auto-capture
 - Blog post: `home/.claude/docs/blog-drafts/tradeoff-gate-pattern.md`

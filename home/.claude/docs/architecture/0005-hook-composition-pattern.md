@@ -53,7 +53,7 @@ home/.claude/hooks/
 │   ├── SessionEnd/
 │   │   └── session-end-tracker.sh
 │   ├── Stop/
-│   │   └── tradeoff-context-prep.sh
+│   │   └── tradeoff-auto-capture.sh
 │   └── PreCompact/
 │       └── context-compact-tracker.sh
 │
@@ -148,7 +148,7 @@ Hooks are wired in `$DOTFILES_DIR/home/.claude/settings/common/hooks.jsonc` (get
     "Stop": [
       // Shell hook for context prep
       {
-        "command": "~/.claude/hooks/Stop/tradeoff-context-prep.sh"
+        "command": "~/.claude/hooks/Stop/tradeoff-auto-capture.sh"
       },
       // Agent hook for extraction
       {
