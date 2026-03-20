@@ -23,15 +23,15 @@ Use this checklist to verify the aggregate.sh script works correctly.
 **Expected output:**
 ```
 ✓ Wrote local summary: ~/.claude/reviews/week-of-YYYY-MM-DD/summary.json
-✓ Published summary to Jekyll: ~/github/meaganewaller/.dotfiles/weekly-reviews/_data/dev_os/YYYY-MM-DD-summary.json
-✓ Created post: ~/github/meaganewaller/.dotfiles/weekly-reviews/_posts/YYYY-MM-DD-weekly-review.md
+✓ Published summary to Jekyll: ~/github/meaganewaller/weekly-reviews/_data/dev_os/YYYY-MM-DD-summary.json
+✓ Created post: ~/github/meaganewaller/weekly-reviews/_reviews/YYYY-MM-DD-weekly-review.md
 ~/.claude/reviews/week-of-YYYY-MM-DD
 ```
 
 **Verify:**
 - [ ] Local summary exists: `ls ~/.claude/reviews/week-of-*/summary.json`
-- [ ] Jekyll summary exists: `ls ~/github/meaganewaller/.dotfiles/weekly-reviews/_data/dev_os/*-summary.json`
-- [ ] Jekyll post exists: `ls ~/github/meaganewaller/.dotfiles/weekly-reviews/_posts/*-weekly-review.md`
+- [ ] Jekyll summary exists: `ls ~/github/meaganewaller/weekly-reviews/_data/dev_os/*-summary.json`
+- [ ] Jekyll post exists: `ls ~/github/meaganewaller/weekly-reviews/_reviews/*-weekly-review.md`
 
 ---
 
@@ -172,7 +172,7 @@ jq '.derived_metrics' ~/.claude/reviews/week-of-*/summary.json
 ## Test 9: Jekyll Post Format
 
 ```bash
-head -20 ~/github/meaganewaller/.dotfiles/weekly-reviews/_posts/*-weekly-review.md
+head -20 ~/github/meaganewaller/weekly-reviews/_reviews/*-weekly-review.md
 ```
 
 **Expected frontmatter:**
@@ -216,8 +216,8 @@ To reset for fresh testing:
 rm -rf ~/.claude/reviews/week-of-$(date -u +%Y-%m-%d -d 'last monday')
 
 # Remove Jekyll artifacts (careful!)
-rm ~/github/meaganewaller/.dotfiles/weekly-reviews/_data/dev_os/*-summary.json
-rm ~/github/meaganewaller/.dotfiles/weekly-reviews/_posts/*-weekly-review.md
+rm ~/github/meaganewaller/weekly-reviews/_data/dev_os/*-summary.json
+rm ~/github/meaganewaller/weekly-reviews/_posts/*-weekly-review.md
 ```
 
 ---
