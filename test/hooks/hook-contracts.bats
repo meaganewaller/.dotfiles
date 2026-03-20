@@ -202,3 +202,60 @@ EOF
   output=$("$HOOKS_DIR/SessionStart/session-context-injector.sh" 2>/dev/null)
   echo "$output" | jq -e '.hookSpecificOutput.hookEventName' >/dev/null
 }
+
+# ============================================================================
+# Resource Limit Defense Tests (ADR-0008)
+# ============================================================================
+
+@test "PreToolUse/large-file-guard.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/large-file-guard.sh"
+}
+
+@test "PostToolUse/resource-limit-catcher.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PostToolUse/resource-limit-catcher.sh"
+}
+
+@test "large-file-guard blocks session logs with hardened regex" {
+  # Create a fake session log to test pattern matching
+  mkdir -p "$TEST_TMPDIR/.claude/projects/test-project"
+  echo '{"test": true}' > "$TEST_TMPDIR/.claude/projects/test-project/session.jsonl"
+
+  input='{"tool_name": "Read", "tool_input": {"file_path": "'$TEST_TMPDIR'/.claude/projects/test-project/session.jsonl"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/large-file-guard.sh" 2>/dev/null)
+
+  # Should return blocking JSON with ok: false
+  echo "$output" | jq -e '.ok == false' >/dev/null
+  echo "$output" | jq -e '.error | contains("BLOCKED")' >/dev/null
+}
+
+@test "large-file-guard allows reads with offset/limit" {
+  # Create a test file
+  mkdir -p "$TEST_TMPDIR/test"
+  echo "line1" > "$TEST_TMPDIR/test/file.txt"
+
+  input='{"tool_name": "Read", "tool_input": {"file_path": "'$TEST_TMPDIR'/test/file.txt", "offset": 1, "limit": 10}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/large-file-guard.sh" 2>/dev/null)
+
+  # Should return empty (no blocking) for chunked reads
+  [[ -z "$output" ]]
+}
+
+@test "resource-limit-catcher detects size limit errors" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.jsonl"}, "tool_result": {"error": "File content (500KB) exceeds maximum allowed size (256KB)"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PostToolUse/resource-limit-catcher.sh" 2>/dev/null)
+
+  # Should return guidance JSON
+  echo "$output" | jq -e '.hookSpecificOutput.additionalContext | contains("Chunked Reading")' >/dev/null
+}
+
+@test "resource-limit-catcher provides session log specific guidance" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/home/.claude/projects/test/session.jsonl"}, "tool_result": {"error": "exceeds maximum"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PostToolUse/resource-limit-catcher.sh" 2>/dev/null)
+
+  # Should mention session log and provide tail/grep commands
+  echo "$output" | jq -e '.hookSpecificOutput.additionalContext | contains("Session Log Blocked")' >/dev/null
+}

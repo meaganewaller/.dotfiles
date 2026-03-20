@@ -62,6 +62,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/read-tracker.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/resource-limit-catcher.sh"
                     }
                 ]
             }

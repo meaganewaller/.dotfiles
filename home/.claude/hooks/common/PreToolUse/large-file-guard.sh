@@ -28,6 +28,27 @@ LIMIT=$(echo "$INPUT" | jq -r '.tool_input.limit // ""')
 [[ -n "$OFFSET" || -n "$LIMIT" ]] && exit 0
 
 # ============================================================================
+# HARDENED SESSION LOG BLOCK (defense-in-depth)
+# ============================================================================
+# Explicit regex check BEFORE size_estimate to catch edge cases
+if [[ "$FILE_PATH" =~ \.claude/projects/.*\.jsonl$ ]]; then
+  emit_event "preflight_block" "{
+    \"file_path\": \"$FILE_PATH\",
+    \"file_type\": \"session-log\",
+    \"reason\": \"hardened-regex-block\"
+  }" 2>/dev/null || true
+
+  jq -n \
+    --arg path "$FILE_PATH" \
+    '{
+      "error": "BLOCKED: Session logs cannot be read directly - they always exceed context limits",
+      "suggestion": "Use: tail -50 \"\($path)\" | jq \".\" OR grep \"pattern\" \"\($path)\" | tail -20",
+      "ok": false
+    }'
+  exit 0
+fi
+
+# ============================================================================
 # PRE-FLIGHT SIZE ESTIMATION
 # ============================================================================
 
