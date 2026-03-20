@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: " en-US" }}">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <title>{{ page.title }} - {{ site.title }}</title>
+  <link rel="stylesheet" href="{{ "/assets/css/styles.css" | relative_url }}">
+  <link rel="stylesheet" href="{{ "/assets/css/syntax-highlighting.css" | relative_url }}">
+</head>
+
+<body class="m-auto max-w-4xl p-10 font-mono bg-linear-to-r from-pink-100 via-indigo-100 to-sky-100">
+  <header class="mb-8 pb-4 border-b border-purple-300">
+    <nav class="flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <a href="{{ '/' | relative_url }}" class="text-lg font-bold text-pink-600 hover:text-pink-600">
+          {{ site.title }}
+        </a>
+        <div class="flex gap-4 text-sm">
+          <a href="{{ '/about' | relative_url }}" class="text-pink-600 hover:text-pink-800">About</a>
+          <a href="{{ '/how-it-works' | relative_url }}" class="text-pink-600 hover:text-pink-800">How It Works</a>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3 text-xs">
+        <a href="{{ '/data-capture' | relative_url }}" class="text-pink-500 hover:text-pink-700">Data Capture</a>
+        <span class="text-stone-300">|</span>
+        <a href="{{ '/friction-taxonomy' | relative_url }}" class="text-pink-500 hover:text-pink-700">Friction Taxonomy</a>
+        <span class="text-stone-300">|</span>
+        <a href="{{ '/review-pipeline' | relative_url }}" class="text-pink-500 hover:text-pink-700">Review Pipeline</a>
+        <span class="text-stone-300">|</span>
+        <a href="{{ '/hooks-and-cues' | relative_url }}" class="text-pink-500 hover:text-pink-700">Hooks & Cues</a>
+        <span class="text-stone-300">|</span>
+        <a href="{{ '/event-schema' | relative_url }}" class="text-pink-500 hover:text-pink-700">Event Schema</a>
+        <span class="text-stone-300">|</span>
+        <a href="{{ '/glossary' | relative_url }}" class="text-pink-500 hover:text-pink-700">Glossary</a>
+      </div>
+    </nav>
+  </header>
+  {{ content }}
+  {% include footer.html %}
+
+  <script>
+        let colors = [
+          "#ff3b8d", // hot pink
+          "#ff6ec7", // bubblegum pink
+          "#ff4fa3", // rose pink
+          "#ff8fab", // strawberry milk
+          "#ff5e5b", // coral red
+          "#ff7a45", // peachy coral
+          "#ffa552", // orange creamsicle
+          "#ffd166", // honey yellow
+          "#ffe066", // lemon candy
+          "#a3e635", // lime pop
+          "#24d05a", // bright green
+          "#2dd4bf", // aqua mint
+          "#10a2f5", // sky blue
+          "#5aa9ff", // cornflower
+          "#7c7cff", // periwinkle
+          "#a78bfa", // lavender
+          "#c084fc", // lilac purple
+          "#eb4888", // raspberry
+          "#f472b6", // pink pop
+          "#ff9de2"  // cotton candy
+        ];
+
+        function getRandomColor() {
+          return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        function setInitialLinkColors() {
+          document.querySelectorAll("a").forEach((el) => {
+            el.style.textDecorationColor = getRandomColor();
+          });
+        }
+
+        function setRandomColor(e) {
+          const el = e.currentTarget;
+          const color = getRandomColor();
+
+          if (el.tagName === "A") {
+            el.style.textDecorationColor = color;
+          } else {
+            el.style.color = color;
+          }
+        }
+
+        function setColorHoverListener() {
+          document.querySelectorAll("a, button").forEach((el) => {
+            el.addEventListener("mouseenter", setRandomColor);
+          });
+        }
+        function setHoverListeners() {
+          document.querySelectorAll("a, button").forEach((el) => {
+            el.addEventListener("mouseenter", setRandomColor);
+          });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+          setInitialLinkColors();
+          setHoverListeners();
+        });
+  </script>
+</body>
+
+</html>

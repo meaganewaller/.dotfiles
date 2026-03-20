@@ -1,0 +1,7 @@
+<h3 class="mt-4 text-center text-xl text-pink-500">View posts by tag</h3>
+
+<div class="mt-4 flex flex-wrap justify-center gap-5 ">
+  {% for tag in site.tags %}
+    {% include tag.html tag=tag.first %}
+  {% endfor %}
+</div>
