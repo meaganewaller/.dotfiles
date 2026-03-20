@@ -2,7 +2,8 @@
 title: The TemplateContext Pattern for Testable Rails Generators
 date: 2026-03-11
 layout: post
-tags: [ruby, rails, generators, testing, coverage, patterns]
+tags: [ruby, rails, generators, testing, coverage, patterns, simplecov]
+summary: ERB templates are a coverage blind spot—SimpleCov can't instrument runtime-compiled code. The TemplateContext pattern extracts conditional logic to a testable PORO, giving you real branch coverage on generator templates.
 ---
 
 # The TemplateContext Pattern: Getting Real Coverage from ERB Templates

@@ -2,7 +2,8 @@
 title: "Dev OS Week 3: Persistence, Principles, and Pacing"
 date: 2026-03-09
 layout: post
-tags: [claude-code, developer-tools, telemetry, decisions, productivity, hooks, skills]
+tags: [claude-code, developer-tools, telemetry, decisions, productivity, hooks, skills, weekly-review]
+summary: Week three of building Dev OS—45 commits across decision persistence, resource-limit enforcement, session duration monitoring, and principle reinforcement. The meta-pattern emerging is infrastructure for making good decisions stick.
 ---
 
 # Dev OS Week 3: Persistence, Principles, and Pacing

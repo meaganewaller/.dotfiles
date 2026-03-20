@@ -2,7 +2,8 @@
 title: The Tradeoff Gate Pattern
 date: 2026-03-02
 layout: post
-tags: [developer-tooling, decision-records, claude-code, workflow-automation, productivity]
+tags: [developer-tooling, decision-records, claude-code, workflow-automation, productivity, documentation]
+summary: Every large code change embeds decisions that are never written down. The Tradeoff Gate intercepts changes at commit time and session boundaries, prompting for documentation when context is freshest.
 ---
 
 # The Tradeoff Gate: Enforcing Decision Documentation at Commit Time

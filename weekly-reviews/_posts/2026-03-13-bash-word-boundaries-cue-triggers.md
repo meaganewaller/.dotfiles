@@ -2,7 +2,7 @@
 layout: post
 title: Why Your Bash Regex Word Boundaries Aren't Working
 date: 2026-03-13
-tags: []
+tags: [bash, regex, debugging, claude-code, dev-os, cues]
 summary: A debugging story about cue triggers and regex portability
 ---
 

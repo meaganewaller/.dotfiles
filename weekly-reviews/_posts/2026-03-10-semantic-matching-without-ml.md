@@ -2,7 +2,8 @@
 title: "Quick Tip: Semantic Matching Without ML (Just Gzip)"
 date: 2026-03-10
 layout: post
-tags: [claude-code, developer-tools, quick-tip, algorithms, text-matching]
+tags: [claude-code, developer-tools, quick-tip, algorithms, text-matching, information-theory]
+summary: Need fuzzy text matching without ML infrastructure? Normalized Compression Distance uses gzip to approximate semantic similarity—~50 lines of bash, 2-5ms latency, no API calls.
 ---
 
 # Quick Tip: Semantic Matching Without ML (Just Gzip)

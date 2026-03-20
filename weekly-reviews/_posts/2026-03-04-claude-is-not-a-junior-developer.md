@@ -2,7 +2,8 @@
 title: Claude Is Not Your Junior Developer
 date: 2026-03-04
 layout: post
-tags: ["claude-code", "productivity", "architecture", "systems-thinking"]
+tags: [claude-code, productivity, architecture, systems-thinking, mental-models]
+summary: The "junior developer" metaphor for AI assistants is wrong and leads to frustrating workflows. Claude is better understood as a stateless pattern engine—which means the real work is systems design, not prompt engineering.
 ---
 
 

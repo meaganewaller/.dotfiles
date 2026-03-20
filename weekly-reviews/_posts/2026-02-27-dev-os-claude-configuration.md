@@ -1,9 +1,9 @@
 ---
 title: "Building Dev OS: Engineering Telemetry for AI-Assisted Development"
 date: 2026-02-27
-tags: [claude-code, developer-tools, telemetry, productivity]
+tags: [claude-code, developer-tools, telemetry, productivity, dev-os, hooks, cues]
 layout: post
-description: How I built a support system for Claude.
+summary: "AI coding assistants start each session cold—no memory, no context, no understanding of your conventions. Dev OS is my answer: hooks for friction detection, cues for just-in-time guidance, and telemetry that reveals patterns I'd otherwise miss."
 ---
 
 # Building Dev OS

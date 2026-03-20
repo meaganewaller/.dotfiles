@@ -2,7 +2,8 @@
 title: "Quick Tip: Make Your Principles Sticky"
 date: 2026-03-08
 layout: post
-tags: [claude-code, developer-tools, quick-tip, hooks, productivity]
+tags: [claude-code, developer-tools, quick-tip, hooks, productivity, principles]
+summary: Principles mentioned once get forgotten. Two hooks (~200 lines) that detect when you invoke a principle and reinforce it before relevant edits—making principles active participants in your session.
 ---
 
 # Quick Tip: Make Your Principles Sticky
