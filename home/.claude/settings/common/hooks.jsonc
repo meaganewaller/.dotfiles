@@ -55,6 +55,15 @@
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/skill-usage-tracker.sh"
                     }
                 ]
+            },
+            {
+                "matcher": "Read",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/read-tracker.sh"
+                    }
+                ]
             }
         ],
         "PostToolUseFailure": [
