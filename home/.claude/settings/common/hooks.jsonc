@@ -90,12 +90,7 @@
                     },
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/Stop/tradeoff-context-prep.sh"
-                    },
-                    {
-                        "prompt": "You are extracting tradeoff documentation from a session that made large code changes.\n\nHook input JSON:\n$ARGUMENTS\n\nYour task:\n\n1. Check ~/.claude/pending-tradeoffs/ for marker files with captured: false\n2. If no uncaptured markers exist, return: { \"ok\": true }\n\n3. For each uncaptured marker, analyze the session context (last_assistant_message) for:\n   - Why specific implementation approaches were chosen\n   - What alternatives were considered or rejected\n   - Trade-offs made (speed vs safety, flexibility vs simplicity, etc.)\n   - Engineering principles that guided decisions\n\n4. If meaningful tradeoff reasoning is found:\n   a) Write a markdown file to ~/.claude/decision-journal/ using this format:\n      Filename: YYYY-MM-DD-HHMM-tradeoff.md (use current timestamp)\n      Content:\n      ```\n      # Tradeoff: YYYY-MM-DD\n\n      **Branch:** <git branch name or 'unknown'>\n      **Files:** <list of files from markers>\n      **Source:** auto-capture\n\n      ## Decision Summary\n\n      <1-2 sentence summary>\n\n      ## What Was Chosen\n\n      <description of chosen approach>\n\n      ## Alternatives Considered\n\n      <list alternatives that were rejected>\n\n      ## Trade-offs\n\n      <list trade-offs made>\n\n      ## Principles Applied\n\n      <list any engineering principles that guided the decision>\n\n      ## Revisit If\n\n      <conditions that would warrant revisiting this decision>\n      ```\n   b) Also append a JSON line to ~/.claude/dev-os-events.jsonl for telemetry\n   c) Update each marker file: set captured: true using Bash with jq\n\n5. If no meaningful reasoning found (mechanical change):\n   - Mark the pending tradeoff as captured anyway\n   - Do not emit an event or write a journal entry\n\n6. Return: { \"ok\": true }\n\nImportant:\n- ALWAYS return {\"ok\": true} - never block stopping\n- Only emit events for genuine tradeoffs, not mechanical changes\n- The decision-journal file is the primary output (version controlled)\n- The dev-os-events.jsonl is secondary (telemetry only)",
-                        "type": "agent",
-                        "timeout": 60
+                        "command": "\"$HOME\"/.claude/hooks/Stop/tradeoff-auto-capture.sh"
                     },
                     {
                         "type": "command",
@@ -141,9 +136,8 @@
                 "matcher": "Explore|Plan",
                 "hooks": [
                     {
-                        "prompt": "You are extracting architectural reasoning from a subagent session.\n\nHook input JSON:\n$ARGUMENTS\n\nYour task:\n\n1. Inspect `last_assistant_message`.\n2. Determine whether meaningful architectural reasoning occurred.\n   This includes:\n   - Explicit tradeoffs (\"X vs Y\", \"pros/cons\", \"benefits/drawbacks\")\n   - Multiple options evaluated\n   - Design principles invoked (e.g. layering, determinism, separation of concerns, performance, security)\n\nIf NO meaningful reasoning occurred:\nReturn exactly:\n{ \"ok\": true }\n\nIf meaningful reasoning DID occur:\n\n1. Write a markdown file to ~/.claude/decision-journal/ using this format:\n   Filename: YYYY-MM-DD-HHMM-tradeoff.md (use current timestamp)\n   Content:\n   ```\n   # Tradeoff: YYYY-MM-DD\n\n   **Branch:** <git branch name or 'unknown'>\n   **Source:** subagent-capture\n   **Agent Type:** <Explore or Plan>\n\n   ## Decision Summary\n\n   <1-2 sentence summary>\n\n   ## What Was Chosen\n\n   <description of chosen approach>\n\n   ## Alternatives Considered\n\n   <list alternatives that were rejected>\n\n   ## Trade-offs\n\n   <list trade-offs made>\n\n   ## Principles Applied\n\n   <list any engineering principles that guided the decision>\n\n   ## Revisit If\n\n   <conditions that would warrant revisiting this decision>\n   ```\n\n2. Also append a JSON line to ~/.claude/dev-os-events.jsonl for telemetry:\n   {\n     \"timestamp\": \"<ISO8601>\",\n     \"event_type\": \"decision_tradeoff\",\n     \"payload\": {\n       \"decision_summary\": \"...\",\n       \"tradeoffs\": [...],\n       \"options_considered\": [...],\n       \"principles_invoked\": [...],\n       \"source\": \"subagent-capture\"\n     }\n   }\n\n3. Return exactly: { \"ok\": true }\n\nImportant rules:\n- Do NOT block stopping.\n- Do NOT rewrite or summarize unrelated content.\n- Only write files if reasoning is real, not superficial.\n- The decision-journal file is the primary output (version controlled).\n",
-                        "type": "agent",
-                        "timeout": 60
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SubagentStop/tradeoff-subagent-capture.sh"
                     }
                 ]
             }
