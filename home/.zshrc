@@ -1,3 +1,6 @@
+# API tokens for mise/Homebrew/etc. (generate: DOTFILES_ROOT/bin/generate-api-keys --refresh)
+[[ -f "${HOME}/.config/dotfiles/secrets.env" ]] && . "${HOME}/.config/dotfiles/secrets.env"
+
 ########################################
 # Runtime: mise (must be first)
 ########################################

@@ -1,5 +1,6 @@
 [settings]
 experimental = true
+auto_install = true
 
 # Primary tool definitions: prefer adding CLIs/runtimes here (and profile layers
 # below) before Brewfiles. See ARCHITECTURE.md "Tool management policy".
@@ -7,12 +8,27 @@ experimental = true
 # Shared tools for every profile. Profile-specific tools live in
 # config.{MISE_ENV}.toml (see miserc.toml, set at link time from miserc.<profile>.toml).
 [tools]
+# Language Runtimes
 node = "lts"
 go = "latest"
 rust = "latest"
 python = "3.12"
 ruby = "3.4.6"
 lua = "5.5.0"
+
+# CLI Tools
+ripgrep = "latest"
+fd = "10.2.0"
+bat = "latest"
+fzf = "latest"
+jq = "1.7.1"
+delta = "0.18.2"
+lazygit = "latest"
+gh = "latest"
+neovim = "nightly"
+zoxide = "latest"
+starship = "latest"
+"aqua:atuinsh/atuin" = "latest"
 
 # Global tasks (available in any directory once `dotfiles` is on PATH).
 # Profile: export DOTFILES_PROFILE or pass via dotfiles CLI where supported.

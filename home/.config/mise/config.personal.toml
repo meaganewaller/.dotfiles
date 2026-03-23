@@ -3,3 +3,7 @@
 [tools]
 bun = "latest"
 "npm:@biomejs/biome" = "latest"
+"aqua:abiosoft/colima" = "latest"
+"aqua:LuaLS/lua-language-server" = "latest"
+"aqua:anthropics/claude-code" = "latest"
+"http:claude" = "latest"

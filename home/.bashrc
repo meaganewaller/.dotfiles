@@ -12,6 +12,9 @@ HISTFILESIZE=2000
 
 shopt -s histappend checkwinsize 2>/dev/null || true
 
+# API tokens (generate: bin/generate-api-keys --refresh in dotfiles repo)
+[[ -f "${HOME}/.config/dotfiles/secrets.env" ]] && . "${HOME}/.config/dotfiles/secrets.env"
+
 #######################################
 # mise (runtime authority)
 # MUST be first on PATH
@@ -33,8 +36,6 @@ fi
 
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.local/uv-tools/bin:$PATH"
-
-
 
 #######################################
 # lesspipe

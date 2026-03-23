@@ -25,16 +25,14 @@
 # Core CLI
 # ----------------------------
 brew "git"
-brew "git-delta"
-brew "gh"
+# brew "gh"
 brew "coreutils"
-brew "curl"
 brew "wget"
-brew "jq"
-brew "ripgrep"
-brew "fd"
-brew "fzf"
-brew "bat"
+# brew "jq"
+# brew "ripgrep"
+# brew "fd"
+# brew "fzf"
+# brew "bat"
 brew "tree"
 brew "htop"
 brew "watch"
@@ -49,10 +47,10 @@ brew "age"
 # Shell & Environment
 # ----------------------------
 brew "fish"
-brew "starship"
-brew "zoxide"
+# brew "starship"
+# brew "zoxide"
 brew "direnv"
-brew "atuin"
+# brew "atuin"
 brew "yazi"
 
 # ----------------------------
@@ -69,7 +67,7 @@ brew "docker-compose"
 # ----------------------------
 # Editors
 # ----------------------------
-brew "neovim"
+# brew "neovim"
 cask "visual-studio-code"
 
 # ----------------------------
