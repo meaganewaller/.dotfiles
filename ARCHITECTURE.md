@@ -8,7 +8,8 @@ This document describes the structure and design of this dotfiles repository.
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           Fresh Machine Bootstrap                            │
 │                                                                             │
-│  curl ... | bash  ──▶  remote-bootstrap.sh  ──▶  Homebrew + mise + git     │
+│  curl … | bash → remote-bootstrap → deps (brew/apt) + git → install.sh       │
+│              (mise install, then Brewfile layers — see Tool management)      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -31,6 +32,21 @@ This document describes the structure and design of this dotfiles repository.
             │   Config    │ │   Config    │ │    Code     │
             └─────────────┘ └─────────────┘ └─────────────┘
 ```
+
+## Tool management policy
+
+**mise is the primary tool manager** for versioned runtimes and CLIs that appear in the [mise registry](https://mise.jdx.dev/) (or that you define with supported backends). Global defaults live in `home/.config/mise/`; profile layers use `config.<profile>.toml` and `MISE_ENV`.
+
+**Homebrew (macOS) and apt (Linux bootstrap)** are **fallbacks** for what mise does not cover well:
+
+- Installing **mise itself** and keeping it on the PATH
+- **macOS GUI apps** (`cask`: IDEs, Docker Desktop, 1Password-related workflows where cask is the supported path)
+- **Deep OS integration** (e.g. shells like Fish, services, drivers)
+- Packages **not available or not practical** via mise (team-standard brew formulae, one-off binaries)
+
+**Heuristic for new tools:** try `mise registry <name>` (or an `aqua:` / `npm:` / `cargo:` backend) first; only add a `brew`/`apt` line when mise cannot own the install or the team standard is a cask/system package.
+
+**Install order** (`install.sh`): link global mise config → `mise install` → `brew bundle` layers. That matches “resolve versions with mise first, then fill gaps with Brewfiles.”
 
 ## Directory Structure
 

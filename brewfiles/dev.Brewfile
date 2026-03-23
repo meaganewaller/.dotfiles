@@ -1,6 +1,9 @@
 # ============================================================
 # Layer: dev
 #
+# Policy: Add dev CLIs via mise when possible; keep Brewfile entries for
+# casks, language servers only packaged as brew, or host deps mise does not cover.
+#
 # Purpose:
 # - Development tooling that supports active software projects.
 # - Host-level tools that are required even in a container-first setup.

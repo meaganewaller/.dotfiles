@@ -2,6 +2,8 @@
 
 [mise](https://mise.jdx.dev/) tasks for this repo. Run `mise tasks` to list everything.
 
+**Tooling:** This repo treats **mise as the primary tool manager**; `brew:bootstrap` applies **Homebrew layers as a fallback** (casks, OS integration, tools outside mise). See [ARCHITECTURE.md](../ARCHITECTURE.md#tool-management-policy).
+
 Most day-to-day operations use the **dotfiles CLI** (`dotfiles doctor`, `dotfiles link`, `dotfiles update`, `dotfiles lint`, `dotfiles hooks`). These tasks cover installation and tooling sync.
 
 Tasks are defined either in `mise.toml` (root config) or as executable scripts in this directory. Scripts use `#MISE` comments for metadata (e.g. `description`, `alias`, `hide`).

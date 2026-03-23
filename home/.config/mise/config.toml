@@ -1,6 +1,9 @@
 [settings]
 experimental = true
 
+# Primary tool definitions: prefer adding CLIs/runtimes here (and profile layers
+# below) before Brewfiles. See ARCHITECTURE.md "Tool management policy".
+
 # Shared tools for every profile. Profile-specific tools live in
 # config.{MISE_ENV}.toml (see miserc.toml, set at link time from miserc.<profile>.toml).
 [tools]

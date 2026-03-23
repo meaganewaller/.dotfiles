@@ -1,6 +1,10 @@
 # ============================================================
 # Layer: base
 #
+# Policy: Prefer mise for versioned CLIs and runtimes (see home/.config/mise/).
+# Use this Brewfile for mise itself, casks, OS-level packages, and anything
+# not available (or not practical) via mise. See ARCHITECTURE.md "Tool management".
+#
 # Scope:
 # - Core CLI tools
 # - Primary shell

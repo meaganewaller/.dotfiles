@@ -9,6 +9,7 @@ Profile-aware dotfiles and development environment for macOS. Features deep Clau
 - **Profile System** - `work`, `personal`, `server`, `container` profiles control which tools, configs, and git identities are active
 - **Claude Code Integration** - Hooks for telemetry, cues for contextual guidance, skills for reusable workflows, governance for policy traceability
 - **Theme System** - Unified dark/light mode across terminal, editor, and shell with `theme set <name>`
+- **mise-first tooling** - Runtimes and CLIs prefer mise (`~/.config/mise/`); Homebrew/apt only for casks, OS integration, and tools mise cannot install
 - **Idempotent Setup** - Run install multiple times safely; symlinks and configs converge to desired state
 - **Decision Capture** - Tradeoff gates prompt for engineering reasoning on large changes
 
@@ -67,7 +68,7 @@ tradeoff --list                        # View recent decisions
 
 ```bash
 mise tasks                   # List all available tasks
-mise run brew:bootstrap      # Install Homebrew packages for current profile
+mise run brew:bootstrap      # Brew/apt fallback layer (casks, OS tools); see ARCHITECTURE.md
 mise run core:install        # Full install (brew + link)
 mise run df:doctor           # Global: dotfiles doctor from any directory
 mise run mise:sync           # Global: sync global mise tools (MISE_ENV aware)
@@ -164,10 +165,9 @@ git commit --no-verify                    # Skip all hooks
 ## Making Changes
 
 1. **Edit dotfiles** - Modify files under `home/`
-2. **Add packages** - Edit `brewfiles/*.Brewfile`
-3. **Add global runtimes** - Edit `home/.config/mise/config.toml` (shared) and/or `home/.config/mise/config.<profile>.toml` (profile-specific); re-link so `miserc.toml` is updated
+2. **Add CLIs/runtimes** - Prefer `home/.config/mise/config.toml` and profile layers; use `brewfiles/*.Brewfile` only when mise cannot cover the tool (casks, OS packages, etc.); see [ARCHITECTURE.md](./ARCHITECTURE.md#tool-management-policy)
+3. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles` (updates `miserc.toml` for profile)
 4. **Repo-local mise** - Edit root `mise.toml` for tasks/tools when working inside this repo
-5. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles`
 
 Changes to `home/.claude/` require running the Claude install:
 ```bash
