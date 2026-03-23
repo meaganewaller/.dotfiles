@@ -1,11 +1,13 @@
 # ~/.bashrc
+# shellcheck shell=bash
 # Non-login interactive shell config
 
 #######################################
 # Core Environment
 #######################################
 
-export GPG_TTY="$(tty)"
+GPG_TTY="$(tty)"
+export GPG_TTY
 HISTCONTROL=ignoreboth
 HISTSIZE=1000
 HISTFILESIZE=2000
@@ -13,6 +15,7 @@ HISTFILESIZE=2000
 shopt -s histappend checkwinsize 2>/dev/null || true
 
 # API tokens (generate: bin/generate-api-keys --refresh in dotfiles repo)
+# shellcheck disable=SC1090,SC1091
 [[ -f "${HOME}/.config/dotfiles/secrets.env" ]] && . "${HOME}/.config/dotfiles/secrets.env"
 
 #######################################
@@ -74,6 +77,7 @@ alias l='ls -CF'
 #######################################
 
 if [ -f ~/.bash_exports ]; then
+  # shellcheck disable=SC1090,SC1091
   . ~/.bash_exports
 fi
 
@@ -89,7 +93,9 @@ fi
 # Aliases
 #######################################
 
+# shellcheck disable=SC1090,SC1091
 [ -f ~/.bash_aliases ] && . ~/.bash_aliases
+# shellcheck disable=SC1090,SC1091
 [ -f ~/.bash_secrets ] && . ~/.bash_secrets
 
 #######################################
@@ -98,8 +104,10 @@ fi
 
 if ! shopt -oq posix; then
   if [ -f /usr/share/bash-completion/bash_completion ]; then
+    # shellcheck disable=SC1091
     . /usr/share/bash-completion/bash_completion
   elif [ -f /etc/bash_completion ]; then
+    # shellcheck disable=SC1091
     . /etc/bash_completion
   fi
 fi
