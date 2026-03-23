@@ -10,3 +10,45 @@ rust = "latest"
 python = "3.12"
 ruby = "3.4.6"
 lua = "5.5.0"
+
+# Global tasks (available in any directory once `dotfiles` is on PATH).
+# Profile: export DOTFILES_PROFILE or pass via dotfiles CLI where supported.
+[tasks."df:doctor"]
+description = "Dotfiles health check (symlinks, themes, governance)"
+run = "dotfiles doctor"
+
+[tasks."df:link"]
+description = "Symlink dotfiles into $HOME (DOTFILES_PROFILE defaults to work)"
+run = "dotfiles link"
+
+[tasks."df:link:dry"]
+description = "Preview dotfiles symlinks without changing files"
+run = "dotfiles link --dry-run"
+
+[tasks."df:lint"]
+description = "Shellcheck dotfiles shell scripts"
+run = "dotfiles lint"
+
+[tasks."df:hooks"]
+description = "Install pre-commit hooks in the dotfiles repo"
+run = "dotfiles hooks"
+
+[tasks."df:update"]
+description = "git pull --rebase in dotfiles repo and re-link"
+run = "dotfiles update"
+
+[tasks."df:install"]
+description = "Full dotfiles install.sh (brew + mise + link) for current profile"
+run = "dotfiles install"
+
+[tasks."mise:sync"]
+description = "Install missing global tools (respects MISE_ENV / miserc)"
+run = "mise install"
+
+[tasks."mise:doctor"]
+description = "Run mise diagnostics"
+run = "mise doctor"
+
+[tasks."mise:config"]
+description = "Show resolved mise config files and merge"
+run = "mise config"

@@ -69,7 +69,11 @@ tradeoff --list                        # View recent decisions
 mise tasks                   # List all available tasks
 mise run brew:bootstrap      # Install Homebrew packages for current profile
 mise run core:install        # Full install (brew + link)
+mise run df:doctor           # Global: dotfiles doctor from any directory
+mise run mise:sync           # Global: sync global mise tools (MISE_ENV aware)
 ```
+
+Global `df:*` and `mise:*` tasks live in `home/.config/mise/config.toml`; repo tasks (`claude`, `codex`, `core:install`, …) are in root `mise.toml` and `.mise-tasks/`. See [.mise-tasks/README.md](./.mise-tasks/README.md).
 
 ## Repository Structure
 

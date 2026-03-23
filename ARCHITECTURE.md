@@ -143,6 +143,8 @@ Global tool versions live under `home/.config/mise/` and are symlinked to `~/.co
 | `miserc.<profile>.toml` | Committed template: `env = ["<profile>"]` |
 | `miserc.toml` | **Gitignored** symlink created by `bin/link-dotfiles` → `miserc.<profile>.toml` |
 
+The same `config.toml` also defines **global mise tasks** (`df:*` for the `dotfiles` CLI, `mise:*` for sync/diagnostics) so `mise run df:doctor` works from any directory once `dotfiles` is on `PATH`. Repo-scoped tasks stay in root `mise.toml` and `.mise-tasks/`.
+
 `install.sh` sets `MISE_ENV="${DOTFILES_PROFILE}"` and runs `bin/link-dotfiles --only-mise` **before** `mise install` so the first install uses the same layers as daily use.
 
 **Shell integration:** Work (Gusto) puts mise shims on `PATH` and does not use `mise activate`. Personal Fish uses `mise activate fish`. For zsh/bash, this repo skips `mise activate` when `~/.gusto/init.fish` exists or `MISE_USE_SHIMS_ONLY=1` (see `home/.zshrc`, `home/.bashrc`, `home/.config/fish/conf.d/20_mise.fish`).

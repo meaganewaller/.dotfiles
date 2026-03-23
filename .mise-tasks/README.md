@@ -13,7 +13,25 @@ mise tasks              # List all tasks
 mise run <task>         # Run a task
 mise run core:install   # Full install
 mise run claude         # Sync Claude Code settings
+mise run df:doctor      # Global: dotfiles health (from any directory)
 ```
+
+## Global tasks (`home/.config/mise/config.toml`)
+
+These load from your **global** mise config (after `dotfiles link`). They shell out to `dotfiles` and `mise`, so they work from any cwd. Set `DOTFILES_PROFILE` when you need a non-default profile.
+
+| Task | Description |
+|------|-------------|
+| `df:doctor` | `dotfiles doctor` |
+| `df:link` | `dotfiles link` |
+| `df:link:dry` | `dotfiles link --dry-run` |
+| `df:lint` | `dotfiles lint` |
+| `df:hooks` | `dotfiles hooks` |
+| `df:update` | `dotfiles update` (pull + link) |
+| `df:install` | `dotfiles install` (full `install.sh`) |
+| `mise:sync` | `mise install` (global tool versions) |
+| `mise:doctor` | `mise doctor` |
+| `mise:config` | `mise config` |
 
 ## Root Tasks (mise.toml)
 
