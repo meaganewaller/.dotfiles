@@ -12,6 +12,12 @@ source "$ROOT/lib/common.sh"
 parse_args "$@"
 
 log "Profile: $DOTFILES_PROFILE"
+export MISE_ENV="${DOTFILES_PROFILE:-work}"
+log "MISE_ENV: $MISE_ENV"
+
+# Link global mise config (and miserc -> miserc.<profile>.toml) before install so
+# `mise install` uses the same layers as daily shells.
+"$ROOT/bin/link-dotfiles" --only-mise --profile "$DOTFILES_PROFILE"
 
 if [[ $DOTFILES_PROFILE == "personal" ]]; then
   log "Personal profile selected. Setting brewfile layers to: base, gui, creative"

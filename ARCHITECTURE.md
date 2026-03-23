@@ -8,7 +8,8 @@ This document describes the structure and design of this dotfiles repository.
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           Fresh Machine Bootstrap                            │
 │                                                                             │
-│  curl ... | bash  ──▶  remote-bootstrap.sh  ──▶  Homebrew + mise + git     │
+│  curl … | bash → remote-bootstrap → deps (brew/apt) + git → install.sh       │
+│              (mise install, then Brewfile layers — see Tool management)      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -16,10 +17,12 @@ This document describes the structure and design of this dotfiles repository.
 │                              install.sh                                      │
 │                                                                             │
 │   1. Source lib/common.sh (logging, arg parsing)                            │
-│   2. Ensure mise is installed                                               │
-│   3. Run mise install (tools from mise.toml)                                │
-│   4. Run mise run brew:bootstrap (Brewfiles)                                     │
-│   5. Run bin/link-dotfiles (symlinks)                                       │
+│   2. Export MISE_ENV from DOTFILES_PROFILE                                  │
+│   3. Run bin/link-dotfiles --only-mise (global ~/.config/mise + miserc)      │
+│   4. Ensure mise is installed                                               │
+│   5. Run mise install (global config layers + repo mise.toml if used)      │
+│   6. Run mise run brew:bootstrap (Brewfiles)                               │
+│   7. Run bin/link-dotfiles (full symlinks)                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                     ┌───────────────┼───────────────┐
@@ -30,10 +33,34 @@ This document describes the structure and design of this dotfiles repository.
             └─────────────┘ └─────────────┘ └─────────────┘
 ```
 
+## Tool management policy
+
+**mise is the primary tool manager** for versioned runtimes and CLIs that appear in the [mise registry](https://mise.jdx.dev/) (or that you define with supported backends). Global defaults live in `home/.config/mise/`; profile layers use `config.<profile>.toml` and `MISE_ENV`.
+
+**Homebrew (macOS) and apt (Linux bootstrap)** are **fallbacks** for what mise does not cover well:
+
+- Installing **mise itself** and keeping it on the PATH
+- **macOS GUI apps** (`cask`: IDEs, Docker Desktop, 1Password-related workflows where cask is the supported path)
+- **Deep OS integration** (e.g. shells like Fish, services, drivers)
+- Packages **not available or not practical** via mise (team-standard brew formulae, one-off binaries)
+
+**Heuristic for new tools:** try `mise registry <name>` (or an `aqua:` / `npm:` / `cargo:` backend) first; only add a `brew`/`apt` line when mise cannot own the install or the team standard is a cask/system package.
+
+**Install order** (`install.sh`): link global mise config → `mise install` → `brew bundle` layers. That matches “resolve versions with mise first, then fill gaps with Brewfiles.”
+
+**Traceability:** [ADR 0001](docs/architecture/0001-mise-primary-tool-management.md) records the decision; [tool-management policy](governance/policies/tool-management.md) states it as governance.
+
 ## Directory Structure
 
 ```
 .dotfiles/
+│
+├── docs/                           # Repo-wide ADRs (not Claude-only)
+│   └── architecture/               # Index + NNNN-title.md
+│
+├── governance/                     # Dotfiles-wide policies (not Claude cue-only)
+│   ├── policies/                   # e.g. tool-management.md
+│   └── controls/                   # Control mappings for this layer
 │
 ├── bootstrap/                      # Stage 0: Fresh machine setup
 │   ├── remote-bootstrap.sh         # curl-able entrypoint for new machines
@@ -128,6 +155,28 @@ The repository supports multiple profiles to handle different machine contexts:
 3. **SSH config**: `.ssh/config` includes `.ssh/config.{profile}`
 4. **Claude Code**: Settings merged from `settings/common/` + `settings/{profile}/`
 5. **Conditional linking**: `bin/link-dotfiles` only links certain files per profile
+6. **mise (global)**: `MISE_ENV` matches `DOTFILES_PROFILE`; `miserc.toml` points at `miserc.<profile>.toml`; `config.<profile>.toml` layers on `config.toml` (see below)
+
+### mise global config (`~/.config/mise/`)
+
+Global tool versions live under `home/.config/mise/` and are symlinked to `~/.config/mise/`.
+
+| File | Purpose |
+|------|---------|
+| `config.toml` | Shared `[tools]` / `[settings]` for every machine |
+| `config.work.toml`, `config.personal.toml`, … | Extra tools when `MISE_ENV` is that profile |
+| `miserc.<profile>.toml` | Committed template: `env = ["<profile>"]` |
+| `miserc.toml` | **Gitignored** symlink created by `bin/link-dotfiles` → `miserc.<profile>.toml` |
+
+The same `config.toml` also defines **global mise tasks** (`df:*` for the `dotfiles` CLI, `mise:*` for sync/diagnostics) so `mise run df:doctor` works from any directory once `dotfiles` is on `PATH`. Repo-scoped tasks stay in root `mise.toml` and `.mise-tasks/`.
+
+`install.sh` sets `MISE_ENV="${DOTFILES_PROFILE}"` and runs `bin/link-dotfiles --only-mise` **before** `mise install` so the first install uses the same layers as daily use.
+
+**Shell integration:** Work (Gusto) puts mise shims on `PATH` and does not use `mise activate`. Personal Fish uses `mise activate fish`. For zsh/bash, this repo skips `mise activate` when `~/.gusto/init.fish` exists or `MISE_USE_SHIMS_ONLY=1` (see `home/.zshrc`, `home/.bashrc`, `home/.config/fish/conf.d/20_mise.fish`).
+
+**Debugging:** `mise config` (resolved files), `MISE_ENV=personal mise ls`.
+
+The repo-root [`mise.toml`](mise.toml) is separate: it configures **this dotfiles repository** (tasks, tools when you are `cd`’d here), not your global default tools.
 
 ### Setting Your Profile
 

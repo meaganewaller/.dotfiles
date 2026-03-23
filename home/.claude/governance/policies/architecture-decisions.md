@@ -56,14 +56,33 @@ ADRs must maintain accurate status and linkage:
 
 ### Standard Location
 
-ADRs should be stored in version control alongside the code they govern:
+ADRs should be stored in version control alongside the code they govern. This workspace uses **two** ADR roots:
+
+**Dotfiles repository (entire repo)**
 
 ```
-docs/architecture/decisions/
-├── 0001-record-architecture-decisions.md
-├── 0002-use-postgresql-for-user-data.md
-└── README.md
+docs/architecture/
+├── README.md
+├── 0001-mise-primary-tool-management.md
+└── …
 ```
+
+Use for bootstrap, shell profiles, mise vs Homebrew, symlink strategy, and other decisions that span `home/`, `bin/`, `brewfiles/`, etc.
+
+**Claude Code configuration**
+
+```
+home/.claude/docs/architecture/
+├── README.md
+├── 0001-documentation-layer-architecture.md
+└── …
+```
+
+Use for hooks, cues, skills, Dev OS telemetry, and Claude-specific layout only.
+
+For a generic example layout (single root), see Michael Nygard’s ADR articles; the split above avoids mixing Claude-only decisions with repo-wide machine setup.
+
+**Policies** (separate from ADRs): repository-wide human policies live under `governance/policies/` (e.g. tool management). Claude-specific policies tied to cue provenance remain under `home/.claude/governance/policies/`.
 
 ### Naming Convention
 

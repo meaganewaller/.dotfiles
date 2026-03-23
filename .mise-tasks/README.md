@@ -2,6 +2,8 @@
 
 [mise](https://mise.jdx.dev/) tasks for this repo. Run `mise tasks` to list everything.
 
+**Tooling:** This repo treats **mise as the primary tool manager**; `brew:bootstrap` applies **Homebrew layers as a fallback** (casks, OS integration, tools outside mise). See [ARCHITECTURE.md](../ARCHITECTURE.md#tool-management-policy).
+
 Most day-to-day operations use the **dotfiles CLI** (`dotfiles doctor`, `dotfiles link`, `dotfiles update`, `dotfiles lint`, `dotfiles hooks`). These tasks cover installation and tooling sync.
 
 Tasks are defined either in `mise.toml` (root config) or as executable scripts in this directory. Scripts use `#MISE` comments for metadata (e.g. `description`, `alias`, `hide`).
@@ -13,7 +15,25 @@ mise tasks              # List all tasks
 mise run <task>         # Run a task
 mise run core:install   # Full install
 mise run claude         # Sync Claude Code settings
+mise run df:doctor      # Global: dotfiles health (from any directory)
 ```
+
+## Global tasks (`home/.config/mise/config.toml`)
+
+These load from your **global** mise config (after `dotfiles link`). They shell out to `dotfiles` and `mise`, so they work from any cwd. Set `DOTFILES_PROFILE` when you need a non-default profile.
+
+| Task | Description |
+|------|-------------|
+| `df:doctor` | `dotfiles doctor` |
+| `df:link` | `dotfiles link` |
+| `df:link:dry` | `dotfiles link --dry-run` |
+| `df:lint` | `dotfiles lint` |
+| `df:hooks` | `dotfiles hooks` |
+| `df:update` | `dotfiles update` (pull + link) |
+| `df:install` | `dotfiles install` (full `install.sh`) |
+| `mise:sync` | `mise install` (global tool versions) |
+| `mise:doctor` | `mise doctor` |
+| `mise:config` | `mise config` |
 
 ## Root Tasks (mise.toml)
 

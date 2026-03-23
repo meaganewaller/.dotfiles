@@ -9,6 +9,7 @@ Profile-aware dotfiles and development environment for macOS. Features deep Clau
 - **Profile System** - `work`, `personal`, `server`, `container` profiles control which tools, configs, and git identities are active
 - **Claude Code Integration** - Hooks for telemetry, cues for contextual guidance, skills for reusable workflows, governance for policy traceability
 - **Theme System** - Unified dark/light mode across terminal, editor, and shell with `theme set <name>`
+- **mise-first tooling** - Runtimes and CLIs prefer mise (`~/.config/mise/`); Homebrew/apt only for casks, OS integration, and tools mise cannot install
 - **Idempotent Setup** - Run install multiple times safely; symlinks and configs converge to desired state
 - **Decision Capture** - Tradeoff gates prompt for engineering reasoning on large changes
 
@@ -67,9 +68,13 @@ tradeoff --list                        # View recent decisions
 
 ```bash
 mise tasks                   # List all available tasks
-mise run brew:bootstrap      # Install Homebrew packages for current profile
+mise run brew:bootstrap      # Brew/apt fallback layer (casks, OS tools); see ARCHITECTURE.md
 mise run core:install        # Full install (brew + link)
+mise run df:doctor           # Global: dotfiles doctor from any directory
+mise run mise:sync           # Global: sync global mise tools (MISE_ENV aware)
 ```
+
+Global `df:*` and `mise:*` tasks live in `home/.config/mise/config.toml`; repo tasks (`claude`, `codex`, `core:install`, …) are in root `mise.toml` and `.mise-tasks/`. See [.mise-tasks/README.md](./.mise-tasks/README.md).
 
 ## Repository Structure
 
@@ -106,12 +111,13 @@ mise run core:install        # Full install (brew + link)
 | `server` | Remote servers | base | No |
 | `container` | Devcontainers | minimal | No |
 
-Set via `DOTFILES_PROFILE` environment variable or `--profile` flag.
+Set via `DOTFILES_PROFILE` environment variable or `--profile` flag. The same value is exported as **`MISE_ENV`** during `install.sh` so global mise layers stay aligned.
 
 Profiles also control:
 - Git identity (`includeIf` in `.gitconfig`)
 - SSH config includes
 - Which dotfiles are linked
+- Global mise: `~/.config/mise/miserc.toml` → `miserc.<profile>.toml`, plus `config.<profile>.toml` on top of `config.toml` (see [ARCHITECTURE.md](./ARCHITECTURE.md))
 
 ## Claude Code Integration
 
@@ -159,9 +165,9 @@ git commit --no-verify                    # Skip all hooks
 ## Making Changes
 
 1. **Edit dotfiles** - Modify files under `home/`
-2. **Add packages** - Edit `brewfiles/*.Brewfile`
-3. **Add runtimes** - Edit `mise.toml`
-4. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles`
+2. **Add CLIs/runtimes** - Prefer `home/.config/mise/config.toml` and profile layers; use `brewfiles/*.Brewfile` only when mise cannot cover the tool (casks, OS packages, etc.); see [ARCHITECTURE.md](./ARCHITECTURE.md#tool-management-policy)
+3. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles` (updates `miserc.toml` for profile)
+4. **Repo-local mise** - Edit root `mise.toml` for tasks/tools when working inside this repo
 
 Changes to `home/.claude/` require running the Claude install:
 ```bash
@@ -178,8 +184,11 @@ Or re-run the full install which includes it:
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, directory structure, data flows |
+| [docs/architecture/](./docs/architecture/) | **Dotfiles repo** ADRs (bootstrap, tools, profiles) |
 | [home/.claude/README.md](./home/.claude/README.md) | Claude Code hooks, cues, skills, governance |
-| [home/.claude/docs/architecture/](./home/.claude/docs/architecture/) | Architecture Decision Records (ADRs) |
+| [home/.claude/docs/architecture/](./home/.claude/docs/architecture/) | **Claude Code** ADRs (hooks, cues, Dev OS) |
+| [governance/README.md](./governance/README.md) | Dotfiles vs Claude governance layout |
+| [governance/policies/tool-management.md](./governance/policies/tool-management.md) | mise-first tool policy |
 | [.mise-tasks/README.md](./.mise-tasks/README.md) | mise task reference |
 
 ## Testing

@@ -1,4 +1,5 @@
-# set -x MISE_GITHUB_TOKEN "$(op read 'op://Development/GitHub/Credentials/Personal Access Token')"
+# Gusto work machines: init.fish puts mise shims on PATH — no `mise activate` here.
+# Personal: `mise activate fish` so [env] and tool paths apply in the shell.
 if test -f "$HOME/.gusto/init.fish"
   source $HOME/.gusto/init.fish
 else

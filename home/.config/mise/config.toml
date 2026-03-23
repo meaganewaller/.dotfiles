@@ -1,15 +1,73 @@
 [settings]
 experimental = true
+auto_install = true
 
+# Primary tool definitions: prefer adding CLIs/runtimes here (and profile layers
+# below) before Brewfiles. See ARCHITECTURE.md "Tool management policy".
+
+# Shared tools for every profile. Profile-specific tools live in
+# config.{MISE_ENV}.toml (see miserc.toml, set at link time from miserc.<profile>.toml).
 [tools]
+# Language Runtimes
 node = "lts"
 go = "latest"
 rust = "latest"
 python = "3.12"
 ruby = "3.4.6"
-java = "21"
-terraform = "latest"
 lua = "5.5.0"
 
-[env]
-MISE_ENV="global"
+# CLI Tools
+ripgrep = "latest"
+fd = "10.2.0"
+bat = "latest"
+fzf = "latest"
+jq = "1.7.1"
+delta = "0.18.2"
+lazygit = "latest"
+gh = "latest"
+neovim = "nightly"
+zoxide = "latest"
+starship = "latest"
+"aqua:atuinsh/atuin" = "latest"
+
+# Global tasks (available in any directory once `dotfiles` is on PATH).
+# Profile: export DOTFILES_PROFILE or pass via dotfiles CLI where supported.
+[tasks."df:doctor"]
+description = "Dotfiles health check (symlinks, themes, governance)"
+run = "dotfiles doctor"
+
+[tasks."df:link"]
+description = "Symlink dotfiles into $HOME (DOTFILES_PROFILE defaults to work)"
+run = "dotfiles link"
+
+[tasks."df:link:dry"]
+description = "Preview dotfiles symlinks without changing files"
+run = "dotfiles link --dry-run"
+
+[tasks."df:lint"]
+description = "Shellcheck dotfiles shell scripts"
+run = "dotfiles lint"
+
+[tasks."df:hooks"]
+description = "Install pre-commit hooks in the dotfiles repo"
+run = "dotfiles hooks"
+
+[tasks."df:update"]
+description = "git pull --rebase in dotfiles repo and re-link"
+run = "dotfiles update"
+
+[tasks."df:install"]
+description = "Full dotfiles install.sh (brew + mise + link) for current profile"
+run = "dotfiles install"
+
+[tasks."mise:sync"]
+description = "Install missing global tools (respects MISE_ENV / miserc)"
+run = "mise install"
+
+[tasks."mise:doctor"]
+description = "Run mise diagnostics"
+run = "mise doctor"
+
+[tasks."mise:config"]
+description = "Show resolved mise config files and merge"
+run = "mise config"
