@@ -48,10 +48,19 @@ This document describes the structure and design of this dotfiles repository.
 
 **Install order** (`install.sh`): link global mise config → `mise install` → `brew bundle` layers. That matches “resolve versions with mise first, then fill gaps with Brewfiles.”
 
+**Traceability:** [ADR 0001](docs/architecture/0001-mise-primary-tool-management.md) records the decision; [tool-management policy](governance/policies/tool-management.md) states it as governance.
+
 ## Directory Structure
 
 ```
 .dotfiles/
+│
+├── docs/                           # Repo-wide ADRs (not Claude-only)
+│   └── architecture/               # Index + NNNN-title.md
+│
+├── governance/                     # Dotfiles-wide policies (not Claude cue-only)
+│   ├── policies/                   # e.g. tool-management.md
+│   └── controls/                   # Control mappings for this layer
 │
 ├── bootstrap/                      # Stage 0: Fresh machine setup
 │   ├── remote-bootstrap.sh         # curl-able entrypoint for new machines

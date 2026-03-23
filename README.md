@@ -184,8 +184,11 @@ Or re-run the full install which includes it:
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | System design, directory structure, data flows |
+| [docs/architecture/](./docs/architecture/) | **Dotfiles repo** ADRs (bootstrap, tools, profiles) |
 | [home/.claude/README.md](./home/.claude/README.md) | Claude Code hooks, cues, skills, governance |
-| [home/.claude/docs/architecture/](./home/.claude/docs/architecture/) | Architecture Decision Records (ADRs) |
+| [home/.claude/docs/architecture/](./home/.claude/docs/architecture/) | **Claude Code** ADRs (hooks, cues, Dev OS) |
+| [governance/README.md](./governance/README.md) | Dotfiles vs Claude governance layout |
+| [governance/policies/tool-management.md](./governance/policies/tool-management.md) | mise-first tool policy |
 | [.mise-tasks/README.md](./.mise-tasks/README.md) | mise task reference |
 
 ## Testing

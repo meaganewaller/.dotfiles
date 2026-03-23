@@ -55,7 +55,8 @@ governance/
 ├── policies/                  # Human-readable policy documents
 │   ├── code-lifecycle.md      # Commit practices, change management
 │   ├── secrets-management.md  # Env vars, credentials handling
-│   └── data-migrations.md     # Migration safety practices
+│   ├── data-migrations.md     # Migration safety practices
+│   └── architecture-decisions.md  # When and how to write ADRs
 │
 ├── controls/                  # Control framework mappings
 │   └── custom-controls.yaml   # Your engineering standards

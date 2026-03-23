@@ -3,7 +3,8 @@
 #
 # Policy: Prefer mise for versioned CLIs and runtimes (see home/.config/mise/).
 # Use this Brewfile for mise itself, casks, OS-level packages, and anything
-# not available (or not practical) via mise. See ARCHITECTURE.md "Tool management".
+# not available (or not practical) via mise. See governance/policies/tool-management.md
+# and ARCHITECTURE.md "Tool management policy".
 #
 # Scope:
 # - Core CLI tools
