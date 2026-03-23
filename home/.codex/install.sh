@@ -77,12 +77,12 @@ sync_allowlisted_dir_files() {
   done < <(find "$src_dir" -type f -print0)
 }
 
-link_allowlisted ".config/.codex/config.toml"
+link_allowlisted ".codex/config.toml"
 
-if [[ -f "$DOTFILES_ROOT/home/.config/.codex/AGENTS.md" ]]; then
-  link_allowlisted ".config/.codex/AGENTS.md"
+if [[ -f "$DOTFILES_ROOT/home/.codex/AGENTS.md" ]]; then
+  link_allowlisted ".codex/AGENTS.md"
 fi
 
-sync_allowlisted_dir_files ".config/.codex/devos"
+sync_allowlisted_dir_files ".codex/devos"
 
 log "Done. Managed Codex config synced (allowlist only)."

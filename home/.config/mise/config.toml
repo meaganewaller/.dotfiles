@@ -2,6 +2,12 @@
 experimental = true
 auto_install = true
 
+# Lockfiles (mise.lock, mise.<profile>.lock next to this config): run `mise lock`
+# from the linked ~/.config/mise directory after changing [tools], or `mise run mise:lock`
+# from the dotfiles repo. CI can use `mise install --locked` to avoid GitHub API
+# resolution and rate limits. Extra backends (github:, http:, s3:) are available
+# for tools outside the default registry — see https://mise.jdx.dev/
+
 # Primary tool definitions: prefer adding CLIs/runtimes here (and profile layers
 # below) before Brewfiles. See ARCHITECTURE.md "Tool management policy".
 
@@ -71,3 +77,7 @@ run = "mise doctor"
 [tasks."mise:config"]
 description = "Show resolved mise config files and merge"
 run = "mise config"
+
+[tasks."mise:install:locked"]
+description = "Install global tools from lockfile URLs only (no registry API calls)"
+run = "mise install --locked"

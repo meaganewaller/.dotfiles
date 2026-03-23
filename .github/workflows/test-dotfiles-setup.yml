@@ -8,6 +8,9 @@ on:
       - '**/*.py'
       - '**/*.bats'
       - '.github/workflows/*.yml'
+      - 'mise.toml'
+      - 'mise.lock'
+      - 'home/.config/mise/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -95,6 +98,14 @@ jobs:
         uses: jdx/mise-action@v3
         with:
           install: true
+
+      - name: Install repo tools from mise.lock
+        run: |
+          mkdir -p /tmp/mise-no-system
+          mise install --locked
+        env:
+          # Avoid merging host /etc/mise (e.g. unrelated tools not in this repo’s lockfile).
+          MISE_SYSTEM_CONFIG_DIR: /tmp/mise-no-system
 
       - name: Test install (dry-run)
         run: |

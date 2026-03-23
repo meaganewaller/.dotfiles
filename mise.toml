@@ -1,5 +1,7 @@
 # -----------------------------------------------------------------------------
 # Dotfiles repo–local mise config. Global tools: home/.config/mise/config.toml (+ config.<profile>.toml).
+# Lockfiles: mise.lock (repo tools) + home/.config/mise/mise*.lock (global + profile layers).
+# Regenerate with `mise run mise:lock` after changing [tools] or versions.
 # -----------------------------------------------------------------------------
 [tools]
 node = "latest"
@@ -11,30 +13,51 @@ bun = "latest"
 [env]
 DOTFILES = "{{config_root}}"
 
+# Project-scoped aliases (active when cwd is under this repo; requires mise shell integration).
+[shell_alias]
+dots = "cd {{config_root}}"
+mtasks = "mise tasks"
+
 [tasks.default]
 description = "Show available commands"
 run = "mise tasks"
 
+[tasks."mise:lock"]
+description = "Regenerate mise.lock files (repo + global profile layers)"
+run = "./.mise-tasks/mise/lock"
+
 [tasks.claude]
 description = "Merge Claude Code settings (common + profile) and link skills into ~/.claude"
+sources = ["home/.claude/install.sh", "home/.claude/settings/**/*.jsonc"]
+outputs = { auto = true }
 run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE"
 
 [tasks."claude:refresh"]
 description = "Re-run Claude Code install after editing settings/skills"
+sources = ["home/.claude/install.sh", "home/.claude/settings/**/*.jsonc"]
+outputs = { auto = true }
 run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE"
 
 [tasks."claude:dry-run"]
 description = "Preview Claude Code install (dry run)"
+sources = ["home/.claude/install.sh", "home/.claude/settings/**/*.jsonc"]
+outputs = { auto = true }
 run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE --dry-run"
 
 [tasks.codex]
 description = "Sync allowlisted Codex config (config.toml + DevOS assets)"
-run = "./home/.config/.codex/install.sh --profile ${DOTFILES_PROFILE:-work}"
+sources = ["home/.codex/install.sh", "home/.codex/**/*.toml", "home/.codex/**/*.md"]
+outputs = { auto = true }
+run = "./home/.codex/install.sh --profile ${DOTFILES_PROFILE:-work}"
 
 [tasks."codex:refresh"]
 description = "Re-run Codex allowlisted sync after editing config/DevOS assets"
-run = "./home/.config/.codex/install.sh --profile ${DOTFILES_PROFILE:-work}"
+sources = ["home/.codex/install.sh", "home/.codex/**/*.toml", "home/.codex/**/*.md"]
+outputs = { auto = true }
+run = "./home/.codex/install.sh --profile ${DOTFILES_PROFILE:-work}"
 
 [tasks."codex:dry-run"]
 description = "Preview Codex allowlisted sync (dry run)"
-run = "./home/.config/.codex/install.sh --profile ${DOTFILES_PROFILE:-work} --dry-run"
+sources = ["home/.codex/install.sh", "home/.codex/**/*.toml", "home/.codex/**/*.md"]
+outputs = { auto = true }
+run = "./home/.codex/install.sh --profile ${DOTFILES_PROFILE:-work} --dry-run"
