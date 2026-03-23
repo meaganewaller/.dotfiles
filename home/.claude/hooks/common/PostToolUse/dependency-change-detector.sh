@@ -23,7 +23,7 @@ fi
 DIFF=$(git diff HEAD -- "$FILE")
 
 ADDED=$(echo "$DIFF" | grep '^+' | grep -v '+++' | wc -l | tr -d ' ')
-REMOVED=$(echo "$DIFF" | grep '^-' | grep -v '---' | wc -l | tr -d ' ')
+REMOVED=$(echo "$DIFF" | grep '^-' | grep -v -- '---' | wc -l | tr -d ' ')
 
 PAYLOAD=$(jq -n \
   --arg file "$FILE" \
