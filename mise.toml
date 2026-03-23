@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Dotfiles Repo Specific Mise Configuration (global mise config is in `mise/config.toml`)
+# Dotfiles repo–local mise config. Global tools: home/.config/mise/config.toml (+ config.<profile>.toml).
 # -----------------------------------------------------------------------------
 [tools]
 node = "latest"

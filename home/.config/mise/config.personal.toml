@@ -1,0 +1,5 @@
+# Personal profile — layered when MISE_ENV=personal.
+# Example stack (bun, biome); work machines use yarn/eslint via project + Brew, not mise.
+[tools]
+bun = "latest"
+"npm:@biomejs/biome" = "latest"

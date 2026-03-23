@@ -16,10 +16,12 @@ This document describes the structure and design of this dotfiles repository.
 │                              install.sh                                      │
 │                                                                             │
 │   1. Source lib/common.sh (logging, arg parsing)                            │
-│   2. Ensure mise is installed                                               │
-│   3. Run mise install (tools from mise.toml)                                │
-│   4. Run mise run brew:bootstrap (Brewfiles)                                     │
-│   5. Run bin/link-dotfiles (symlinks)                                       │
+│   2. Export MISE_ENV from DOTFILES_PROFILE                                  │
+│   3. Run bin/link-dotfiles --only-mise (global ~/.config/mise + miserc)      │
+│   4. Ensure mise is installed                                               │
+│   5. Run mise install (global config layers + repo mise.toml if used)      │
+│   6. Run mise run brew:bootstrap (Brewfiles)                               │
+│   7. Run bin/link-dotfiles (full symlinks)                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     │
                     ┌───────────────┼───────────────┐
@@ -128,6 +130,26 @@ The repository supports multiple profiles to handle different machine contexts:
 3. **SSH config**: `.ssh/config` includes `.ssh/config.{profile}`
 4. **Claude Code**: Settings merged from `settings/common/` + `settings/{profile}/`
 5. **Conditional linking**: `bin/link-dotfiles` only links certain files per profile
+6. **mise (global)**: `MISE_ENV` matches `DOTFILES_PROFILE`; `miserc.toml` points at `miserc.<profile>.toml`; `config.<profile>.toml` layers on `config.toml` (see below)
+
+### mise global config (`~/.config/mise/`)
+
+Global tool versions live under `home/.config/mise/` and are symlinked to `~/.config/mise/`.
+
+| File | Purpose |
+|------|---------|
+| `config.toml` | Shared `[tools]` / `[settings]` for every machine |
+| `config.work.toml`, `config.personal.toml`, … | Extra tools when `MISE_ENV` is that profile |
+| `miserc.<profile>.toml` | Committed template: `env = ["<profile>"]` |
+| `miserc.toml` | **Gitignored** symlink created by `bin/link-dotfiles` → `miserc.<profile>.toml` |
+
+`install.sh` sets `MISE_ENV="${DOTFILES_PROFILE}"` and runs `bin/link-dotfiles --only-mise` **before** `mise install` so the first install uses the same layers as daily use.
+
+**Shell integration:** Work (Gusto) puts mise shims on `PATH` and does not use `mise activate`. Personal Fish uses `mise activate fish`. For zsh/bash, this repo skips `mise activate` when `~/.gusto/init.fish` exists or `MISE_USE_SHIMS_ONLY=1` (see `home/.zshrc`, `home/.bashrc`, `home/.config/fish/conf.d/20_mise.fish`).
+
+**Debugging:** `mise config` (resolved files), `MISE_ENV=personal mise ls`.
+
+The repo-root [`mise.toml`](mise.toml) is separate: it configures **this dotfiles repository** (tasks, tools when you are `cd`’d here), not your global default tools.
 
 ### Setting Your Profile
 

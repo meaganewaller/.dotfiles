@@ -6,6 +6,7 @@ export DOTFILES_ROOT="$ROOT"
 
 PROFILE="${DOTFILES_PROFILE:-work}"
 DOTFILES_DRY_RUN="${DOTFILES_DRY_RUN:-0}"
+ONLY_MISE=0
 
 # shellcheck source=/dev/null
 source "$ROOT/bin/make-symlink"
@@ -22,11 +23,12 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --profile) PROFILE="$2"; shift 2 ;;
     --dry-run) DOTFILES_DRY_RUN=1; shift ;;
+    --only-mise) ONLY_MISE=1; shift ;;
     *) log "Unknown arg: $1"; exit 1 ;;
   esac
 done
 
-export DOTFILES_PROFILE DOTFILES_DRY_RUN
+export DOTFILES_PROFILE="$PROFILE" DOTFILES_DRY_RUN
 
 run() {
   if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
@@ -60,6 +62,33 @@ run_dir_contents() {
     make_symlink_dir_contents "$rel" "$@"
   fi
 }
+
+# Symlink ~/.config/mise/miserc.toml -> miserc.<profile>.toml (gitignored).
+link_mise_miserc() {
+  local d="$HOME/.config/mise"
+  local src="miserc.${PROFILE}.toml"
+  if [[ ! -d "$d" ]]; then
+    log "Skip miserc.toml ($d missing; link .config/mise first)"
+    return 0
+  fi
+  if [[ ! -e "$d/$src" ]]; then
+    log "Skip miserc.toml (no $src in $d)"
+    return 0
+  fi
+  if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
+    log "Would symlink $d/miserc.toml -> $src"
+    return 0
+  fi
+  ( cd "$d" && ln -sfn "$src" miserc.toml )
+  log "Linked mise miserc.toml -> $src"
+}
+
+if [[ "$ONLY_MISE" -eq 1 ]]; then
+  run ".config/mise"
+  link_mise_miserc
+  log "Done linking (mise only)."
+  exit 0
+fi
 
 run ".zshrc"
 run ".zsh_prompt"
@@ -103,6 +132,8 @@ run ".aerospace.toml"
 run ".config/git/hooks"
 
 run ".config/mise"
+link_mise_miserc
+
 run_to ".codex/config.toml" ".codex/config.toml"
 
 # Claude Code configuration (hooks, cues, settings, etc.)

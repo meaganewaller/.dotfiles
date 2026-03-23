@@ -106,12 +106,13 @@ mise run core:install        # Full install (brew + link)
 | `server` | Remote servers | base | No |
 | `container` | Devcontainers | minimal | No |
 
-Set via `DOTFILES_PROFILE` environment variable or `--profile` flag.
+Set via `DOTFILES_PROFILE` environment variable or `--profile` flag. The same value is exported as **`MISE_ENV`** during `install.sh` so global mise layers stay aligned.
 
 Profiles also control:
 - Git identity (`includeIf` in `.gitconfig`)
 - SSH config includes
 - Which dotfiles are linked
+- Global mise: `~/.config/mise/miserc.toml` → `miserc.<profile>.toml`, plus `config.<profile>.toml` on top of `config.toml` (see [ARCHITECTURE.md](./ARCHITECTURE.md))
 
 ## Claude Code Integration
 
@@ -160,8 +161,9 @@ git commit --no-verify                    # Skip all hooks
 
 1. **Edit dotfiles** - Modify files under `home/`
 2. **Add packages** - Edit `brewfiles/*.Brewfile`
-3. **Add runtimes** - Edit `mise.toml`
-4. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles`
+3. **Add global runtimes** - Edit `home/.config/mise/config.toml` (shared) and/or `home/.config/mise/config.<profile>.toml` (profile-specific); re-link so `miserc.toml` is updated
+4. **Repo-local mise** - Edit root `mise.toml` for tasks/tools when working inside this repo
+5. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles`
 
 Changes to `home/.claude/` require running the Claude install:
 ```bash

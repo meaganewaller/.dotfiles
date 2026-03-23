@@ -16,9 +16,15 @@ shopt -s histappend checkwinsize 2>/dev/null || true
 # mise (runtime authority)
 # MUST be first on PATH
 #######################################
+# Work (Gusto): shims on PATH — skip activate (same signal as zsh: ~/.gusto/init.sh).
+# Override: MISE_USE_SHIMS_ONLY=1
 
 if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate bash)"
+  if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
+    :
+  else
+    eval "$(mise activate bash)"
+  fi
 fi
 
 #######################################

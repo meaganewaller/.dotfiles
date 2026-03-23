@@ -1,8 +1,14 @@
 ########################################
 # Runtime: mise (must be first)
 ########################################
+# Work (Gusto): shims on PATH via ~/.gusto/init.* — skip activate.
+# Override: MISE_USE_SHIMS_ONLY=1
 if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh)"
+  if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
+    :
+  else
+    eval "$(mise activate zsh)"
+  fi
 fi
 
 ########################################

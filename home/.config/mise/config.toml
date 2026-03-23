@@ -1,15 +1,12 @@
 [settings]
 experimental = true
 
+# Shared tools for every profile. Profile-specific tools live in
+# config.{MISE_ENV}.toml (see miserc.toml, set at link time from miserc.<profile>.toml).
 [tools]
 node = "lts"
 go = "latest"
 rust = "latest"
 python = "3.12"
 ruby = "3.4.6"
-java = "21"
-terraform = "latest"
 lua = "5.5.0"
-
-[env]
-MISE_ENV="global"
