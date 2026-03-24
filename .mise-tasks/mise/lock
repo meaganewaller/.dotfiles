@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#MISE description="Regenerate committed mise.lock files (repo root + global profile layers)"
+#MISE alias="lock"
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ ! -f "$ROOT/mise.toml" ]]; then
+  echo "Expected $ROOT/mise.toml" >&2
+  exit 1
+fi
+
+if ! command -v mise >/dev/null 2>&1; then
+  for p in /opt/homebrew/bin/mise /usr/local/bin/mise "$HOME/.local/bin/mise"; do
+    if [[ -x "$p" ]]; then
+      export PATH="$(dirname "$p"):$PATH"
+      break
+    fi
+  done
+fi
+if ! command -v mise >/dev/null 2>&1; then
+  echo "mise not found (install or add to PATH)" >&2
+  exit 1
+fi
+
+# Each -C run updates lockfiles next to that config. mise may exit non-zero after
+# updating ~/.config/mise (e.g. cannot write /etc/mise/mise.lock); lockfiles are
+# still written — see https://github.com/jdx/mise/discussions/8611
+mise lock -C "$ROOT" -y || true
+mise lock -C "$ROOT/home/.config/mise" -E work -y || true
+mise lock -C "$ROOT/home/.config/mise" -E personal -y || true
+printf '%s\n' "Lockfiles updated under $ROOT and $ROOT/home/.config/mise (commit if changed)."

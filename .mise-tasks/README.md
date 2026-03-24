@@ -18,6 +18,24 @@ mise run claude         # Sync Claude Code settings
 mise run df:doctor      # Global: dotfiles health (from any directory)
 ```
 
+### Lockfiles (`mise.lock`)
+
+Committed lockfiles pin download URLs and checksums so `mise install` does not hit the GitHub API (avoids unauthenticated rate limits). After changing tool versions in `mise.toml` or `home/.config/mise/config*.toml`, regenerate:
+
+```bash
+mise run mise:lock
+```
+
+Commit the updated `mise.lock`, `home/.config/mise/mise.lock`, `mise.work.lock`, and `mise.personal.lock` as needed. Use `mise install --locked` in CI (see `.github/workflows/test-dotfiles-setup.yml`) or `mise run mise:install:locked` for global tools.
+
+### Project shell aliases (root `mise.toml`)
+
+With mise shell integration, these aliases exist only when your cwd is under the dotfiles repo: `dots` → `cd` to repo root, `mtasks` → `mise tasks`.
+
+### Incremental tasks
+
+`claude`, `codex`, and related tasks declare `sources` / `outputs = { auto = true }` so mise can skip a run when inputs have not changed.
+
 ## Global tasks (`home/.config/mise/config.toml`)
 
 These load from your **global** mise config (after `dotfiles link`). They shell out to `dotfiles` and `mise`, so they work from any cwd. Set `DOTFILES_PROFILE` when you need a non-default profile.
@@ -34,12 +52,14 @@ These load from your **global** mise config (after `dotfiles link`). They shell 
 | `mise:sync` | `mise install` (global tool versions) |
 | `mise:doctor` | `mise doctor` |
 | `mise:config` | `mise config` |
+| `mise:install:locked` | `mise install --locked` (global tools; uses lockfile URLs only) |
 
 ## Root Tasks (mise.toml)
 
 | Task | Description |
 |------|-------------|
 | `default` | Show available commands |
+| `mise:lock` | Regenerate `mise.lock` files (repo + `home/.config/mise` profile layers) |
 | `claude` | Merge Claude Code settings (common + profile) and link skills |
 | `claude:refresh` | Re-run Claude install after editing settings/skills |
 | `claude:dry-run` | Preview Claude install changes |
