@@ -32,6 +32,48 @@ export DEV_OS_EMIT="$CLAUDE_HOME/hooks/dev-os-emit.sh"
 _HOOK_NAME=""
 _HOOK_START_TIME=""
 
+# Extended context (set by hook_set_context)
+_HOOK_SESSION_ID=""
+_HOOK_EVENT=""
+_HOOK_TOOL_NAME=""
+
+# Detect hook event from script path
+# Looks for known event directory names in the call stack
+_detect_hook_event() {
+  local script_path="${BASH_SOURCE[2]:-${BASH_SOURCE[1]:-}}"
+
+  # Known Claude Code hook events
+  local events="SessionStart|SessionEnd|UserPromptSubmit|PreToolUse|PostToolUse|PostToolUseFailure|SubagentStart|SubagentStop|Stop|PreCompact|TaskCompleted"
+
+  if [[ "$script_path" =~ /($events)/ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo ""
+  fi
+}
+
+# Set extended context from hook input JSON
+# Call this after reading stdin to capture session/tool context
+# Usage: hook_set_context "$INPUT"
+#    OR: hook_set_context "$INPUT" "PostToolUse"  # explicit event override
+hook_set_context() {
+  local input="${1:-}"
+  local event_override="${2:-}"
+
+  [[ -z "$input" ]] && return 0
+
+  # Extract context from JSON input
+  _HOOK_SESSION_ID=$(echo "$input" | jq -r '.session_id // ""' 2>/dev/null) || _HOOK_SESSION_ID=""
+  _HOOK_TOOL_NAME=$(echo "$input" | jq -r '.tool_name // ""' 2>/dev/null) || _HOOK_TOOL_NAME=""
+
+  # Use explicit event or auto-detect from script path
+  if [[ -n "$event_override" ]]; then
+    _HOOK_EVENT="$event_override"
+  else
+    _HOOK_EVENT=$(_detect_hook_event)
+  fi
+}
+
 # Register hook execution start
 # Usage: hook_register "hook-name"
 hook_register() {
@@ -74,7 +116,7 @@ _hook_on_exit() {
 
 # Internal: write to health log
 _hook_log() {
-  local status="$1"
+  local hook_status="$1"
   local error_msg="$2"
 
   [[ -z "$_HOOK_NAME" ]] && return 0
@@ -102,15 +144,30 @@ _hook_log() {
   jq -cn \
     --arg ts "$timestamp" \
     --arg hook "$_HOOK_NAME" \
-    --arg status "$status" \
+    --arg hook_status "$hook_status" \
     --arg error "$error_msg" \
     --argjson duration "$duration_ms" \
-    '{timestamp: $ts, hook: $hook, status: $status, duration_ms: $duration, error: (if $error == "" then null else $error end)}' \
+    --arg session_id "$_HOOK_SESSION_ID" \
+    --arg hook_event "$_HOOK_EVENT" \
+    --arg tool_name "$_HOOK_TOOL_NAME" \
+    '{
+      timestamp: $ts,
+      hook: $hook,
+      status: $hook_status,
+      duration_ms: $duration,
+      error: (if $error == "" then null else $error end),
+      session_id: (if $session_id == "" then null else $session_id end),
+      hook_event: (if $hook_event == "" then null else $hook_event end),
+      tool_name: (if $tool_name == "" then null else $tool_name end)
+    }' \
     >> "$CLAUDE_HOOK_HEALTH_LOG" 2>/dev/null
 
   # Reset context
   _HOOK_NAME=""
   _HOOK_START_TIME=""
+  _HOOK_SESSION_ID=""
+  _HOOK_EVENT=""
+  _HOOK_TOOL_NAME=""
 }
 
 # Get hook health summary for last N hours

@@ -10,6 +10,7 @@ source "$SCRIPT_DIR/validate-path.sh"
 hook_register "impact-extractor"
 
 INPUT=$(cat)
+hook_set_context "$INPUT"
 
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name')
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')

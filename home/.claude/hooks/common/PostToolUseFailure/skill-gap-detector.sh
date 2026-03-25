@@ -10,6 +10,7 @@ source "$SCRIPT_DIR/validate-path.sh"
 hook_register "skill-gap-detector"
 
 INPUT=$(cat)
+hook_set_context "$INPUT"
 
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
 ERROR=$(echo "$INPUT" | jq -r '.error // ""')

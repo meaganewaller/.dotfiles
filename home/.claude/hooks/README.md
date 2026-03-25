@@ -174,12 +174,20 @@ Hooks can opt into health monitoring by calling `hook_register` at startup. This
 ```bash
 source “$SCRIPT_DIR/validate-path.sh”
 hook_register “my-hook-name”   # Call early; sets up EXIT trap
+
+INPUT=$(cat)
+hook_set_context “$INPUT”      # Capture session/tool context for observability
+
 # ... hook logic ...
 # Exit trap automatically logs success/failure to ~/.claude/hook-health.jsonl
 ```
 
 **What gets logged:**
-- Timestamp, hook name, status (success/failure), duration in ms, error message (if any)
+- `timestamp`, `hook`, `status` (success/failure), `duration_ms`, `error`
+- Extended context (when `hook_set_context` is called):
+  - `session_id` - links execution to Claude session
+  - `hook_event` - lifecycle event (PostToolUse, SessionStart, etc.)
+  - `tool_name` - for tool-related hooks (Read, Write, Bash, etc.)
 
 **How to check health:**
 ```bash
