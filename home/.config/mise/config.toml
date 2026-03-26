@@ -3,7 +3,6 @@ experimental = true
 auto_install = true
 
 [settings.ruby]
-ruby_build_opts = '--with-openssl-dir=/opt/homebrew/opt/openssl@3'
 compile = true
 # Lockfiles (mise.lock, mise.<profile>.lock next to this config): run `mise lock`
 # from the linked ~/.config/mise directory after changing [tools], or `mise run mise:lock`
