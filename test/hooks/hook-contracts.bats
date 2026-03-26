@@ -396,3 +396,71 @@ EOF
   # Should produce no output (no warning on main)
   [[ -z "$output" ]]
 }
+
+# ============================================================================
+# Secret Scanner Tests
+# ============================================================================
+
+@test "PreToolUse/secret-scanner.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/secret-scanner.sh"
+}
+
+@test "secret-scanner approves non-Write/Edit tools" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "secret-scanner approves clean content" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/test.txt", "content": "Hello world, this is safe content"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "secret-scanner blocks AWS access key" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/config.js", "content": "const key = \"AKIAIOSFODNN7EXAMPLE\""}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("AWS Access Key")' >/dev/null
+}
+
+@test "secret-scanner blocks GitHub PAT" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/config.js", "content": "token: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("GitHub Personal Access Token")' >/dev/null
+}
+
+@test "secret-scanner blocks private key" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/key.pem", "content": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpA..."}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("Private Key")' >/dev/null
+}
+
+@test "secret-scanner allows .env.example files" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/app/.env.example", "content": "API_KEY=sk-ant-your-key-here"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("template")' >/dev/null
+}
+
+@test "secret-scanner detects secrets in Edit new_string" {
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "/config.rb", "old_string": "KEY=xxx", "new_string": "KEY=\"ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\""}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+}
