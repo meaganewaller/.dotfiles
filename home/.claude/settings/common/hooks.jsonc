@@ -44,6 +44,10 @@
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/async-test-runner.sh",
                         "async": true
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/ai-guardrails.sh"
                     }
                 ]
             },
@@ -99,6 +103,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/Stop/leverage-evaluator.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/Stop/cost-tracker.sh"
                     }
                 ]
             }
@@ -189,6 +197,14 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/git-guard.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/block-destructive.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/exfiltration-check.sh"
                     }
                 ]
             },

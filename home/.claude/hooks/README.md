@@ -7,51 +7,86 @@ This directory holds **hook scripts** that run in response to Claude Code events
 ```
 hooks/
 ├── README.md                  # this file
-└── common/                   # shared hooks (used by all profiles)
-    ├── validate-path.sh      # shared utilities: path validation, health monitoring
-    ├── dev-os-emit.sh        # helper: append events to .claude/dev-os-events.jsonl
-    ├── hook-health.sh        # CLI: check hook execution health
-    ├── worktree-create-log.sh # log worktree creation (e.g. from git hook or script)
-    ├── worktree-remove-log.sh # log worktree removal
-    ├── match-cues.sh         # find cues by regex + semantic matching
-    ├── show-cue.sh           # output cue with marker gating + macro support
-    ├── semantic-match.sh     # gzip NCD similarity matching
+└── common/                    # shared hooks (used by all profiles)
+    ├── validate-path.sh       # shared utilities: path validation, health monitoring
+    ├── dev-os-emit.sh         # helper: append events to .claude/dev-os-events.jsonl
+    ├── hook-health.sh         # CLI: check hook execution health
+    ├── match-cues.sh          # find cues by regex + semantic matching
+    ├── show-cue.sh            # output cue with marker gating + macro support
+    ├── semantic-match.sh      # gzip NCD similarity matching
+    │
     ├── SessionStart/
     │   ├── clear-cue-markers.sh
     │   ├── session-context-injector.sh
+    │   ├── session-start-tracker.sh
     │   ├── friction-escalator.sh
     │   └── hook-health-reporter.sh
+    │
     ├── UserPromptSubmit/
     │   ├── cue-injector-prompt.sh
     │   ├── state-triggers.sh
-    │   └── idea-classifier.sh
+    │   ├── idea-classifier.sh
+    │   └── session-duration-monitor.sh
+    │
     ├── PreToolUse/
-    │   ├── cue-injector-bash.sh
-    │   ├── cue-injector-file.sh
-    │   ├── mark-tasks-active.sh
-    │   ├── cue-task-stash.sh
-    │   └── layering-guard.sh
+    │   ├── mark-tasks-active.sh      # TaskCreate
+    │   ├── cue-task-stash.sh         # Task
+    │   ├── cue-injector-bash.sh      # Bash
+    │   ├── git-guard.sh              # Bash - block dangerous git ops
+    │   ├── block-destructive.sh      # Bash - block rm -rf, curl|bash
+    │   ├── exfiltration-check.sh     # Bash - block data exfiltration
+    │   ├── cue-injector-file.sh      # Write|Edit
+    │   ├── layering-guard.sh         # Write|Edit
+    │   ├── principle-reinforcer.sh   # Write|Edit
+    │   ├── large-file-guard.sh       # Read
+    │   └── bulk-operation-estimator.sh  # Glob|Grep
+    │
+    ├── PostToolUse/
+    │   ├── loop-detector.sh          # * (all tools)
+    │   ├── principle-activator.sh    # * (all tools)
+    │   ├── impact-extractor.sh       # Write|Edit
+    │   ├── large-diff-escalator.sh   # Write|Edit
+    │   ├── dependency-change-detector.sh  # Write|Edit
+    │   ├── reversal-detector.sh      # Write|Edit
+    │   ├── tradeoff-capture.sh       # Write|Edit
+    │   ├── async-test-runner.sh      # Write|Edit (async)
+    │   ├── ai-guardrails.sh          # Write|Edit - AI pitfall detection
+    │   ├── skill-usage-tracker.sh    # Skill
+    │   ├── read-tracker.sh           # Read
+    │   └── resource-limit-catcher.sh # Read
+    │
+    ├── PostToolUseFailure/
+    │   └── skill-gap-detector.sh
+    │
     ├── SubagentStart/
     │   └── cue-inject-subagent.sh
+    │
+    ├── SubagentStop/
+    │   └── tradeoff-subagent-capture.sh  # Explore|Plan
+    │
     ├── Stop/
     │   ├── response-topics-writer.sh
     │   ├── hard-stop-test-blocker.sh
-    │   └── pending-tradeoff-blocker.sh
-    ├── PostToolUse/
-    │   ├── impact-extractor.sh
-    │   ├── large-diff-escalator.sh
-    │   ├── dependency-change-detector.sh
-    │   ├── reversal-detector.sh
-    │   ├── tradeoff-capture.sh
-    │   └── async-test-runner.sh
-    ├── PostToolUseFailure/
-    │   └── skill-gap-detector.sh
+    │   ├── tradeoff-auto-capture.sh
+    │   ├── leverage-evaluator.sh
+    │   └── cost-tracker.sh           # Track token costs
+    │
     ├── TaskCompleted/
     │   └── task-gate.sh
+    │
     ├── PreCompact/
+    │   ├── context-compact-tracker.sh
     │   └── pre-compact-snapshot.sh
-    └── SessionEnd/
-        └── learning-suggestion-generator.sh
+    │
+    ├── SessionEnd/
+    │   ├── session-end-tracker.sh
+    │   └── learning-suggestion-generator.sh
+    │
+    ├── WorktreeCreate/
+    │   └── worktree-create-log.sh
+    │
+    └── WorktreeRemove/
+        └── worktree-remove-log.sh
 ```
 
 Event names match Claude Code’s hook events; scripts under each folder are invoked when that event fires (and when the optional **matcher** in `hooks.jsonc` matches, e.g. `Write|Edit`).
@@ -81,18 +116,77 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 
 ## Event → script summary
 
-| Event              | Script(s) | When / purpose |
-|--------------------|-----------|----------------|
-| **SessionStart**   | `clear-cue-markers.sh`, `session-context-injector.sh`, `friction-escalator.sh`, `hook-health-reporter.sh` | Clear cue/task markers; inject recent impact, friction, journal, and `core.md`; friction escalator; hook health. |
-| **UserPromptSubmit** | `cue-injector-prompt.sh`, `state-triggers.sh`, `idea-classifier.sh` | Match prompt (and last-response topics) to cues; session-start / context-threshold state triggers; idea vault. |
-| **PreToolUse**     | `mark-tasks-active.sh` (TaskCreate), `cue-task-stash.sh` (Task), `cue-injector-bash.sh` (Bash), `cue-injector-file.sh` + `layering-guard.sh` (Write\|Edit), `large-file-guard.sh` (Read) | **TaskCreate**: set tasks-active marker | **Task**: stash cues for subagent. Bash: inject cues for command. Write/Edit: inject cues for file path, then layering guard. Read: warn about large files needing chunked reads. |
-| **PostToolUse**    | `impact-extractor.sh`, `large-diff-escalator.sh`, `dependency-change-detector.sh`, `reversal-detector.sh`, `async-test-runner.sh` | After Write/Edit: log change type to impact log; if diff >250 lines emit `large_change` and prompt to summarize risk; if dependency file changed emit `dependency_change`; if large net removal (reversal) emit `reversal`; run tests and emit `test_run` (async). |
-| **PostToolUseFailure** | `skill-gap-detector.sh` | After tool failure: classify and append to `.claude/skill-friction-log.jsonl`. |
-| **SubagentStart**  | `cue-inject-subagent.sh` | Inject stashed cue content into subagent context. |
-| **Stop**           | `response-topics-writer.sh`, `hard-stop-test-blocker.sh`, `pending-tradeoff-blocker.sh` (then prompt) | Write last-response topics for next prompt; block if last test failed or pending tradeoffs; then leverage prompt. |
-| **TaskCompleted**  | `task-gate.sh` | When a task is marked complete: run rspec, rubocop, migration/reversible and public-API-doc checks; on success emit `task_completed`. |
-| **PreCompact**     | `pre-compact-snapshot.sh` | Before context compact: write a snapshot to `.claude/session-summaries/`. |
-| **SessionEnd**     | `learning-suggestion-generator.sh` | On session end: generate `.claude/learning-targets/latest.md` from impact/friction/journal. |
+| Event | Purpose |
+|-------|---------|
+| **SessionStart** | Initialize session context and clear markers |
+| **UserPromptSubmit** | Match cues, track state, classify ideas |
+| **PreToolUse** | Guard dangerous operations, inject contextual cues |
+| **PostToolUse** | Track impact, detect large changes, run tests |
+| **PostToolUseFailure** | Classify failures for learning |
+| **SubagentStart** | Pass cue context to subagents |
+| **Stop** | Gate on test status, track costs, evaluate leverage |
+| **TaskCompleted** | Quality gate before task completion |
+| **PreCompact** | Snapshot context before compaction |
+| **SessionEnd** | Generate learning suggestions |
+
+### Scripts by event
+
+**SessionStart** (matcher: `startup|resume`)
+- `clear-cue-markers.sh` - Reset once-per-session cue markers
+- `session-context-injector.sh` - Inject recent impact/friction/journal
+- `friction-escalator.sh` - Surface repeated friction patterns
+- `hook-health-reporter.sh` - Warn if hooks are failing
+
+**UserPromptSubmit**
+- `cue-injector-prompt.sh` - Match prompt to contextual cues
+- `state-triggers.sh` - Session-start and context-threshold triggers
+- `idea-classifier.sh` - Capture opinions to idea vault
+
+**PreToolUse**
+- `mark-tasks-active.sh` (TaskCreate) - Set tasks-active marker
+- `cue-task-stash.sh` (Task) - Stash cues for subagent
+- `cue-injector-bash.sh` (Bash) - Inject cues for commands
+- `git-guard.sh` (Bash) - Block dangerous git ops, enforce conventional commits
+- `block-destructive.sh` (Bash) - Block rm -rf, curl|bash, force push
+- `exfiltration-check.sh` (Bash) - Block data exfiltration patterns
+- `cue-injector-file.sh` (Write|Edit) - Inject cues for file paths
+- `layering-guard.sh` (Write|Edit) - Enforce architectural layering
+- `principle-reinforcer.sh` (Write|Edit) - Reinforce engineering principles
+- `large-file-guard.sh` (Read) - Block/warn on large file reads
+- `bulk-operation-estimator.sh` (Glob|Grep) - Estimate operation scope
+
+**PostToolUse** (matcher: `Write|Edit`)
+- `impact-extractor.sh` - Log change type and skill domains
+- `large-diff-escalator.sh` - Warn on >250 line changes
+- `dependency-change-detector.sh` - Track dependency file changes
+- `reversal-detector.sh` - Detect exploration reversals
+- `tradeoff-capture.sh` - Capture architectural tradeoffs
+- `async-test-runner.sh` - Run tests asynchronously
+- `ai-guardrails.sh` - Detect AI dev pitfalls (missing tests, placeholders, hallucinated deps)
+
+**PostToolUseFailure** (matcher: `Bash|Task|Read|Write|Edit|Glob|Grep|mcp__.*`)
+- `skill-gap-detector.sh` - Classify failure for learning
+
+**SubagentStart**
+- `cue-inject-subagent.sh` - Inject stashed cue content
+
+**Stop**
+- `response-topics-writer.sh` - Write topics for next prompt
+- `hard-stop-test-blocker.sh` - Block if last test failed
+- `tradeoff-auto-capture.sh` - Auto-capture session tradeoffs
+- `leverage-evaluator.sh` - Check session produced value
+- `cost-tracker.sh` - Track token costs to `~/.claude/metrics/costs.jsonl`
+
+**TaskCompleted**
+- `task-gate.sh` - Run quality checks before completion
+
+**PreCompact**
+- `context-compact-tracker.sh` - Track compaction events
+- `pre-compact-snapshot.sh` - Snapshot to `~/.claude/session-summaries/`
+
+**SessionEnd**
+- `session-end-tracker.sh` - Track session end
+- `learning-suggestion-generator.sh` - Generate `~/.claude/learning-targets/latest.md`
 
 ## Helper scripts
 
@@ -220,8 +314,26 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 
 ### PreToolUse
 
-- **layering-guard.sh**  
-  Runs before **Write** or **Edit** (matcher: `Write|Edit`). Only considers paths under `app/`. Inspects the **content** being written and blocks (by outputting `permissionDecision: "ask"` and a reason) when it detects: (1) a file under `app/models` referencing “controller”, (2) a file under `app/services` referencing “render”/“view”/“erb”, or (3) a file under `app/models`, `app/domain`, or `app/services` referencing “aws”, “net/http”, “open3”, “system(”, “exec(”, “file.open”. Otherwise exits 0 and allows the tool.
+- **layering-guard.sh**
+  Runs before **Write** or **Edit** (matcher: `Write|Edit`). Only considers paths under `app/`. Inspects the **content** being written and blocks (by outputting `permissionDecision: “ask”` and a reason) when it detects: (1) a file under `app/models` referencing “controller”, (2) a file under `app/services` referencing “render”/”view”/”erb”, or (3) a file under `app/models`, `app/domain`, or `app/services` referencing “aws”, “net/http”, “open3”, “system(“, “exec(“, “file.open”. Otherwise exits 0 and allows the tool.
+
+- **git-guard.sh**
+  Runs before **Bash** (matcher: `Bash`). Blocks dangerous commands (rm -rf /, mkfs, dd of=/dev, DROP DATABASE/TABLE, DELETE without WHERE) and enforces conventional commit format for `git commit` commands. Returns `{decision: “block”, reason: “...”}` to prevent execution, or `{decision: “approve”}` to allow.
+
+- **block-destructive.sh**
+  Runs before **Bash** (matcher: `Bash`). Defense-in-depth for destructive commands not covered by git-guard: git force operations (`push --force`, `reset --hard origin`, `checkout .`, `git restore .`, `git clean -fd`), pipe-to-shell attacks (`curl|bash`, `wget|sh`), and home/root directory wipes. Returns `{ok: false, error: “...”, suggestion: “...”}` to block with helpful alternatives. Emits `destructive_command_blocked` telemetry event. Uses `hook_register` for health monitoring.
+
+- **exfiltration-check.sh**
+  Runs before **Bash** (matcher: `Bash`). Detects potential data exfiltration patterns. **Hard deny rules** (always block): network transfer of sensitive files (.env, .pem, .key, etc.), piping secrets to network commands, command substitution of secrets in curl/wget, direct file transfer (scp/rsync) of sensitive files, posting env vars with SECRET/TOKEN/KEY to network. **Soft rules** (prompt for confirmation): base64/hex encoding piped to network, DNS exfiltration via command substitution, scripting language network calls with sensitive file references, script-write-then-execute patterns, tar/zip piped directly to network. Emits `exfiltration_blocked` or `exfiltration_warning` telemetry events. Uses `hook_register` for health monitoring.
+
+- **large-file-guard.sh**
+  Runs before **Read** (matcher: `Read`). Implements ADR-0008 (Chunked Operation Pattern). Hard-blocks session logs (`~/.claude/projects/*.jsonl`) and very large files (>10MB). For large-but-readable files (>1000 lines or >256KB), outputs advisory warnings with chunked reading recommendations. Uses `size_estimate()` from validate-path.sh for pre-flight analysis.
+
+- **bulk-operation-estimator.sh**
+  Runs before **Glob** or **Grep** (matcher: `Glob|Grep`). Estimates the scope of bulk file operations and warns if the pattern might match an excessive number of files.
+
+- **principle-reinforcer.sh**
+  Runs before **Write** or **Edit** (matcher: `Write|Edit`). Reinforces engineering principles based on the type of file being edited.
 
 ### PostToolUse (Write|Edit only, in order)
 
@@ -237,8 +349,17 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 - **reversal-detector.sh**  
   Only runs in a git repo. Counts added vs removed lines in the edited file. If **removed > 50** and **removed > added**, emits `reversal` to dev-os-events with `likely_cause: "exploration_reversal"`. Useful to spot large rollbacks or exploration being reverted.
 
-- **async-test-runner.sh**  
-  Runs **async** (does not block). Only runs when the edited file has extension `.rb`, `.ts`, or `.js`. Runs `bundle exec rspec` (Ruby); result is emitted as `test_run` (payload: `result: "passed"` or `"failed"`). If tests failed, prints a **systemMessage**: “Tests failed after last edit.”
+- **async-test-runner.sh**
+  Runs **async** (does not block). Only runs when the edited file has extension `.rb`, `.ts`, or `.js`. Runs `bundle exec rspec` (Ruby); result is emitted as `test_run` (payload: `result: “passed”` or `”failed”`). If tests failed, prints a **systemMessage**: “Tests failed after last edit.”
+
+- **ai-guardrails.sh**
+  Detects common AI-assisted development pitfalls. Non-blocking hook that outputs guidance via `additionalContext`:
+  - **Untested code**: Warns when new JS/TS/Ruby source files have no corresponding test file. Auto-detects test framework (rspec vs minitest for Ruby; checks for spec/ or test/ directories and Gemfile).
+  - **Generic placeholders**: Flags files with 2+ placeholders (TODO, FIXME, example.com, REPLACE_ME, NotImplementedError).
+  - **Hallucinated dependencies**: Warns when package.json, Gemfile, or Cargo.toml is written to verify packages exist.
+  - **Large files**: Warns when files >300 lines are written with minimal structure.
+  - **Ruby-specific**: Suggests `frozen_string_literal` magic comment for new Ruby files. Detects test framework (rspec/minitest) and linter (rubocop/standardrb) automatically.
+  Emits `ai_guardrails_triggered` telemetry event with warning count.
 
 ### PostToolUseFailure
 
@@ -247,8 +368,17 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 
 ### Stop
 
-- **hard-stop-test-blocker.sh**  
-  Runs first in the Stop sequence (before the leverage prompt). Reads **`$HOME/.claude/dev-os-events.jsonl`** and finds the most recent `test_run` event. If that event’s `payload.result` is `"failed"`, prints `{"ok":false,"reason":"Cannot stop: last test_run event failed. Fix tests before stopping."}` so the UI blocks stop; otherwise prints `{"ok":true}`. If the file doesn’t exist, allows stop. Always exits 0.
+- **hard-stop-test-blocker.sh**
+  Runs first in the Stop sequence. Reads **`$HOME/.claude/dev-os-events.jsonl`** and finds the most recent `test_run` event. If that event’s `payload.result` is `"failed"`, prints `{"ok":false,"reason":"Cannot stop: last test_run event failed. Fix tests before stopping."}` so the UI blocks stop; otherwise prints `{"ok":true}`. If the file doesn’t exist, allows stop. Always exits 0.
+
+- **tradeoff-auto-capture.sh**
+  Runs in the Stop sequence. Auto-captures tradeoffs from the session if significant decisions were made.
+
+- **leverage-evaluator.sh**
+  Runs in the Stop sequence. Evaluates whether the session produced meaningful leverage by checking for indicators like files written, decisions documented, or tests run. Returns `{"ok":true}` to allow stopping if value was produced.
+
+- **cost-tracker.sh**
+  Runs at the end of the Stop sequence. Tracks token costs per model per session. Extracts `input_tokens`, `output_tokens`, `cache_read_input_tokens`, and `cache_creation_input_tokens` from the Stop event payload. Calculates estimated cost using current pricing (Haiku 4.5: $1/$5, Sonnet 4.x: $3/$15, Opus 4.5/4.6: $5/$25, Opus 4/4.1: $15/$75 per MTok). Writes JSONL entries to **`$HOME/.claude/metrics/costs.jsonl`** with timestamp, session_id, model, token counts, and estimated_cost_usd. Emits `cost_tracked` telemetry event. Uses `hook_register` for health monitoring.
 
 ### TaskCompleted
 
