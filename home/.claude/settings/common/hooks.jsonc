@@ -201,6 +201,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/block-destructive.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/exfiltration-check.sh"
                     }
                 ]
             },

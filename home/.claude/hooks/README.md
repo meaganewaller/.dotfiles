@@ -34,6 +34,7 @@ hooks/
     │   ├── cue-injector-bash.sh      # Bash
     │   ├── git-guard.sh              # Bash - block dangerous git ops
     │   ├── block-destructive.sh      # Bash - block rm -rf, curl|bash
+    │   ├── exfiltration-check.sh     # Bash - block data exfiltration
     │   ├── cue-injector-file.sh      # Write|Edit
     │   ├── layering-guard.sh         # Write|Edit
     │   ├── principle-reinforcer.sh   # Write|Edit
@@ -147,6 +148,7 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - `cue-injector-bash.sh` (Bash) - Inject cues for commands
 - `git-guard.sh` (Bash) - Block dangerous git ops, enforce conventional commits
 - `block-destructive.sh` (Bash) - Block rm -rf, curl|bash, force push
+- `exfiltration-check.sh` (Bash) - Block data exfiltration patterns
 - `cue-injector-file.sh` (Write|Edit) - Inject cues for file paths
 - `layering-guard.sh` (Write|Edit) - Enforce architectural layering
 - `principle-reinforcer.sh` (Write|Edit) - Reinforce engineering principles
@@ -320,6 +322,9 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 
 - **block-destructive.sh**
   Runs before **Bash** (matcher: `Bash`). Defense-in-depth for destructive commands not covered by git-guard: git force operations (`push --force`, `reset --hard origin`, `checkout .`, `git restore .`, `git clean -fd`), pipe-to-shell attacks (`curl|bash`, `wget|sh`), and home/root directory wipes. Returns `{ok: false, error: “...”, suggestion: “...”}` to block with helpful alternatives. Emits `destructive_command_blocked` telemetry event. Uses `hook_register` for health monitoring.
+
+- **exfiltration-check.sh**
+  Runs before **Bash** (matcher: `Bash`). Detects potential data exfiltration patterns. **Hard deny rules** (always block): network transfer of sensitive files (.env, .pem, .key, etc.), piping secrets to network commands, command substitution of secrets in curl/wget, direct file transfer (scp/rsync) of sensitive files, posting env vars with SECRET/TOKEN/KEY to network. **Soft rules** (prompt for confirmation): base64/hex encoding piped to network, DNS exfiltration via command substitution, scripting language network calls with sensitive file references, script-write-then-execute patterns, tar/zip piped directly to network. Emits `exfiltration_blocked` or `exfiltration_warning` telemetry events. Uses `hook_register` for health monitoring.
 
 - **large-file-guard.sh**
   Runs before **Read** (matcher: `Read`). Implements ADR-0008 (Chunked Operation Pattern). Hard-blocks session logs (`~/.claude/projects/*.jsonl`) and very large files (>10MB). For large-but-readable files (>1000 lines or >256KB), outputs advisory warnings with chunked reading recommendations. Uses `size_estimate()` from validate-path.sh for pre-flight analysis.
