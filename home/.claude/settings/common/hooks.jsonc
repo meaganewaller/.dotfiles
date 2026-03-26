@@ -44,6 +44,10 @@
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/async-test-runner.sh",
                         "async": true
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/ai-guardrails.sh"
                     }
                 ]
             },

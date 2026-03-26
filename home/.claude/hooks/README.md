@@ -49,6 +49,7 @@ hooks/
     │   ├── reversal-detector.sh      # Write|Edit
     │   ├── tradeoff-capture.sh       # Write|Edit
     │   ├── async-test-runner.sh      # Write|Edit (async)
+    │   ├── ai-guardrails.sh          # Write|Edit - AI pitfall detection
     │   ├── skill-usage-tracker.sh    # Skill
     │   ├── read-tracker.sh           # Read
     │   └── resource-limit-catcher.sh # Read
@@ -159,6 +160,7 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - `reversal-detector.sh` - Detect exploration reversals
 - `tradeoff-capture.sh` - Capture architectural tradeoffs
 - `async-test-runner.sh` - Run tests asynchronously
+- `ai-guardrails.sh` - Detect AI dev pitfalls (missing tests, placeholders, hallucinated deps)
 
 **PostToolUseFailure** (matcher: `Bash|Task|Read|Write|Edit|Glob|Grep|mcp__.*`)
 - `skill-gap-detector.sh` - Classify failure for learning
@@ -342,8 +344,17 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 - **reversal-detector.sh**  
   Only runs in a git repo. Counts added vs removed lines in the edited file. If **removed > 50** and **removed > added**, emits `reversal` to dev-os-events with `likely_cause: "exploration_reversal"`. Useful to spot large rollbacks or exploration being reverted.
 
-- **async-test-runner.sh**  
-  Runs **async** (does not block). Only runs when the edited file has extension `.rb`, `.ts`, or `.js`. Runs `bundle exec rspec` (Ruby); result is emitted as `test_run` (payload: `result: "passed"` or `"failed"`). If tests failed, prints a **systemMessage**: “Tests failed after last edit.”
+- **async-test-runner.sh**
+  Runs **async** (does not block). Only runs when the edited file has extension `.rb`, `.ts`, or `.js`. Runs `bundle exec rspec` (Ruby); result is emitted as `test_run` (payload: `result: “passed”` or `”failed”`). If tests failed, prints a **systemMessage**: “Tests failed after last edit.”
+
+- **ai-guardrails.sh**
+  Detects common AI-assisted development pitfalls. Non-blocking hook that outputs guidance via `additionalContext`:
+  - **Untested code**: Warns when new JS/TS/Ruby source files have no corresponding test file. Auto-detects test framework (rspec vs minitest for Ruby; checks for spec/ or test/ directories and Gemfile).
+  - **Generic placeholders**: Flags files with 2+ placeholders (TODO, FIXME, example.com, REPLACE_ME, NotImplementedError).
+  - **Hallucinated dependencies**: Warns when package.json, Gemfile, or Cargo.toml is written to verify packages exist.
+  - **Large files**: Warns when files >300 lines are written with minimal structure.
+  - **Ruby-specific**: Suggests `frozen_string_literal` magic comment for new Ruby files. Detects test framework (rspec/minitest) and linter (rubocop/standardrb) automatically.
+  Emits `ai_guardrails_triggered` telemetry event with warning count.
 
 ### PostToolUseFailure
 
