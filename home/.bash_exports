@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export FCEDIT=nvim
 export EDITOR=nvim
 export SUDO_EDITOR=nvim
@@ -6,6 +8,7 @@ export RUST_BACKTRACE=full
 # Load machine-specific exports FIRST (allows DOTFILES_ROOT override for custom clone locations)
 # See README.md "Custom Clone Location" section for details
 if [ -f ~/.bash_exports.local ]; then
+    # shellcheck disable=SC1090
     . ~/.bash_exports.local
 fi
 
@@ -18,8 +21,3 @@ export GLOBAL_MCP_CONFIG="$DOTFILES_ROOT/mcp/mcp.json"
 
 # Add MCP wrapper scripts to PATH for cross-machine portability
 export PATH="$PATH:$DOTFILES_ROOT/mcp"
-
-# Source company-specific configuration from flywire-notes (gitignored)
-if [ -f "$DOTFILES_ROOT/flywire-notes/bash-config.sh" ]; then
-    . "$DOTFILES_ROOT/flywire-notes/bash-config.sh"
-fi
