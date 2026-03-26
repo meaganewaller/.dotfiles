@@ -259,3 +259,105 @@ EOF
   # Should mention session log and provide tail/grep commands
   echo "$output" | jq -e '.hookSpecificOutput.additionalContext | contains("Session Log Blocked")' >/dev/null
 }
+
+# ============================================================================
+# Uncommitted Change Guard Tests
+# ============================================================================
+
+@test "PreToolUse/uncommitted-change-guard.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh"
+}
+
+@test "uncommitted-change-guard approves non-Edit/Write tools" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "uncommitted-change-guard approves new file creation" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "'$TEST_TMPDIR'/nonexistent-file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("New file")' >/dev/null
+}
+
+@test "uncommitted-change-guard approves file outside git repo" {
+  # Create a file outside any git repo
+  echo "test" > "$TEST_TMPDIR/outside-repo.txt"
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/outside-repo.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "uncommitted-change-guard warns on uncommitted changes" {
+  # Create a git repo with uncommitted changes
+  mkdir -p "$TEST_TMPDIR/repo"
+  cd "$TEST_TMPDIR/repo"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "initial" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+  echo "modified" > file.txt  # Uncommitted change
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/repo/file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  # Should approve but with WARNING in reason
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("WARNING")' >/dev/null
+  echo "$output" | jq -e '.reason | contains("unstaged")' >/dev/null
+}
+
+@test "uncommitted-change-guard detects staged changes" {
+  # Create a git repo with staged changes
+  mkdir -p "$TEST_TMPDIR/repo2"
+  cd "$TEST_TMPDIR/repo2"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "initial" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+  echo "staged" > file.txt
+  git add file.txt  # Stage the change
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/repo2/file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("WARNING")' >/dev/null
+  echo "$output" | jq -e '.reason | contains("staged")' >/dev/null
+}
+
+@test "uncommitted-change-guard approves clean file" {
+  # Create a git repo with committed file
+  mkdir -p "$TEST_TMPDIR/repo3"
+  cd "$TEST_TMPDIR/repo3"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "committed" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/repo3/file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("No uncommitted")' >/dev/null
+}
