@@ -43,7 +43,7 @@ _detect_hook_event() {
   local script_path="${BASH_SOURCE[2]:-${BASH_SOURCE[1]:-}}"
 
   # Known Claude Code hook events
-  local events="SessionStart|SessionEnd|UserPromptSubmit|PreToolUse|PostToolUse|PostToolUseFailure|SubagentStart|SubagentStop|Stop|PreCompact|TaskCompleted"
+  local events="SessionStart|SessionEnd|UserPromptSubmit|PreToolUse|PostToolUse|PostToolUseFailure|SubagentStart|SubagentStop|WorktreeCreate|WorktreeRemove|Stop|PreCompact|TaskCompleted"
 
   if [[ "$script_path" =~ /($events)/ ]]; then
     echo "${BASH_REMATCH[1]}"
