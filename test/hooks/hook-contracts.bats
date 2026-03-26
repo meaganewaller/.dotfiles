@@ -361,3 +361,38 @@ EOF
   echo "$output" | jq -e '.decision == "approve"' >/dev/null
   echo "$output" | jq -e '.reason | contains("No uncommitted")' >/dev/null
 }
+
+# ============================================================================
+# Branch Staleness Check Tests
+# ============================================================================
+
+@test "SessionStart/branch-staleness-check.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/SessionStart/branch-staleness-check.sh"
+}
+
+@test "branch-staleness-check exits cleanly outside git repo" {
+  cd "$TEST_TMPDIR"
+
+  output=$(echo '{}' | "$HOOKS_DIR/SessionStart/branch-staleness-check.sh" 2>/dev/null)
+
+  # Should produce no output (no warning)
+  [[ -z "$output" ]]
+}
+
+@test "branch-staleness-check skips on main branch" {
+  mkdir -p "$TEST_TMPDIR/main-repo"
+  cd "$TEST_TMPDIR/main-repo"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "test" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+  # We're on main by default
+
+  output=$(echo '{}' | "$HOOKS_DIR/SessionStart/branch-staleness-check.sh" 2>/dev/null)
+
+  # Should produce no output (no warning on main)
+  [[ -z "$output" ]]
+}

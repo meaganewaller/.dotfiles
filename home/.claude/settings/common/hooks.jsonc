@@ -282,6 +282,10 @@
                     },
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SessionStart/branch-staleness-check.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/clear-cue-markers.sh"
                     },
                     {
