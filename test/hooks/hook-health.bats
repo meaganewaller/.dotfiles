@@ -89,6 +89,90 @@ teardown() {
 }
 
 # ============================================================================
+# hook_set_context (extended context capture)
+# ============================================================================
+
+@test "hook_set_context extracts session_id from JSON" {
+  local input='{"session_id": "abc123", "tool_name": "Write"}'
+  hook_set_context "$input"
+  [[ "$_HOOK_SESSION_ID" == "abc123" ]]
+}
+
+@test "hook_set_context extracts tool_name from JSON" {
+  local input='{"session_id": "abc123", "tool_name": "Edit"}'
+  hook_set_context "$input"
+  [[ "$_HOOK_TOOL_NAME" == "Edit" ]]
+}
+
+@test "hook_set_context accepts explicit event override" {
+  local input='{"session_id": "abc123"}'
+  hook_set_context "$input" "PostToolUse"
+  [[ "$_HOOK_EVENT" == "PostToolUse" ]]
+}
+
+@test "hook_set_context handles empty input gracefully" {
+  hook_set_context ""
+  [[ -z "$_HOOK_SESSION_ID" ]]
+  [[ -z "$_HOOK_TOOL_NAME" ]]
+}
+
+@test "hook_set_context handles malformed JSON gracefully" {
+  hook_set_context "not valid json"
+  # Should not crash, just have empty values
+  [[ -z "$_HOOK_SESSION_ID" || "$_HOOK_SESSION_ID" == "" ]]
+}
+
+# ============================================================================
+# Extended fields in health log output
+# ============================================================================
+
+@test "_hook_log includes session_id when set" {
+  hook_register "test-hook"
+  local input='{"session_id": "sess-xyz", "tool_name": "Read"}'
+  hook_set_context "$input" "PostToolUse"
+  hook_success
+
+  grep -q '"session_id":"sess-xyz"' "$CLAUDE_HOOK_HEALTH_LOG"
+}
+
+@test "_hook_log includes hook_event when set" {
+  hook_register "test-hook"
+  hook_set_context '{"session_id": "x"}' "PreToolUse"
+  hook_success
+
+  grep -q '"hook_event":"PreToolUse"' "$CLAUDE_HOOK_HEALTH_LOG"
+}
+
+@test "_hook_log includes tool_name when set" {
+  hook_register "test-hook"
+  hook_set_context '{"session_id": "x", "tool_name": "Bash"}' "PostToolUse"
+  hook_success
+
+  grep -q '"tool_name":"Bash"' "$CLAUDE_HOOK_HEALTH_LOG"
+}
+
+@test "_hook_log uses null for missing extended fields" {
+  hook_register "test-hook"
+  # Don't call hook_set_context
+  hook_success
+
+  grep -q '"session_id":null' "$CLAUDE_HOOK_HEALTH_LOG"
+  grep -q '"hook_event":null' "$CLAUDE_HOOK_HEALTH_LOG"
+  grep -q '"tool_name":null' "$CLAUDE_HOOK_HEALTH_LOG"
+}
+
+@test "_hook_log clears extended context after logging" {
+  hook_register "test-hook"
+  hook_set_context '{"session_id": "sess1", "tool_name": "Write"}' "PostToolUse"
+  hook_success
+
+  # Context should be cleared
+  [[ -z "$_HOOK_SESSION_ID" ]]
+  [[ -z "$_HOOK_EVENT" ]]
+  [[ -z "$_HOOK_TOOL_NAME" ]]
+}
+
+# ============================================================================
 # hook_health_summary
 # ============================================================================
 
