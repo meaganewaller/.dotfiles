@@ -58,7 +58,7 @@ STATE=$(jq --arg sid "$SESSION_ID" '
   if .sessions[$sid] == null then
     .sessions[$sid] = {
       spawns: 0,
-      active_background: 0,
+      background_spawns: 0,
       types: {},
       first_spawn: now | strftime("%Y-%m-%dT%H:%M:%SZ"),
       last_spawn: null
@@ -72,7 +72,7 @@ STATE=$(jq --arg sid "$SESSION_ID" --arg type "$SUBAGENT_TYPE" --argjson bg "$RU
   .sessions[$sid].spawns += 1
   | .sessions[$sid].last_spawn = (now | strftime("%Y-%m-%dT%H:%M:%SZ"))
   | .sessions[$sid].types[$type] = ((.sessions[$sid].types[$type] // 0) + 1)
-  | if $bg then .sessions[$sid].active_background += 1 else . end
+  | if $bg then .sessions[$sid].background_spawns += 1 else . end
 ' <<<"$STATE")
 
 # Save state
@@ -83,7 +83,7 @@ flock -u 200
 
 # Get current session stats
 SPAWN_COUNT=$(jq -r --arg sid "$SESSION_ID" '.sessions[$sid].spawns' <<<"$STATE")
-BG_COUNT=$(jq -r --arg sid "$SESSION_ID" '.sessions[$sid].active_background' <<<"$STATE")
+BG_SPAWN_COUNT=$(jq -r --arg sid "$SESSION_ID" '.sessions[$sid].background_spawns' <<<"$STATE")
 
 # Emit telemetry
 safe_emit "agent_spawn" "$(jq -n \
@@ -110,9 +110,9 @@ if (( SPAWN_COUNT > 10 )); then
   WARNING="Note: $SPAWN_COUNT agents spawned this session. Consider if tasks could be consolidated."
 fi
 
-# Many background agents warning
-if (( BG_COUNT > 3 )); then
-  WARNING="${WARNING:+$WARNING\n}Warning: $BG_COUNT background agents active. May cause coordination issues."
+# Many background agents warning (cumulative this session)
+if (( BG_SPAWN_COUNT > 5 )); then
+  WARNING="${WARNING:+$WARNING\n}Note: $BG_SPAWN_COUNT background agents spawned this session. Consider tracking completion."
 fi
 
 # Worktree isolation note (informational)
