@@ -213,6 +213,14 @@
                 "hooks": [
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/uncommitted-change-guard.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/secret-scanner.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/cue-injector-file.sh"
                     },
                     {
@@ -240,6 +248,15 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/bulk-operation-estimator.sh"
+                    }
+                ]
+            },
+            {
+                "matcher": "Agent",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/agent-spawn-tracker.sh"
                     }
                 ]
             }
@@ -275,6 +292,10 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/session-start-tracker.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SessionStart/branch-staleness-check.sh"
                     },
                     {
                         "type": "command",

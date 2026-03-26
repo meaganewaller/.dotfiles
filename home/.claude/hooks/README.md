@@ -20,7 +20,8 @@ hooks/
     │   ├── session-context-injector.sh
     │   ├── session-start-tracker.sh
     │   ├── friction-escalator.sh
-    │   └── hook-health-reporter.sh
+    │   ├── hook-health-reporter.sh
+    │   └── branch-staleness-check.sh
     │
     ├── UserPromptSubmit/
     │   ├── cue-injector-prompt.sh
@@ -35,11 +36,14 @@ hooks/
     │   ├── git-guard.sh              # Bash - block dangerous git ops
     │   ├── block-destructive.sh      # Bash - block rm -rf, curl|bash
     │   ├── exfiltration-check.sh     # Bash - block data exfiltration
+    │   ├── uncommitted-change-guard.sh # Write|Edit - warn on dirty files
+    │   ├── secret-scanner.sh         # Write|Edit - block secrets in code
     │   ├── cue-injector-file.sh      # Write|Edit
     │   ├── layering-guard.sh         # Write|Edit
     │   ├── principle-reinforcer.sh   # Write|Edit
     │   ├── large-file-guard.sh       # Read
-    │   └── bulk-operation-estimator.sh  # Glob|Grep
+    │   ├── bulk-operation-estimator.sh  # Glob|Grep
+    │   └── agent-spawn-tracker.sh    # Agent - track agent spawns
     │
     ├── PostToolUse/
     │   ├── loop-detector.sh          # * (all tools)
@@ -134,6 +138,7 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 **SessionStart** (matcher: `startup|resume`)
 - `clear-cue-markers.sh` - Reset once-per-session cue markers
 - `session-context-injector.sh` - Inject recent impact/friction/journal
+- `branch-staleness-check.sh` - Warn if branch is behind main
 - `friction-escalator.sh` - Surface repeated friction patterns
 - `hook-health-reporter.sh` - Warn if hooks are failing
 
@@ -149,11 +154,14 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - `git-guard.sh` (Bash) - Block dangerous git ops, enforce conventional commits
 - `block-destructive.sh` (Bash) - Block rm -rf, curl|bash, force push
 - `exfiltration-check.sh` (Bash) - Block data exfiltration patterns
+- `uncommitted-change-guard.sh` (Write|Edit) - Warn before editing dirty files
+- `secret-scanner.sh` (Write|Edit) - Block secrets (API keys, tokens, private keys)
 - `cue-injector-file.sh` (Write|Edit) - Inject cues for file paths
 - `layering-guard.sh` (Write|Edit) - Enforce architectural layering
 - `principle-reinforcer.sh` (Write|Edit) - Reinforce engineering principles
 - `large-file-guard.sh` (Read) - Block/warn on large file reads
 - `bulk-operation-estimator.sh` (Glob|Grep) - Estimate operation scope
+- `agent-spawn-tracker.sh` (Agent) - Track agent spawns, warn on sprawl
 
 **PostToolUse** (matcher: `Write|Edit`)
 - `impact-extractor.sh` - Log change type and skill domains
@@ -307,6 +315,9 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 - **hook-health-reporter.sh**
   Runs after friction-escalator. Reads **`$HOME/.claude/hook-health.jsonl`** and computes 24-hour stats. If failure rate exceeds 10% or total failures exceed 5, outputs a warning via `hookSpecificOutput.additionalContext` listing the top failing hooks and their error messages. Provides "observability of the observer" - ensures you know when the telemetry system itself is failing.
 
+- **branch-staleness-check.sh**
+  Runs on startup/resume. Checks if the current branch is significantly behind the main branch (default threshold: 20 commits). Fetches origin with a 5-second timeout to get latest commit counts. Outputs a warning via `hookSpecificOutput.additionalContext` with rebase/merge suggestions if the branch is stale. Skips if: not in a git repo, on main/master branch, or in detached HEAD state. Emits `branch_stale` telemetry event with branch name, behind/ahead counts.
+
 ### UserPromptSubmit
 
 - **idea-classifier.sh**  
@@ -326,6 +337,12 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 - **exfiltration-check.sh**
   Runs before **Bash** (matcher: `Bash`). Detects potential data exfiltration patterns. **Hard deny rules** (always block): network transfer of sensitive files (.env, .pem, .key, etc.), piping secrets to network commands, command substitution of secrets in curl/wget, direct file transfer (scp/rsync) of sensitive files, posting env vars with SECRET/TOKEN/KEY to network. **Soft rules** (prompt for confirmation): base64/hex encoding piped to network, DNS exfiltration via command substitution, scripting language network calls with sensitive file references, script-write-then-execute patterns, tar/zip piped directly to network. Emits `exfiltration_blocked` or `exfiltration_warning` telemetry events. Uses `hook_register` for health monitoring.
 
+- **uncommitted-change-guard.sh**
+  Runs before **Write** or **Edit** (matcher: `Write|Edit`). Checks if the target file has uncommitted changes (staged or unstaged) in git. If changes exist, approves but includes a WARNING in the reason field alerting that changes will be overwritten, with suggestions to `git stash` or `git add` first. Prevents silent loss of in-progress work. Skips if: file doesn't exist (new file creation), not in a git repo, or file has no uncommitted changes. Emits `uncommitted_change_warning` telemetry event.
+
+- **secret-scanner.sh**
+  Runs before **Write** or **Edit** (matcher: `Write|Edit`). Scans content for secrets before writing to files. **Blocks** writes containing: AWS access keys/secrets, GitHub PATs (ghp_, gho_, ghs_, ghr_), private keys (RSA, EC, OpenSSH), Slack tokens/webhooks, Stripe keys (live and test), database connection strings with passwords, generic API key/password/secret assignments, Anthropic/OpenAI API keys, Google API keys, SendGrid/Twilio tokens, NPM access tokens. **Allows** `.env.example`, `.env.sample`, `.env.template` files (template files should have placeholders). Returns `{decision: "block", reason: "..."}` with list of detected secrets and remediation suggestions. Emits `secret_detected` telemetry event. Uses `hook_register` for health monitoring.
+
 - **large-file-guard.sh**
   Runs before **Read** (matcher: `Read`). Implements ADR-0008 (Chunked Operation Pattern). Hard-blocks session logs (`~/.claude/projects/*.jsonl`) and very large files (>10MB). For large-but-readable files (>1000 lines or >256KB), outputs advisory warnings with chunked reading recommendations. Uses `size_estimate()` from validate-path.sh for pre-flight analysis.
 
@@ -334,6 +351,9 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 
 - **principle-reinforcer.sh**
   Runs before **Write** or **Edit** (matcher: `Write|Edit`). Reinforces engineering principles based on the type of file being edited.
+
+- **agent-spawn-tracker.sh**
+  Runs before **Agent** (matcher: `Agent`). Tracks agent spawns for observability and warns on potential coordination issues. Logs each spawn to a session-scoped state file (`/tmp/claude-agent-spawns.json`) with: subagent_type, description, run_in_background, isolation mode, model override, and spawn count. **Warnings**: >10 agents spawned in session (consider consolidation), >3 background agents active (coordination risk), worktree isolation in use (informational). Emits `agent_spawn` telemetry event with full spawn metadata. Uses `hook_register` for health monitoring.
 
 ### PostToolUse (Write|Edit only, in order)
 

@@ -259,3 +259,242 @@ EOF
   # Should mention session log and provide tail/grep commands
   echo "$output" | jq -e '.hookSpecificOutput.additionalContext | contains("Session Log Blocked")' >/dev/null
 }
+
+# ============================================================================
+# Uncommitted Change Guard Tests
+# ============================================================================
+
+@test "PreToolUse/uncommitted-change-guard.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh"
+}
+
+@test "uncommitted-change-guard approves non-Edit/Write tools" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "uncommitted-change-guard approves new file creation" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "'$TEST_TMPDIR'/nonexistent-file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("New file")' >/dev/null
+}
+
+@test "uncommitted-change-guard approves file outside git repo" {
+  # Create a file outside any git repo
+  echo "test" > "$TEST_TMPDIR/outside-repo.txt"
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/outside-repo.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "uncommitted-change-guard warns on uncommitted changes" {
+  # Create a git repo with uncommitted changes
+  mkdir -p "$TEST_TMPDIR/repo"
+  cd "$TEST_TMPDIR/repo"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "initial" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+  echo "modified" > file.txt  # Uncommitted change
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/repo/file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  # Should approve but with WARNING in reason
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("WARNING")' >/dev/null
+  echo "$output" | jq -e '.reason | contains("unstaged")' >/dev/null
+}
+
+@test "uncommitted-change-guard detects staged changes" {
+  # Create a git repo with staged changes
+  mkdir -p "$TEST_TMPDIR/repo2"
+  cd "$TEST_TMPDIR/repo2"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "initial" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+  echo "staged" > file.txt
+  git add file.txt  # Stage the change
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/repo2/file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("WARNING")' >/dev/null
+  echo "$output" | jq -e '.reason | contains("staged")' >/dev/null
+}
+
+@test "uncommitted-change-guard approves clean file" {
+  # Create a git repo with committed file
+  mkdir -p "$TEST_TMPDIR/repo3"
+  cd "$TEST_TMPDIR/repo3"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "committed" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "'$TEST_TMPDIR'/repo3/file.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/uncommitted-change-guard.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("No uncommitted")' >/dev/null
+}
+
+# ============================================================================
+# Branch Staleness Check Tests
+# ============================================================================
+
+@test "SessionStart/branch-staleness-check.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/SessionStart/branch-staleness-check.sh"
+}
+
+@test "branch-staleness-check exits cleanly outside git repo" {
+  cd "$TEST_TMPDIR"
+
+  output=$(echo '{}' | "$HOOKS_DIR/SessionStart/branch-staleness-check.sh" 2>/dev/null)
+
+  # Should produce no output (no warning)
+  [[ -z "$output" ]]
+}
+
+@test "branch-staleness-check skips on main branch" {
+  mkdir -p "$TEST_TMPDIR/main-repo"
+  cd "$TEST_TMPDIR/main-repo"
+  git init -q
+  git config user.email "test@test.com"
+  git config user.name "Test"
+  git config commit.gpgsign false
+  echo "test" > file.txt
+  git add file.txt
+  git commit -q -m "initial"
+  # We're on main by default
+
+  output=$(echo '{}' | "$HOOKS_DIR/SessionStart/branch-staleness-check.sh" 2>/dev/null)
+
+  # Should produce no output (no warning on main)
+  [[ -z "$output" ]]
+}
+
+# ============================================================================
+# Secret Scanner Tests
+# ============================================================================
+
+@test "PreToolUse/secret-scanner.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/secret-scanner.sh"
+}
+
+@test "secret-scanner approves non-Write/Edit tools" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "secret-scanner approves clean content" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/test.txt", "content": "Hello world, this is safe content"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "secret-scanner blocks AWS access key" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/config.js", "content": "const key = \"AKIAIOSFODNN7EXAMPLE\""}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("AWS Access Key")' >/dev/null
+}
+
+@test "secret-scanner blocks GitHub PAT" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/config.js", "content": "token: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("GitHub Personal Access Token")' >/dev/null
+}
+
+@test "secret-scanner blocks private key" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/key.pem", "content": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpA..."}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("Private Key")' >/dev/null
+}
+
+@test "secret-scanner allows .env.example files" {
+  input='{"tool_name": "Write", "tool_input": {"file_path": "/app/.env.example", "content": "API_KEY=sk-ant-your-key-here"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("template")' >/dev/null
+}
+
+@test "secret-scanner detects secrets in Edit new_string" {
+  input='{"tool_name": "Edit", "tool_input": {"file_path": "/config.rb", "old_string": "KEY=xxx", "new_string": "KEY=\"ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\""}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/secret-scanner.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "block"' >/dev/null
+}
+
+# ============================================================================
+# Agent Spawn Tracker Tests
+# ============================================================================
+
+@test "PreToolUse/agent-spawn-tracker.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh"
+}
+
+@test "agent-spawn-tracker approves non-Agent tools" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "agent-spawn-tracker tracks agent spawn" {
+  input='{"tool_name": "Agent", "session_id": "test-session-123", "tool_input": {"subagent_type": "Explore", "description": "Find files", "run_in_background": false}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("Explore")' >/dev/null
+}
+
+@test "agent-spawn-tracker notes worktree isolation" {
+  input='{"tool_name": "Agent", "session_id": "test-session-456", "tool_input": {"subagent_type": "general-purpose", "description": "Test", "isolation": "worktree"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("worktree")' >/dev/null
+}
