@@ -250,6 +250,15 @@
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/bulk-operation-estimator.sh"
                     }
                 ]
+            },
+            {
+                "matcher": "Agent",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/agent-spawn-tracker.sh"
+                    }
+                ]
             }
         ],
         "TaskCompleted": [

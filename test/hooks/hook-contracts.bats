@@ -464,3 +464,37 @@ EOF
 
   echo "$output" | jq -e '.decision == "block"' >/dev/null
 }
+
+# ============================================================================
+# Agent Spawn Tracker Tests
+# ============================================================================
+
+@test "PreToolUse/agent-spawn-tracker.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh"
+}
+
+@test "agent-spawn-tracker approves non-Agent tools" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+}
+
+@test "agent-spawn-tracker tracks agent spawn" {
+  input='{"tool_name": "Agent", "session_id": "test-session-123", "tool_input": {"subagent_type": "Explore", "description": "Find files", "run_in_background": false}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("Explore")' >/dev/null
+}
+
+@test "agent-spawn-tracker notes worktree isolation" {
+  input='{"tool_name": "Agent", "session_id": "test-session-456", "tool_input": {"subagent_type": "general-purpose", "description": "Test", "isolation": "worktree"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
+
+  echo "$output" | jq -e '.decision == "approve"' >/dev/null
+  echo "$output" | jq -e '.reason | contains("worktree")' >/dev/null
+}
