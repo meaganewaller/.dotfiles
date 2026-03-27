@@ -14,9 +14,9 @@ bun = "latest"
 DOTFILES = "{{config_root}}"
 
 # Project-scoped aliases (active when cwd is under this repo; requires mise shell integration).
-[shell_alias]
-dots = "cd {{config_root}}"
-mtasks = "mise tasks"
+# [shell_alias]
+# dots = "cd {{config_root}}"
+# mtasks = "mise tasks"
 
 [tasks.default]
 description = "Show available commands"
