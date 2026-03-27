@@ -23,6 +23,7 @@ url = "https://github.com/atuinsh/atuin/releases/download/v18.13.3/atuin-x86_64-
 [tools."aqua:atuinsh/atuin"."platforms.macos-arm64"]
 checksum = "sha256:63361ed90ffba52849298997bad65ef3d95e9a605deadaae3e32d5e50fc4e588"
 url = "https://github.com/atuinsh/atuin/releases/download/v18.13.3/atuin-aarch64-apple-darwin.tar.gz"
+provenance = "github-attestations"
 
 [tools."aqua:atuinsh/atuin"."platforms.windows-x64"]
 checksum = "sha256:28bb4dc5bfe81b1bab0fb18855573aec0c07c1b89c7a6063ac900a05892b2b95"
@@ -77,6 +78,7 @@ url = "https://github.com/dandavison/delta/releases/download/0.18.2/delta-0.18.2
 url = "https://github.com/dandavison/delta/releases/download/0.18.2/delta-0.18.2-x86_64-unknown-linux-musl.tar.gz"
 
 [tools.delta."platforms.macos-arm64"]
+checksum = "blake3:906240593a91488ed036652a41b7b6df4852484e5bcd69e3c0a15e63dea66f89"
 url = "https://github.com/dandavison/delta/releases/download/0.18.2/delta-0.18.2-aarch64-apple-darwin.tar.gz"
 
 [tools.delta."platforms.macos-x64"]
@@ -102,6 +104,7 @@ url = "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-x86_64
 url = "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-x86_64-unknown-linux-musl.tar.gz"
 
 [tools.fd."platforms.macos-arm64"]
+checksum = "blake3:40f4e51b406baca55370c1eb13e627c4bb0e55972d6e96a419470f19077c3459"
 url = "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-aarch64-apple-darwin.tar.gz"
 
 [tools.fd."platforms.macos-x64"]
@@ -165,6 +168,7 @@ url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_linux_amd6
 [tools.gh."platforms.macos-arm64"]
 checksum = "sha256:bdbeed4821d450ef0d14821d856c05b308ab449fbf60527f298d96fbf5d2447b"
 url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_macOS_arm64.zip"
+provenance = "github-attestations"
 
 [tools.gh."platforms.macos-x64"]
 checksum = "sha256:ff0fc4bdb9699f0c02e5bcdcbd09d0f8e4c4659aa5d30bcd39a3557ed7379b2e"
