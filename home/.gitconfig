@@ -1,5 +1,6 @@
 [user]
   name = Meagan Waller
+
 [init]
   defaultBranch = main
 
@@ -7,11 +8,11 @@
   autoSetupRemote = true
 
 [core]
+  autocrlf = input
   editor = nvim
   excludesfile = ~/.gitignore_global
-  autocrlf = input
-  pager = delta
   hooksPath = ~/.config/git/hooks
+  pager = delta
 
 [pager]
   diff = delta
@@ -32,13 +33,64 @@
 
 [color]
   ui = auto
+  branch = auto
+  diff = auto
+  interactive = auto
+  status = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red
+	new = green
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[column]
+  ui = auto
+
+[branch]
+  sort = -committerdate
+
+[log]
+  date = relative
 
 [alias]
-  co = checkout
-  st = status -sb
-  ci = commit
   br = branch
+  ci = commit
+  co = checkout
   lg = log --oneline --graph --decorate --all
+  st = status -sb
+
+  # Logging improvements
+  lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	lga = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --all
+
+  # Show files in a commit
+  show-files = show --pretty="" --name-only
+
+  # Undo last commit
+  undo = reset HEAD~1 --mixed
+
+  # Clean up merged branches
+  cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master\\|develop' | xargs -n 1 git branch -d"
+
+  # Interactive rebase
+  ri = rebase -i
+
+	# Show current branch
+	current = branch --show-current
+
+[status]
+  showUntrackedFiles = all
 
 [delta]
   navigate = true
