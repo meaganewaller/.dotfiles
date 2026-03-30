@@ -3,11 +3,14 @@ set -euo pipefail
 
 # Generate weekly review artifacts (local only)
 # Jekyll publishing happens separately via publish_to_jekyll.sh after AI synthesis
+# Usage: run_weekly_review.sh [WEEK_OFFSET]
+#   WEEK_OFFSET: 0 = current week (default), -1 = last week, -2 = two weeks ago, etc.
 
 SKILL_DIR="$HOME/.claude/skills/weekly-review/scripts"
+WEEK_OFFSET="${1:-0}"
 
 # 1. Aggregate events and publish initial summary to Jekyll
-OUT_DIR=$("$SKILL_DIR/aggregate.sh")
+OUT_DIR=$("$SKILL_DIR/aggregate.sh" "$WEEK_OFFSET")
 
 # 2. Determine summary.json path
 SUMMARY_JSON="$OUT_DIR/summary.json"
