@@ -32,16 +32,10 @@ sanitize_docker_env() {
 # Global Hooks
 # ============================================================================
 
-# Tradeoff gate backend selection:
-# - claude: use tradeoff-gate
+# Tradeoff gate backend selection (override with TRADEOFF_GATE_BACKEND):
+# - claude: use tradeoff-gate (default)
 # - off: skip global tradeoff gate
-PROFILE="${DOTFILES_PROFILE:-work}"
-DEFAULT_GATE_BACKEND="claude"
-case "$PROFILE" in
-  work) DEFAULT_GATE_BACKEND="claude" ;;
-  personal) DEFAULT_GATE_BACKEND="claude" ;;
-esac
-TRADEOFF_GATE_BACKEND="${TRADEOFF_GATE_BACKEND:-$DEFAULT_GATE_BACKEND}"
+TRADEOFF_GATE_BACKEND="${TRADEOFF_GATE_BACKEND:-claude}"
 
 run_gate() {
   local gate="$1"
