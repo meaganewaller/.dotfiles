@@ -4,11 +4,14 @@ set -euo pipefail
 # ============================================================================
 # Configuration
 # ============================================================================
+# Usage: aggregate.sh [WEEK_OFFSET]
+#   WEEK_OFFSET: 0 = current week (default), -1 = last week, -2 = two weeks ago, etc.
 
 OUT_DIR_BASE="$HOME/.claude/reviews"
 PROJECTS_DIR="$HOME/.claude/projects"
 GLOBAL_STREAM="$HOME/.claude/dev-os-events.jsonl"
 JEKYLL_ROOT="${JEKYLL_ROOT:-$HOME/github/meaganewaller/weekly-reviews}"
+WEEK_OFFSET="${1:-0}"
 
 # ============================================================================
 # Validation
@@ -41,11 +44,18 @@ mkdir -p "$DATA_DIR"
 # ============================================================================
 # Compute week boundaries (Monday-based, UTC)
 # ============================================================================
+# WEEK_OFFSET: 0 = current week, -1 = last week, -2 = two weeks ago, etc.
 
-read -r WEEK_START WEEK_END < <(python3 - <<'PY'
+read -r WEEK_START WEEK_END < <(python3 - "$WEEK_OFFSET" <<'PY'
 import datetime as dt
+import sys
+
+week_offset = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+
 now = dt.datetime.now(dt.timezone.utc)
-monday = now - dt.timedelta(days=now.weekday())
+# Apply week offset (negative = past weeks)
+target_day = now + dt.timedelta(weeks=week_offset)
+monday = target_day - dt.timedelta(days=target_day.weekday())
 monday = dt.datetime(monday.year, monday.month, monday.day, tzinfo=dt.timezone.utc)
 sunday = monday + dt.timedelta(days=6)
 print(monday.date().isoformat(), sunday.date().isoformat())
@@ -144,7 +154,11 @@ def build_session_project_map(projects_dir: str) -> dict:
     return session_map
 
 now = dt.datetime.now(dt.timezone.utc)
-since = now - dt.timedelta(days=7)
+# Use week boundaries for filtering instead of rolling 7-day window
+# Start: Monday 00:00:00 (inclusive), End: following Monday 00:00:00 (exclusive)
+week_start_dt = dt.datetime.fromisoformat(week_start + "T00:00:00+00:00")
+week_end_date = dt.date.fromisoformat(week_end) + dt.timedelta(days=1)
+week_end_dt = dt.datetime(week_end_date.year, week_end_date.month, week_end_date.day, tzinfo=dt.timezone.utc)
 
 session_map = build_session_project_map(projects_dir)
 
@@ -168,7 +182,8 @@ with open(stream_path, "r", encoding="utf-8") as f:
             t = parse_ts(ts).astimezone(dt.timezone.utc)
         except Exception:
             continue
-        if t >= since:
+        # Filter events within the week boundaries (start inclusive, end exclusive)
+        if week_start_dt <= t < week_end_dt:
             session_id = e.get("session_id", "")
             event_type = e.get("event_type", "")
             # Skip test sessions and events without valid session IDs

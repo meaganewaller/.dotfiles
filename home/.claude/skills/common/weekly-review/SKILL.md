@@ -1,6 +1,6 @@
 ---
 name: weekly-review
-description: This skill should be used at the end of each week, when asking "how was my week?", "generate weekly review", "what did I accomplish?", or "/weekly-review". Aggregates dev-os-events across ALL projects, renders charts, and produces staff-level insights with promotion-ready bullets.
+description: This skill should be used at the end of each week, when asking "how was my week?", "generate weekly review", "what did I accomplish?", "review for last week", or "/weekly-review". Supports generating reviews for past weeks (e.g., "last week", "two weeks ago"). Aggregates dev-os-events across ALL projects, renders charts, and produces staff-level insights with promotion-ready bullets.
 context: fork
 agent: general-purpose
 allowed-tools:
@@ -11,7 +11,7 @@ allowed-tools:
   - Edit
   - Bash(jq *)
   - Bash(python3 *)
-  - Bash(bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh)
+  - Bash(bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh *)
   - Bash(bash ~/.claude/skills/weekly-review/scripts/finalize_review.sh *)
 ---
 
@@ -25,7 +25,17 @@ You MUST precompute stats and artifacts before analysis.
 
 Run:
 
-- !`bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh`
+- !`bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh [WEEK_OFFSET]`
+
+**WEEK_OFFSET** (optional):
+- `0` or omitted = current week (default)
+- `-1` = last week
+- `-2` = two weeks ago
+- etc.
+
+Examples:
+- Current week: `bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh`
+- Last week: `bash ~/.claude/skills/weekly-review/scripts/run_weekly_review.sh -1`
 
 This generates:
 - summary.json
