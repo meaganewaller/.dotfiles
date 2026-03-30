@@ -155,8 +155,10 @@ def build_session_project_map(projects_dir: str) -> dict:
 
 now = dt.datetime.now(dt.timezone.utc)
 # Use week boundaries for filtering instead of rolling 7-day window
+# Start: Monday 00:00:00 (inclusive), End: following Monday 00:00:00 (exclusive)
 week_start_dt = dt.datetime.fromisoformat(week_start + "T00:00:00+00:00")
-week_end_dt = dt.datetime.fromisoformat(week_end + "T23:59:59+00:00")
+week_end_date = dt.date.fromisoformat(week_end) + dt.timedelta(days=1)
+week_end_dt = dt.datetime(week_end_date.year, week_end_date.month, week_end_date.day, tzinfo=dt.timezone.utc)
 
 session_map = build_session_project_map(projects_dir)
 
@@ -180,8 +182,8 @@ with open(stream_path, "r", encoding="utf-8") as f:
             t = parse_ts(ts).astimezone(dt.timezone.utc)
         except Exception:
             continue
-        # Filter events within the week boundaries
-        if week_start_dt <= t <= week_end_dt:
+        # Filter events within the week boundaries (start inclusive, end exclusive)
+        if week_start_dt <= t < week_end_dt:
             session_id = e.get("session_id", "")
             event_type = e.get("event_type", "")
             # Skip test sessions and events without valid session IDs
