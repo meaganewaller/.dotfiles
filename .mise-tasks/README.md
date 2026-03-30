@@ -34,7 +34,7 @@ With mise shell integration, these aliases exist only when your cwd is under the
 
 ### Incremental tasks
 
-`claude`, `codex`, and related tasks declare `sources` / `outputs = { auto = true }` so mise can skip a run when inputs have not changed.
+`claude`, and related tasks declare `sources` / `outputs = { auto = true }` so mise can skip a run when inputs have not changed.
 
 ## Global tasks (`home/.config/mise/config.toml`)
 
@@ -63,9 +63,6 @@ These load from your **global** mise config (after `dotfiles link`). They shell 
 | `claude` | Merge Claude Code settings (common + profile) and link skills |
 | `claude:refresh` | Re-run Claude install after editing settings/skills |
 | `claude:dry-run` | Preview Claude install changes |
-| `codex` | Sync allowlisted Codex config (config.toml + DevOS assets) |
-| `codex:refresh` | Re-run Codex sync after editing config/DevOS assets |
-| `codex:dry-run` | Preview Codex sync changes |
 
 ## Script Tasks (.mise-tasks/)
 
@@ -92,5 +89,5 @@ These load from your **global** mise config (after `dotfiles link`). They shell 
 
 | Variable | Used By | Default |
 |----------|---------|---------|
-| `DOTFILES_PROFILE` | claude, codex, core:install | `work` |
+| `DOTFILES_PROFILE` | claude, core:install | `work` |
 | `BREW_LAYERS` | brew:bootstrap | `base` |

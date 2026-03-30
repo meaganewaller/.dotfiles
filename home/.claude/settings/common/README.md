@@ -41,6 +41,6 @@ Plugin enable/disable. Common currently has no plugins enabled; work profile add
 - **bash.jsonc** – Allowlist of shell commands (git, node, python, ruff, etc.) and denylist (e.g. `sudo`, `rm -rf ~`, `git reset --hard`).
 - **tools.jsonc** – Built-in tools: Glob, TodoWrite, WebFetch, WebSearch.
 - **skills.jsonc** – Skill permissions (currently allow list empty).
-- **additional-dirs.jsonc** – Extra readable directories: `/tmp`, `/var`, `~/.agents`, `~/.claude`, `~/.codex`.
+- **additional-dirs.jsonc** – Extra readable directories: `/tmp`, `/var`, `~/.agents`, `~/.claude`.
 
 To allow reading more directories, add them in `additional-dirs.jsonc`; for specific file read rules, use `read.jsonc`.
