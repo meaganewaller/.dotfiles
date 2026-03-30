@@ -6,8 +6,7 @@
             "/tmp",
             "/var",
             "~/.agents",
-            "~/.claude",
-            "~/.codex"
+            "~/.claude"
         ]
     }
 }

@@ -33,15 +33,13 @@ sanitize_docker_env() {
 # ============================================================================
 
 # Tradeoff gate backend selection:
-# - codex: use codex-tradeoff-gate
 # - claude: use tradeoff-gate
-# - both: run codex then claude
 # - off: skip global tradeoff gate
 PROFILE="${DOTFILES_PROFILE:-work}"
-DEFAULT_GATE_BACKEND="codex"
+DEFAULT_GATE_BACKEND="claude"
 case "$PROFILE" in
   work) DEFAULT_GATE_BACKEND="claude" ;;
-  personal) DEFAULT_GATE_BACKEND="codex" ;;
+  personal) DEFAULT_GATE_BACKEND="claude" ;;
 esac
 TRADEOFF_GATE_BACKEND="${TRADEOFF_GATE_BACKEND:-$DEFAULT_GATE_BACKEND}"
 
@@ -52,20 +50,13 @@ run_gate() {
 }
 
 case "$TRADEOFF_GATE_BACKEND" in
-  codex)
-    run_gate "$HOME/.local/bin/codex-tradeoff-gate"
-    ;;
   claude)
-    run_gate "$HOME/.local/bin/tradeoff-gate"
-    ;;
-  both)
-    run_gate "$HOME/.local/bin/codex-tradeoff-gate"
     run_gate "$HOME/.local/bin/tradeoff-gate"
     ;;
   off)
     ;;
   *)
-    echo "Unknown TRADEOFF_GATE_BACKEND=$TRADEOFF_GATE_BACKEND (use codex|claude|both|off)" >&2
+    echo "Unknown TRADEOFF_GATE_BACKEND=$TRADEOFF_GATE_BACKEND (use claude|off)" >&2
     exit 1
     ;;
 esac
