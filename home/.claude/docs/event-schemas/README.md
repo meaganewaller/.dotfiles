@@ -44,6 +44,7 @@ Every event shares a common envelope structure defined in `_envelope.json`:
 | `tool_write` | [tool_write.json](tool_write.json) | File created or modified |
 | `tool_read` | [tool_read.json](tool_read.json) | File read operation |
 | `tool_failure` | [tool_failure.json](tool_failure.json) | Tool execution failed |
+| `friction_event` | [friction_event.json](friction_event.json) | Friction with root-cause chain context (Issue #18) |
 
 ### Analysis Events
 

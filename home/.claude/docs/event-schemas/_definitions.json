@@ -55,6 +55,15 @@
     "nullable_string": {
       "type": ["string", "null"],
       "description": "A string that may be null when not applicable"
+    },
+    "tool_result": {
+      "type": "string",
+      "enum": ["success", "failure"],
+      "description": "Outcome of a tool execution"
+    },
+    "tool_name": {
+      "type": ["string", "null"],
+      "description": "Name of a Claude Code tool (Read, Write, Edit, Bash, etc.)"
     }
   }
 }

@@ -421,6 +421,145 @@ safe_emit() {
 }
 
 # ============================================================================
+# FRICTION EVENT EMISSION (Issue #18)
+# ============================================================================
+# Emit friction events with preceding tool context for root-cause analysis.
+# Reads from session tool history to correlate actions.
+
+# Session history directory (matches tool-history-tracker.sh)
+CLAUDE_SESSION_HISTORY_DIR="$CLAUDE_HOME/.session-history"
+
+# Get preceding tool context from session history
+# Usage: PRECEDING=$(get_preceding_tool_context "$SESSION_ID")
+# Returns: JSON object with preceding_tool, preceding_result, preceding_file
+get_preceding_tool_context() {
+  local session_id="$1"
+  local history_file="$CLAUDE_SESSION_HISTORY_DIR/$session_id.jsonl"
+
+  # Default: no preceding context
+  local default='{"preceding_tool":null,"preceding_result":null,"preceding_file":null,"chain_depth":0}'
+
+  if [[ ! -f "$history_file" ]]; then
+    echo "$default"
+    return 0
+  fi
+
+  # Get the last entry (most recent tool call before this one)
+  local last_entry
+  last_entry=$(tail -1 "$history_file" 2>/dev/null || echo "")
+
+  if [[ -z "$last_entry" ]]; then
+    echo "$default"
+    return 0
+  fi
+
+  # Extract fields
+  local tool result file
+  tool=$(echo "$last_entry" | jq -r '.tool // null')
+  result=$(echo "$last_entry" | jq -r '.result // null')
+  file=$(echo "$last_entry" | jq -r '.file // null')
+
+  # Calculate chain depth (consecutive failures)
+  local chain_depth=0
+  if [[ "$result" == "failure" ]]; then
+    # Count consecutive failures from the end
+    chain_depth=$(tail -5 "$history_file" 2>/dev/null | jq -s '
+      [.[] | select(.result == "failure")] | length
+    ' 2>/dev/null || echo "1")
+  fi
+
+  jq -cn \
+    --arg tool "$tool" \
+    --arg result "$result" \
+    --arg file "$file" \
+    --argjson depth "$chain_depth" \
+    '{
+      preceding_tool: (if $tool == "null" then null else $tool end),
+      preceding_result: (if $result == "null" then null else $result end),
+      preceding_file: (if $file == "null" then null else $file end),
+      chain_depth: $depth
+    }'
+}
+
+# Emit a friction event with preceding context
+# Usage: emit_friction "subdomain" "tool_name" "file_path" "error_excerpt" "hint" [session_id]
+# Or pipe input: echo "$INPUT" | emit_friction ...
+emit_friction() {
+  local subdomain="$1"
+  local tool_name="$2"
+  local file_path="${3:-}"
+  local error_excerpt="${4:-}"
+  local hint="${5:-}"
+  local session_id="${6:-}"
+
+  # Try to get session_id from stdin if not provided
+  if [[ -z "$session_id" ]]; then
+    # Check if we have stdin available (not a tty)
+    if [[ ! -t 0 ]]; then
+      local stdin_content
+      stdin_content=$(cat)
+      session_id=$(echo "$stdin_content" | jq -r '.session_id // ""' 2>/dev/null || echo "")
+    fi
+  fi
+
+  # Fallback session ID
+  [[ -z "$session_id" || "$session_id" == "null" ]] && session_id="unknown"
+
+  # Get preceding context
+  local preceding_context
+  preceding_context=$(get_preceding_tool_context "$session_id")
+
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  # Build friction event payload
+  local payload
+  payload=$(jq -cn \
+    --arg subdomain "$subdomain" \
+    --arg tool "$tool_name" \
+    --arg file "$file_path" \
+    --arg error "$error_excerpt" \
+    --arg hint "$hint" \
+    --argjson preceding "$preceding_context" \
+    '{
+      subdomain: $subdomain,
+      tool: $tool,
+      file_path: (if $file == "" then null else $file end),
+      error_excerpt: (if $error == "" then null else $error end),
+      hint: (if $hint == "" then null else $hint end),
+      preceding_tool: $preceding.preceding_tool,
+      preceding_result: $preceding.preceding_result,
+      preceding_file: $preceding.preceding_file,
+      chain_depth: $preceding.chain_depth
+    }')
+
+  # Write to friction log
+  ensure_file_exists "$CLAUDE_FRICTION_LOG" || return 1
+
+  jq -cn \
+    --arg ts "$timestamp" \
+    --arg sid "$session_id" \
+    --argjson payload "$payload" \
+    '{
+      timestamp: $ts,
+      session_id: $sid,
+      event: "friction_event",
+      subdomain: $payload.subdomain,
+      tool_name: $payload.tool,
+      file_path: $payload.file_path,
+      error_excerpt: $payload.error_excerpt,
+      hint: $payload.hint,
+      preceding_tool: $payload.preceding_tool,
+      preceding_result: $payload.preceding_result,
+      preceding_file: $payload.preceding_file,
+      chain_depth: $payload.chain_depth
+    }' >> "$CLAUDE_FRICTION_LOG"
+
+  # Also emit as dev-os event for weekly review aggregation
+  echo "{\"session_id\":\"$session_id\"}" | safe_emit "friction_event" "$payload" 2>/dev/null || true
+}
+
+# ============================================================================
 # PROJECT PHASE MODES
 # ============================================================================
 # Modes control hook/cue behavior intensity across the project lifecycle.

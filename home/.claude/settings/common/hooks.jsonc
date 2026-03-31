@@ -9,6 +9,10 @@
                 "hooks": [
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tool-history-tracker.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/tool-activity-tracker.sh"
                     },
                     {

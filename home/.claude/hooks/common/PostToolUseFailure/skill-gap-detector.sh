@@ -432,6 +432,17 @@ if [[ "$TOOL_NAME" == "Read" && -n "$FILE_PATH" ]]; then
     }')
 fi
 
+# ============================================================================
+# PRECEDING TOOL CONTEXT (Issue #18: Friction root-cause chains)
+# ============================================================================
+# Get context about what tool ran before this failure for root-cause analysis.
+
+PRECEDING_CONTEXT=$(get_preceding_tool_context "$SESSION_ID")
+PRECEDING_TOOL=$(echo "$PRECEDING_CONTEXT" | jq -r '.preceding_tool // null')
+PRECEDING_RESULT=$(echo "$PRECEDING_CONTEXT" | jq -r '.preceding_result // null')
+PRECEDING_FILE=$(echo "$PRECEDING_CONTEXT" | jq -r '.preceding_file // null')
+CHAIN_DEPTH=$(echo "$PRECEDING_CONTEXT" | jq -r '.chain_depth // 0')
+
 jq -cn \
   --arg timestamp "$TIMESTAMP" \
   --arg tool_name "$TOOL_NAME" \
@@ -444,6 +455,10 @@ jq -cn \
   --argjson hints "$HINTS_JSON" \
   --argjson signals "$SIGNALS_JSON" \
   --argjson context "$CONTEXT_JSON" \
+  --arg preceding_tool "$PRECEDING_TOOL" \
+  --arg preceding_result "$PRECEDING_RESULT" \
+  --arg preceding_file "$PRECEDING_FILE" \
+  --argjson chain_depth "$CHAIN_DEPTH" \
   '{
     timestamp: $timestamp,
     tool_name: $tool_name,
@@ -455,7 +470,11 @@ jq -cn \
     error_excerpt: $error_excerpt,
     hints: $hints,
     signals: $signals,
-    context: (if $context == {} then null else $context end)
+    context: (if $context == {} then null else $context end),
+    preceding_tool: (if $preceding_tool == "null" then null else $preceding_tool end),
+    preceding_result: (if $preceding_result == "null" then null else $preceding_result end),
+    preceding_file: (if $preceding_file == "null" then null else $preceding_file end),
+    chain_depth: $chain_depth
   }' >> "$LOG_FILE"
 
 # Build structured friction_domain object
@@ -487,6 +506,10 @@ PAYLOAD=$(jq -n \
   --argjson repeat_count "$REPEAT_COUNT" \
   --argjson context "$CONTEXT_JSON" \
   --argjson is_subagent "$IS_SUBAGENT" \
+  --arg preceding_tool "$PRECEDING_TOOL" \
+  --arg preceding_result "$PRECEDING_RESULT" \
+  --arg preceding_file "$PRECEDING_FILE" \
+  --argjson chain_depth "$CHAIN_DEPTH" \
   '{
     tool: $tool,
     file_path: (if $file_path == "" then null else $file_path end),
@@ -499,7 +522,11 @@ PAYLOAD=$(jq -n \
     friction_domain: $friction_domain,
     repeat_count: $repeat_count,
     is_subagent: $is_subagent,
-    context: (if $context == {} then null else $context end)
+    context: (if $context == {} then null else $context end),
+    preceding_tool: (if $preceding_tool == "null" then null else $preceding_tool end),
+    preceding_result: (if $preceding_result == "null" then null else $preceding_result end),
+    preceding_file: (if $preceding_file == "null" then null else $preceding_file end),
+    chain_depth: $chain_depth
   }')
 
 echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" tool_failure "$PAYLOAD"

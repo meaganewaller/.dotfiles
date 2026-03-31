@@ -72,6 +72,25 @@
     "context": {
       "type": ["object", "null"],
       "description": "Additional context about the failure"
+    },
+    "preceding_tool": {
+      "type": ["string", "null"],
+      "description": "Tool that executed immediately before this failure (Issue #18: friction root-cause chains)"
+    },
+    "preceding_result": {
+      "type": ["string", "null"],
+      "enum": ["success", "failure", null],
+      "description": "Result of the preceding tool execution"
+    },
+    "preceding_file": {
+      "type": ["string", "null"],
+      "description": "File path the preceding tool operated on"
+    },
+    "chain_depth": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Number of consecutive failures in this friction chain (0 = isolated failure)"
     }
   },
   "additionalProperties": false
