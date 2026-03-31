@@ -546,10 +546,10 @@ EOF
     grep -q "file-verification" "$CLAUDE_EVENTS_LOG"
   else
     # If no events file, at least verify the applied marker was created
-    [[ -f "/tmp/.claude-devos-cue-applied-${session_id}" ]]
+    [[ -f "/tmp/.claude-devos-applied-cues-${session_id}" ]]
   fi
 
   # Cleanup
   rm -f "/tmp/.claude-devos-cue-file-verification-${session_id}"
-  rm -f "/tmp/.claude-devos-cue-applied-${session_id}"
+  rm -f "/tmp/.claude-devos-applied-cues-${session_id}"
 }
