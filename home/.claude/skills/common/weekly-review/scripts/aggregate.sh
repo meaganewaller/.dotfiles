@@ -235,6 +235,27 @@ def extract_list_items(content: str, header: str) -> list:
         return [item.strip() for item in items if item.strip()]
     return []
 
+def parse_yaml_frontmatter(content: str) -> dict:
+    """Parse YAML frontmatter from markdown content"""
+    if not content.startswith("---"):
+        return {}
+
+    # Find closing ---
+    end_match = re.search(r"\n---\s*\n", content[3:])
+    if not end_match:
+        return {}
+
+    frontmatter_text = content[3:end_match.start() + 3]
+    result = {}
+
+    # Simple YAML parsing (key: value pairs)
+    for line in frontmatter_text.strip().split("\n"):
+        if ":" in line:
+            key, _, value = line.partition(":")
+            result[key.strip()] = value.strip()
+
+    return result
+
 def infer_project_from_content(content: str) -> str:
     """Infer project from decision journal content"""
     content_lower = content.lower()
@@ -261,6 +282,9 @@ if journal_dir.exists():
         try:
             content = jf.read_text(encoding="utf-8")
 
+            # Parse YAML frontmatter first (preferred source)
+            frontmatter = parse_yaml_frontmatter(content)
+
             # Extract decision summary (first paragraph after # Tradeoff: or ## Decision Summary)
             summary_match = re.search(r"## Decision Summary\s*\n\s*(.+?)(?:\n\n|\n##)", content, re.DOTALL)
             if not summary_match:
@@ -272,12 +296,16 @@ if journal_dir.exists():
             alternatives = extract_list_items(content, "Alternatives Considered")
             principles = extract_list_items(content, "Principles Applied")
 
-            # Extract source (auto-capture, subagent-capture, or manual)
-            source_match = re.search(r"\*\*Source:\*\*\s*(.+)", content)
-            source = source_match.group(1).strip() if source_match else "manual"
+            # Extract source: prefer frontmatter, then markdown pattern, then default
+            source = frontmatter.get("source", "")
+            if not source:
+                source_match = re.search(r"\*\*Source:\*\*\s*(.+)", content)
+                source = source_match.group(1).strip() if source_match else "manual"
 
-            # Infer project
-            project = infer_project_from_content(content)
+            # Extract project: prefer frontmatter, then fall back to heuristic inference
+            project = frontmatter.get("project", "")
+            if not project or project == "unknown":
+                project = infer_project_from_content(content)
 
             journal_decisions.append({
                 "file": jf.name,

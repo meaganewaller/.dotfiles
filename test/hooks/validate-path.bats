@@ -329,3 +329,36 @@ teardown() {
   result=$(safe_read_cmd "$TEST_TMPDIR/data.jsonl")
   [[ "$result" == *"tail"* ]]
 }
+
+# ============================================================================
+# detect_project
+# ============================================================================
+
+@test "detect_project returns project from git remote" {
+  # This test runs in the dotfiles repo, so it should detect that
+  result=$(detect_project)
+  [[ "$result" == "dotfiles" ]]
+}
+
+@test "detect_project normalizes .dotfiles to dotfiles" {
+  # Create a mock git repo with .dotfiles remote
+  mkdir -p "$TEST_TMPDIR/test-repo/.git"
+  cd "$TEST_TMPDIR/test-repo"
+  git init -q
+  git remote add origin "git@github.com:user/.dotfiles.git"
+
+  result=$(detect_project)
+  [[ "$result" == "dotfiles" ]]
+
+  cd - >/dev/null
+}
+
+@test "detect_project falls back to directory name when no git" {
+  mkdir -p "$TEST_TMPDIR/my-project"
+  cd "$TEST_TMPDIR/my-project"
+
+  result=$(detect_project)
+  [[ "$result" == "my-project" ]]
+
+  cd - >/dev/null
+}
