@@ -193,7 +193,7 @@ for cue_id in "${FIRED_CUES[@]}"; do
       --arg tool "$TOOL_NAME" \
       '{cue_id: $cue, applied_via_tool: $tool}')
 
-    echo "$INPUT" | "$HOME/.claude/hooks/common/dev-os-emit.sh" cue_applied "$PAYLOAD"
+    echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" cue_applied "$PAYLOAD"
   fi
 done
 
