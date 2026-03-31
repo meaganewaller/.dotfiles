@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/validate-path.sh"
 hook_register "exfiltration-check"
 hook_set_context "$INPUT"
-hook_bus_init "$INPUT"
+hook_bus_init "$INPUT" || true  # Bus is non-critical; don't abort security hook
 
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 [[ "$TOOL" != "Bash" ]] && exit 0
