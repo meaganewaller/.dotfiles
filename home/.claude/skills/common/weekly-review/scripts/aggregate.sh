@@ -394,6 +394,10 @@ duration_categories = Counter()
 skills_invoked = Counter()  # Track skill usage
 context_compacts = []  # Track compaction events
 test_runs_by_session = defaultdict(list)  # Track test runs by session for stability analysis
+# Issue #18: Friction root-cause chains
+friction_triggers = Counter()  # preceding_tool -> count
+friction_chains = []  # Events with chain_depth > 0
+friction_trigger_pairs = Counter()  # "preceding_tool -> failed_tool" -> count
 
 for e in events:
     et = e.get("event_type")
@@ -424,6 +428,30 @@ for e in events:
         subdomain = fd.get("subdomain")
         if subdomain:
             friction_subdomains[f"{d}:{subdomain}"] += 1
+
+        # Issue #18: Track friction triggers (preceding tool context)
+        preceding_tool = payload.get("preceding_tool")
+        preceding_result = payload.get("preceding_result")
+        chain_depth = payload.get("chain_depth", 0)
+        failed_tool = payload.get("tool")
+
+        if preceding_tool:
+            friction_triggers[preceding_tool] += 1
+            if failed_tool:
+                pair = f"{preceding_tool} -> {failed_tool}"
+                friction_trigger_pairs[pair] += 1
+
+        if chain_depth and chain_depth > 0:
+            friction_chains.append({
+                "session_id": session_id,
+                "project": project,
+                "preceding_tool": preceding_tool,
+                "preceding_result": preceding_result,
+                "failed_tool": failed_tool,
+                "domain": d,
+                "subdomain": subdomain,
+                "chain_depth": chain_depth
+            })
 
     if et == "decision_tradeoff":
         tradeoffs += 1
@@ -629,6 +657,28 @@ summary = {
     "events_by_type": dict(by_type.most_common()),
     "top_friction_domains": [{"domain": d, "count": c} for d, c in friction_domains.most_common(10)],
     "top_friction_subdomains": [{"subdomain": d, "count": c} for d, c in friction_subdomains.most_common(10)],
+    # Issue #18: Friction root-cause chains - identify what actions precede failures
+    "friction_triggers": {
+        "total_with_preceding_context": sum(friction_triggers.values()),
+        "total_friction_chains": len(friction_chains),
+        "max_chain_depth": max((c["chain_depth"] for c in friction_chains), default=0),
+        "top_triggering_tools": [
+            {"tool": t, "friction_count": c}
+            for t, c in friction_triggers.most_common(10)
+        ],
+        "top_trigger_pairs": [
+            {"pattern": p, "count": c}
+            for p, c in friction_trigger_pairs.most_common(10)
+        ],
+        "chains_by_project": [
+            {
+                "project": proj,
+                "chain_count": len([c for c in friction_chains if c["project"] == proj]),
+                "avg_depth": round(sum(c["chain_depth"] for c in friction_chains if c["project"] == proj) / len([c for c in friction_chains if c["project"] == proj]), 2) if [c for c in friction_chains if c["project"] == proj] else 0
+            }
+            for proj in sorted(set(c["project"] for c in friction_chains))
+        ] if friction_chains else []
+    },
     "top_principles_invoked": [{"principle": p, "count": c} for p, c in principles.most_common(10)],
     "decisions": {
         "from_journal": [
