@@ -206,6 +206,8 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
   - Safe I/O: `safe_tail`, `safe_append`, `safe_emit`
   - Resource guards: `guard_diff_size`, `guard_file_size`, `guard_log_size`
   - **Hook health monitoring**: `hook_register`, `hook_success`, `hook_failure`, `hook_health_summary`
+  - **Hook composition bus**: `hook_bus_init`, `hook_bus_put`, `hook_bus_get`, `hook_bus_has`, `hook_bus_list`, `hook_bus_cleanup`
+  - **Project phase modes**: `get_project_mode`, `is_mode`, `require_mode`, `set_project_mode`
   - **Chunked file operations**: `is_large_file`, `file_line_count`, `read_file_chunked`, `read_lines`, `get_chunk_params`
   - **Progress indicators**: `show_progress`, `process_with_progress`, `process_files_batched`
 
@@ -299,6 +301,92 @@ hook_set_context “$INPUT”      # Capture session/tool context for observabil
 ```
 
 **SessionStart reporter:** The `hook-health-reporter.sh` hook runs at session start and surfaces a warning if hook failure rate exceeds 10% or there are more than 5 failures in the last 24 hours.
+
+---
+
+## Hook composition bus
+
+Hooks within the same event invocation can share structured JSON findings via the hook bus. This avoids duplicated work when multiple hooks analyze the same tool call.
+
+**How it works:** Each tool call gets a unique bus directory at `/tmp/.claude-hook-bus-<session>-<tool>-<hash>/`. Hooks write named JSON files; later hooks in the same matcher group read them. Directories auto-expire after 5 minutes.
+
+**Producer pattern:**
+```bash
+source "$SCRIPT_DIR/validate-path.sh"
+hook_register "my-hook"
+hook_set_context "$INPUT"
+hook_bus_init "$INPUT"
+
+# ... analysis logic ...
+
+hook_bus_put "my-hook" '{"found": true, "detail": "something"}'
+```
+
+**Consumer pattern:**
+```bash
+hook_bus_init "$INPUT"
+
+if hook_bus_has "my-hook"; then
+  result=$(hook_bus_get "my-hook")
+  found=$(echo "$result" | jq -r '.found')
+  # ... use the finding ...
+fi
+```
+
+**Ordering requirement:** Hooks within the same `hooks` array run in **parallel**. For the bus to work reliably, producers and consumers must be in **separate matcher entries** (which run sequentially). In `hooks.jsonc`, the Bash PreToolUse hooks are split into two matcher groups: phase 1 (producers like `block-destructive`) and phase 2 (consumers like `exfiltration-check`).
+
+**Current producers/consumers:**
+- `block-destructive.sh` publishes → `exfiltration-check.sh` consumes (separate Bash matcher groups)
+- `secret-scanner.sh` publishes (Write|Edit group, available to downstream hooks)
+
+**Cleanup:** `session-end-tracker.sh` calls `hook_bus_cleanup` to remove expired bus directories.
+
+---
+
+## Project phase modes
+
+Modes control hook/cue behavior intensity across the project lifecycle. The current mode is stored in a file and persists across sessions.
+
+**Valid modes:**
+
+| Mode | Guards | Cues | Use When |
+|------|--------|------|----------|
+| `exploration` | Lenient (skips several guards) | Fewer fire | Spiking, prototyping |
+| `default` | Normal | Normal | Standard development |
+| `hardening` | Strict (layering violations blocked) | More fire | Pre-merge stabilization |
+| `release` | Strict + freeze | Release-focused | Cutting releases |
+
+**Mode file:** `${CLAUDE_PROJECT_DIR}/.claude/project-mode` (project-specific) or `${CLAUDE_HOME}/project-mode` (global fallback).
+
+**Switching modes:** Use the `/mode` skill (e.g., `/mode hardening`).
+
+**Hook usage:**
+```bash
+source "$SCRIPT_DIR/validate-path.sh"
+
+# Skip this hook in exploration mode
+if is_mode "exploration"; then
+  exit 0
+fi
+
+# Require hardening or release mode
+require_mode "hardening" "release" || exit 0
+```
+
+**Cue usage:** Add `mode:` to cue frontmatter to restrict when a cue fires:
+```yaml
+---
+pattern: test|spec
+mode: default, hardening
+---
+```
+Cues without a `mode:` field fire in all modes (backwards compatible).
+
+**Mode-aware hooks:**
+- `uncommitted-change-guard.sh` — skipped in `exploration`
+- `hard-stop-test-blocker.sh` — skipped in `exploration`
+- `ai-guardrails.sh` — skipped in `exploration`
+- `layering-guard.sh` — skipped in `exploration`, hard-blocks in `hardening`/`release`
 
 ---
 

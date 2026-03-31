@@ -11,6 +11,12 @@ source "$SCRIPT_DIR/validate-path.sh"
 hook_register "uncommitted-change-guard"
 hook_set_context "$INPUT"
 
+# Skip in exploration mode — prototyping doesn't need this guard
+if is_mode "exploration"; then
+  hook_success
+  exit 0
+fi
+
 TOOL=$(jq -r '.tool_name // ""' <<<"$INPUT")
 FILE_PATH=$(jq -r '.tool_input.file_path // ""' <<<"$INPUT")
 

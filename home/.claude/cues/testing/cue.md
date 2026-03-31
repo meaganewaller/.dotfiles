@@ -4,6 +4,7 @@ pattern: test|spec|rspec|jest|pytest|unittest|mock|stub|fixture|factory|coverage
 commands: rspec|pytest|jest|npm test|bundle exec|rake spec|rake test
 files: _spec\.rb$|_test\.rb$|spec/|test/|__tests__/|\.test\.|\.spec\.|factories/|fixtures/
 scope: agent, subagent
+mode: default, hardening
 description: Testing best practices for writing effective, maintainable tests
 vocabulary: test spec rspec jest mock stub fixture factory coverage assertion expect describe context it before after let subject
 provenance:

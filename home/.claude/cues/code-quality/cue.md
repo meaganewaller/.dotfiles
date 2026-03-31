@@ -3,6 +3,7 @@
 pattern: refactor|clean.*up|improve|fix|bug|test
 files: \.rb$|\.py$|\.js$|\.ts$|\.go$|\.rs$|\.java$|\.erb$|\.jsx$|\.tsx$
 scope: agent
+mode: default, hardening, release
 description: General code quality principles for source file edits
 vocabulary: refactor clean improve quality readable maintainable test
 provenance:

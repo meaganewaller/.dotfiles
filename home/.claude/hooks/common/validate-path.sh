@@ -205,6 +205,109 @@ hook_health_summary() {
 }
 
 # ============================================================================
+# HOOK COMPOSITION BUS
+# ============================================================================
+# Lightweight mechanism for hooks within the same event invocation to share
+# structured JSON findings. Each tool call gets a unique bus directory;
+# hooks write named JSON files that later hooks can read.
+#
+# IMPORTANT: Hooks within the same `hooks` array run in PARALLEL.
+# For reliable producer→consumer flow, place them in separate matcher
+# entries in hooks.jsonc (matcher entries run sequentially).
+#
+# Usage (producer):
+#   hook_bus_init "$INPUT"
+#   hook_bus_put "secret-scanner" '{"found": true, "patterns": ["AWS key"]}'
+#
+# Usage (consumer):
+#   hook_bus_init "$INPUT"
+#   if hook_bus_has "secret-scanner"; then
+#     result=$(hook_bus_get "secret-scanner")
+#   fi
+
+# Current bus directory (set by hook_bus_init)
+_HOOK_BUS_DIR=""
+
+# Portable short hash (macOS md5 vs Linux md5sum)
+_short_hash() {
+  local input="$1"
+  if command -v md5sum &>/dev/null; then
+    printf '%s' "$input" | md5sum 2>/dev/null | cut -c1-8
+  elif command -v md5 &>/dev/null; then
+    printf '%s' "$input" | md5 2>/dev/null | cut -c1-8
+  else
+    # Fallback: use cksum (always available)
+    printf '%s' "$input" | cksum | cut -d' ' -f1
+  fi
+}
+
+# Initialize the hook bus for this invocation
+# Derives a unique directory from session + tool + input content
+# Usage: hook_bus_init "$INPUT"
+hook_bus_init() {
+  local input_json="${1:-}"
+
+  local session_id="${_HOOK_SESSION_ID:-unknown}"
+  local tool_name="${_HOOK_TOOL_NAME:-unknown}"
+
+  # Hash the tool_input portion for uniqueness within session+tool
+  local input_hash
+  local tool_input
+  tool_input=$(printf '%s' "$input_json" | jq -r '.tool_input // ""' 2>/dev/null) || tool_input=""
+  input_hash=$(_short_hash "${tool_input}")
+
+  _HOOK_BUS_DIR="/tmp/.claude-hook-bus-${session_id}-${tool_name}-${input_hash}"
+  ensure_dir_exists "$_HOOK_BUS_DIR" || return 1
+}
+
+# Write a named finding to the bus
+# Usage: hook_bus_put "secret-scanner" '{"found": true}'
+hook_bus_put() {
+  local name="$1"
+  local json_payload="$2"
+  [[ -z "$_HOOK_BUS_DIR" || ! -d "$_HOOK_BUS_DIR" ]] && return 1
+  printf '%s\n' "$json_payload" > "${_HOOK_BUS_DIR}/${name}.json" 2>/dev/null
+}
+
+# Read a named finding from the bus
+# Returns JSON payload, or empty string if not found
+# Usage: result=$(hook_bus_get "secret-scanner")
+hook_bus_get() {
+  local name="$1"
+  local path="${_HOOK_BUS_DIR}/${name}.json"
+  if [[ -f "$path" ]]; then
+    cat "$path" 2>/dev/null
+  fi
+}
+
+# Check if a named finding exists on the bus
+# Usage: if hook_bus_has "secret-scanner"; then ...
+hook_bus_has() {
+  local name="$1"
+  [[ -n "$_HOOK_BUS_DIR" && -f "${_HOOK_BUS_DIR}/${name}.json" ]]
+}
+
+# List all finding names on the bus
+# Returns newline-separated names (without .json extension)
+hook_bus_list() {
+  [[ -z "$_HOOK_BUS_DIR" || ! -d "$_HOOK_BUS_DIR" ]] && return 0
+  local f
+  for f in "$_HOOK_BUS_DIR"/*.json; do
+    [[ -f "$f" ]] || continue
+    basename "$f" .json
+  done
+}
+
+# Clean up expired bus directories (older than 5 minutes)
+# Call from SessionEnd or periodically
+hook_bus_cleanup() {
+  # Resolve /tmp symlink (macOS: /tmp -> /private/tmp) so find works
+  local tmp_dir
+  tmp_dir="$(cd /tmp && pwd -P)"
+  find "$tmp_dir" -maxdepth 1 -name ".claude-hook-bus-*" -type d -mmin +5 -exec rm -rf {} + 2>/dev/null || true
+}
+
+# ============================================================================
 # VALIDATION FUNCTIONS (return 0/1, never exit)
 # ============================================================================
 
@@ -312,6 +415,104 @@ safe_emit() {
       --argjson payload "$payload" \
       '{timestamp: $ts, session_id: $sid, event_type: $type, payload: $payload}' >> "$CLAUDE_EVENTS_LOG"
   fi
+}
+
+# ============================================================================
+# PROJECT PHASE MODES
+# ============================================================================
+# Modes control hook/cue behavior intensity across the project lifecycle.
+# Valid modes: exploration, default, hardening, release
+#
+# Mode file (checked in order):
+#   1. $CLAUDE_PROJECT_DIR/.claude/project-mode  (project-specific)
+#   2. $CLAUDE_HOME/project-mode                 (global fallback)
+#
+# Usage:
+#   mode=$(get_project_mode)
+#   if is_mode "exploration"; then exit 0; fi
+#   require_mode "hardening" "release" || exit 0
+
+VALID_MODES="exploration default hardening release"
+DEFAULT_MODE="default"
+
+# Get the current project mode
+# Returns: mode name (always valid, defaults to "default")
+get_project_mode() {
+  local mode_file=""
+
+  # Project-specific takes precedence
+  if [[ -n "${CLAUDE_PROJECT_DIR:-}" && -f "${CLAUDE_PROJECT_DIR}/.claude/project-mode" ]]; then
+    mode_file="${CLAUDE_PROJECT_DIR}/.claude/project-mode"
+  elif [[ -f "${CLAUDE_HOME}/project-mode" ]]; then
+    mode_file="${CLAUDE_HOME}/project-mode"
+  fi
+
+  if [[ -n "$mode_file" ]]; then
+    local mode
+    mode=$(head -1 "$mode_file" 2>/dev/null | tr -d '[:space:]')
+    # Validate mode is in VALID_MODES
+    if [[ " $VALID_MODES " == *" $mode "* ]]; then
+      echo "$mode"
+      return 0
+    fi
+  fi
+
+  echo "$DEFAULT_MODE"
+}
+
+# Check if current mode matches any of the given modes
+# Usage: if is_mode "exploration"; then ...
+#        if is_mode "hardening" "release"; then ...  (OR logic)
+is_mode() {
+  local current
+  current=$(get_project_mode)
+  local check_mode
+  for check_mode in "$@"; do
+    [[ "$current" == "$check_mode" ]] && return 0
+  done
+  return 1
+}
+
+# Require specific mode(s) — returns 1 if not in required mode
+# Usage: require_mode "hardening" "release" || exit 0
+require_mode() {
+  is_mode "$@"
+}
+
+# Set project mode (validates input, emits telemetry)
+# Usage: set_project_mode "hardening"
+set_project_mode() {
+  local new_mode="$1"
+
+  # Validate
+  if [[ " $VALID_MODES " != *" $new_mode "* ]]; then
+    echo "Invalid mode: $new_mode. Valid: $VALID_MODES" >&2
+    return 1
+  fi
+
+  # Determine target file
+  local mode_file
+  if [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
+    ensure_dir_exists "${CLAUDE_PROJECT_DIR}/.claude" || return 1
+    mode_file="${CLAUDE_PROJECT_DIR}/.claude/project-mode"
+  else
+    mode_file="${CLAUDE_HOME}/project-mode"
+  fi
+
+  local old_mode
+  old_mode=$(get_project_mode)
+
+  # Write mode
+  printf '%s\n' "$new_mode" > "$mode_file" 2>/dev/null || return 1
+
+  # Emit telemetry
+  safe_emit "mode_changed" "$(jq -n \
+    --arg old "$old_mode" \
+    --arg new "$new_mode" \
+    --arg file "$mode_file" \
+    '{old_mode: $old, new_mode: $new, mode_file: $file}')" 2>/dev/null || true
+
+  echo "$new_mode"
 }
 
 # ============================================================================

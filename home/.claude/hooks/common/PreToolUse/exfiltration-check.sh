@@ -18,6 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/validate-path.sh"
 hook_register "exfiltration-check"
 hook_set_context "$INPUT"
+hook_bus_init "$INPUT"
 
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 [[ "$TOOL" != "Bash" ]] && exit 0
@@ -69,6 +70,21 @@ soft_block() {
         '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"ask",permissionDecisionReason:$reason}}'
     exit 0
 }
+
+# ============================================================================
+# HOOK BUS: Cross-hook escalation
+# ============================================================================
+
+# If block-destructive already flagged this command AND it involves network,
+# escalate to hard block (destructive + network = exfiltration risk)
+if hook_bus_has "block-destructive"; then
+    block_result=$(hook_bus_get "block-destructive")
+    if [[ "$(echo "$block_result" | jq -r '.blocked' 2>/dev/null)" == "true" ]]; then
+        if echo "$NORM_CMD" | grep -qE "$NET_TOOLS"; then
+            hard_block "Command flagged as destructive AND involves network transfer"
+        fi
+    fi
+fi
 
 # ============================================================================
 # HARD DENY RULES (always block, no bypass)

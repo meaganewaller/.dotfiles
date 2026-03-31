@@ -188,6 +188,7 @@
                 ]
             },
             {
+                // Phase 1: Bash guards that produce bus data (run first)
                 "matcher": "Bash",
                 "hooks": [
                     {
@@ -201,7 +202,13 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/block-destructive.sh"
-                    },
+                    }
+                ]
+            },
+            {
+                // Phase 2: Bash guards that consume bus data (run after phase 1)
+                "matcher": "Bash",
+                "hooks": [
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/exfiltration-check.sh"

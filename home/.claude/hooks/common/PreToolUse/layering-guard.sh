@@ -2,6 +2,18 @@
 set -euo pipefail
 
 INPUT=$(cat)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=../validate-path.sh
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/validate-path.sh"
+hook_register "layering-guard"
+hook_set_context "$INPUT"
+
+# Skip entirely in exploration mode
+if is_mode "exploration"; then
+  hook_success
+  exit 0
+fi
 
 TOOL=$(echo "$INPUT" | jq -r '.tool_name')
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
@@ -9,6 +21,7 @@ CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
 
 # Only guard writes/edits
 if [[ "$TOOL" != "Write" && "$TOOL" != "Edit" ]]; then
+  hook_success
   exit 0
 fi
 
@@ -50,16 +63,26 @@ if [[ "$FILE_PATH" =~ app/models|app/domain|app/services ]] && \
 fi
 
 if [[ -n "$VIOLATION" ]]; then
-  jq -n \
-    --arg reason "$REASON" \
-    '{
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "ask",
-        permissionDecisionReason: $reason
-      }
-    }'
+  if is_mode "hardening" "release"; then
+    # In hardening/release mode, block layering violations outright
+    jq -n \
+      --arg reason "BLOCKED ($VIOLATION): $REASON [$(get_project_mode) mode — layering violations are not allowed]" \
+      '{error: $reason, ok: false}'
+  else
+    # In default mode, ask for confirmation
+    jq -n \
+      --arg reason "$REASON" \
+      '{
+        hookSpecificOutput: {
+          hookEventName: "PreToolUse",
+          permissionDecision: "ask",
+          permissionDecisionReason: $reason
+        }
+      }'
+  fi
+  hook_success
   exit 0
 fi
 
+hook_success
 exit 0

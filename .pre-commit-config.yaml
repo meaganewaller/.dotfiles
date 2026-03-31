@@ -24,6 +24,7 @@ repos:
         args: ["--maxkb=1000"]
         exclude: '\.(jpg|jpeg|png|gif)$'
       - id: detect-private-key
+        exclude: secret-scanner\.sh$  # Contains detection patterns, not actual keys
 
   # Local hooks
   - repo: local

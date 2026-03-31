@@ -20,6 +20,12 @@ source "$SCRIPT_DIR/validate-path.sh"
 hook_register "ai-guardrails"
 hook_set_context "$INPUT"
 
+# Skip guardrails in exploration mode — reduce friction when prototyping
+if is_mode "exploration"; then
+  hook_success
+  exit 0
+fi
+
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 [[ -z "$TOOL" ]] && exit 0
 

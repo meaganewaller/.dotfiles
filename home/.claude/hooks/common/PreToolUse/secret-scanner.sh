@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/validate-path.sh"
 hook_register "secret-scanner"
 hook_set_context "$INPUT"
+hook_bus_init "$INPUT"
 
 TOOL=$(jq -r '.tool_name // ""' <<<"$INPUT")
 FILE_PATH=$(jq -r '.tool_input.file_path // ""' <<<"$INPUT")
@@ -135,6 +136,13 @@ for entry in "${SECRET_PATTERNS[@]}"; do
 done
 
 if [[ -n "$FOUND_SECRETS" ]]; then
+  # Publish to hook bus for downstream hooks
+  hook_bus_put "secret-scanner" "$(jq -n \
+    --argjson found true \
+    --arg file "$FILE_PATH" \
+    --arg secrets "$FOUND_SECRETS" \
+    '{found: $found, file: $file, secrets: $secrets}')" 2>/dev/null || true
+
   # Emit telemetry
   safe_emit "secret_detected" "$(jq -n \
     --arg file "$FILE_PATH" \
@@ -155,6 +163,9 @@ If these are intentionally fake/example values:
   hook_success
   exit 0
 fi
+
+# Publish clean result to hook bus
+hook_bus_put "secret-scanner" '{"found": false}' 2>/dev/null || true
 
 json_response "approve" "No secrets detected"
 hook_success
