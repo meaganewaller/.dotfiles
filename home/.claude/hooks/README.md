@@ -333,8 +333,10 @@ if hook_bus_has "my-hook"; then
 fi
 ```
 
+**Ordering requirement:** Hooks within the same `hooks` array run in **parallel**. For the bus to work reliably, producers and consumers must be in **separate matcher entries** (which run sequentially). In `hooks.jsonc`, the Bash PreToolUse hooks are split into two matcher groups: phase 1 (producers like `block-destructive`) and phase 2 (consumers like `exfiltration-check`).
+
 **Current producers/consumers:**
-- `block-destructive.sh` publishes → `exfiltration-check.sh` consumes (Bash group)
+- `block-destructive.sh` publishes → `exfiltration-check.sh` consumes (separate Bash matcher groups)
 - `secret-scanner.sh` publishes (Write|Edit group, available to downstream hooks)
 
 **Cleanup:** `session-end-tracker.sh` calls `hook_bus_cleanup` to remove expired bus directories.

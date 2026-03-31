@@ -211,6 +211,10 @@ hook_health_summary() {
 # structured JSON findings. Each tool call gets a unique bus directory;
 # hooks write named JSON files that later hooks can read.
 #
+# IMPORTANT: Hooks within the same `hooks` array run in PARALLEL.
+# For reliable producer→consumer flow, place them in separate matcher
+# entries in hooks.jsonc (matcher entries run sequentially).
+#
 # Usage (producer):
 #   hook_bus_init "$INPUT"
 #   hook_bus_put "secret-scanner" '{"found": true, "patterns": ["AWS key"]}'
