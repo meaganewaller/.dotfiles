@@ -388,6 +388,7 @@ files_modified = set()
 skills_used = Counter()
 cues_fired = Counter()
 cue_triggers = Counter()
+cues_applied = Counter()  # Track cue guidance followed
 session_durations = []  # List of (session_id, project, duration_minutes, category)
 duration_categories = Counter()
 skills_invoked = Counter()  # Track skill usage
@@ -468,6 +469,10 @@ for e in events:
         trigger_type = payload.get("trigger_type", "unknown")
         cues_fired[cue_id] += 1
         cue_triggers[trigger_type] += 1
+
+    if et == "cue_applied":
+        cue_id = payload.get("cue_id", "unknown")
+        cues_applied[cue_id] += 1
 
     if et == "session_end":
         duration_mins = payload.get("duration_minutes", 0)
@@ -638,9 +643,25 @@ summary = {
     "top_files_modified": sorted(files_modified)[:20],
     "cue_engagement": {
         "total_fires": sum(cues_fired.values()),
+        "total_applied": sum(cues_applied.values()),
+        "conversion_rate": round(sum(cues_applied.values()) / sum(cues_fired.values()), 4) if sum(cues_fired.values()) > 0 else None,
         "unique_cues_fired": len(cues_fired),
-        "by_cue": [{"cue": c, "count": n} for c, n in cues_fired.most_common(10)],
-        "by_trigger": [{"trigger": t, "count": n} for t, n in cue_triggers.most_common()]
+        "unique_cues_applied": len(cues_applied),
+        "by_cue": [
+            {
+                "cue": c,
+                "fired": n,
+                "applied": cues_applied.get(c, 0),
+                "conversion_rate": round(cues_applied.get(c, 0) / n, 4) if n > 0 else None
+            }
+            for c, n in cues_fired.most_common(10)
+        ],
+        "by_trigger": [{"trigger": t, "count": n} for t, n in cue_triggers.most_common()],
+        "low_conversion_cues": [
+            {"cue": c, "fired": n, "applied": cues_applied.get(c, 0), "conversion_rate": round(cues_applied.get(c, 0) / n, 4) if n > 0 else 0}
+            for c, n in cues_fired.most_common()
+            if n >= 3 and (cues_applied.get(c, 0) / n if n > 0 else 0) < 0.3
+        ][:5]
     },
     "session_duration": {
         "sessions_tracked": len(session_durations),
