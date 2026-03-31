@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/task_completed",
+  "title": "Task Completed Event",
+  "description": "Emitted when a task is marked as completed",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["passed", "failed", "skipped"],
+      "description": "Task completion status"
+    }
+  },
+  "additionalProperties": false
+}

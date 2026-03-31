@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/envelope",
+  "title": "DevOS Event Envelope",
+  "description": "Common envelope structure wrapping all DevOS telemetry events",
+  "type": "object",
+  "required": ["timestamp", "session_id", "event_type", "payload"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the event occurred"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Claude session ID for correlating events within a session"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Event category identifier matching the payload schema"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Event-specific data; schema determined by event_type"
+    }
+  },
+  "additionalProperties": false
+}

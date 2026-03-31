@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/tool_write",
+  "title": "Tool Write Event",
+  "description": "Emitted when a file is created or modified via Write or Edit tools",
+  "type": "object",
+  "required": ["file", "change_type", "risk"],
+  "properties": {
+    "file": {
+      "type": "string",
+      "description": "Path to the file that was modified"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": ["architecture", "bugfix", "refactor", "test", "infra"],
+      "description": "Heuristic classification of the change type"
+    },
+    "risk": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Risk level based on file type and change scope"
+    },
+    "impact": {
+      "type": "string",
+      "description": "Brief description of the change impact"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Skill domains relevant to this change"
+    }
+  },
+  "additionalProperties": false
+}

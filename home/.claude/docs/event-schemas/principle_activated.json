@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/principle_activated",
+  "title": "Principle Activated Event",
+  "description": "Emitted when an engineering principle is invoked or referenced",
+  "type": "object",
+  "required": ["principle"],
+  "properties": {
+    "principle": {
+      "type": "string",
+      "description": "Name of the principle that was activated"
+    },
+    "context": {
+      "type": "string",
+      "description": "Context in which the principle was applied"
+    },
+    "activation": {
+      "type": "string",
+      "enum": ["first_invocation", "reinforcement", "explicit"],
+      "description": "Type of principle activation"
+    }
+  },
+  "additionalProperties": false
+}

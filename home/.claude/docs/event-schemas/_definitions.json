@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/definitions",
+  "title": "DevOS Common Definitions",
+  "description": "Shared type definitions referenced by event schemas",
+  "$defs": {
+    "file_path": {
+      "type": ["string", "null"],
+      "description": "Absolute path to a file"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Risk classification for changes"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": ["architecture", "bugfix", "refactor", "test", "infra", "feature", "docs"],
+      "description": "Classification of the type of change made"
+    },
+    "duration_category": {
+      "type": "string",
+      "enum": ["quick", "short", "medium", "long", "marathon"],
+      "description": "Session duration bucket for pattern analysis"
+    },
+    "session_archetype": {
+      "type": "string",
+      "enum": ["quick", "short", "medium", "long", "marathon"],
+      "description": "Session archetype based on duration"
+    },
+    "friction_domain": {
+      "type": "string",
+      "enum": ["syntax", "type", "state", "logic", "test", "environment", "permission", "resource-limit", "unknown"],
+      "description": "High-level category of friction/failure"
+    },
+    "project_mode": {
+      "type": "string",
+      "enum": ["exploration", "default", "hardening", "release"],
+      "description": "Project phase mode affecting hook behavior"
+    },
+    "test_result": {
+      "type": "string",
+      "enum": ["passed", "failed"],
+      "description": "Overall test run outcome"
+    },
+    "test_framework": {
+      "type": "string",
+      "description": "Test framework identifier (rspec, jest, pytest, go, bats, etc.)"
+    },
+    "non_negative_integer": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "A non-negative integer value"
+    },
+    "nullable_string": {
+      "type": ["string", "null"],
+      "description": "A string that may be null when not applicable"
+    }
+  }
+}

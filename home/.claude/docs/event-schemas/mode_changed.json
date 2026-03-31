@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/mode_changed",
+  "title": "Mode Changed Event",
+  "description": "Emitted when project phase mode is changed",
+  "type": "object",
+  "required": ["old_mode", "new_mode"],
+  "properties": {
+    "old_mode": {
+      "type": "string",
+      "enum": ["exploration", "default", "hardening", "release"],
+      "description": "Previous project phase mode"
+    },
+    "new_mode": {
+      "type": "string",
+      "enum": ["exploration", "default", "hardening", "release"],
+      "description": "New project phase mode"
+    },
+    "mode_file": {
+      "type": "string",
+      "description": "Path to the mode file that was updated"
+    }
+  },
+  "additionalProperties": false
+}
