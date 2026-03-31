@@ -81,8 +81,9 @@ projects_dir = sys.argv[2]
 out_path = sys.argv[3]
 week_start = sys.argv[4]
 week_end = sys.argv[5]
+per_test_log = Path.home() / ".claude" / "per-test-results.jsonl"
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"  # Added flaky_tests section
 
 def parse_ts(s: str):
     if s.endswith("Z"):
@@ -582,6 +583,82 @@ stable_session_stability = (stable_session_passed / stable_session_total) if sta
 
 session_pattern_counts = Counter(session_classifications.values())
 
+# ============================================================================
+# Flaky Test Detection (Issue #19)
+# ============================================================================
+# Read per-test results and calculate pass rates over the week.
+# Flag tests with 50-90% pass rate as "flaky suspects".
+
+per_test_results = defaultdict(list)  # test_key -> list of (timestamp, status)
+flaky_tests = []
+
+if per_test_log.exists():
+    with open(per_test_log, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except Exception:
+                continue
+
+            ts = entry.get("timestamp", "")
+            if not ts:
+                continue
+
+            try:
+                t = parse_ts(ts).astimezone(dt.timezone.utc)
+            except Exception:
+                continue
+
+            # Only include results from this week
+            if not (week_start_dt <= t < week_end_dt):
+                continue
+
+            name = entry.get("name", "")
+            status = entry.get("status", "")
+            file_path = entry.get("file", "")
+
+            if name and status:
+                # Use file:name as unique key
+                test_key = f"{file_path}:{name}" if file_path else name
+                per_test_results[test_key].append({
+                    "timestamp": ts,
+                    "status": status,
+                    "file": file_path
+                })
+
+    # Calculate pass rates and identify flaky tests
+    for test_key, runs in per_test_results.items():
+        total_runs = len(runs)
+        if total_runs < 2:  # Need at least 2 runs to detect flakiness
+            continue
+
+        passed_runs = sum(1 for r in runs if r["status"] == "passed")
+        pass_rate = passed_runs / total_runs
+
+        # Flag tests with 50-90% pass rate as flaky suspects
+        if 0.5 <= pass_rate <= 0.9:
+            # Extract file and name from test_key
+            if ":" in test_key:
+                file_path, test_name = test_key.rsplit(":", 1)
+            else:
+                file_path = ""
+                test_name = test_key
+
+            flaky_tests.append({
+                "name": test_name,
+                "pass_rate": round(pass_rate, 2),
+                "runs": total_runs,
+                "passed": passed_runs,
+                "failed": total_runs - passed_runs,
+                "file": file_path
+            })
+
+    # Sort by pass rate (most flaky first = closest to 50%)
+    flaky_tests.sort(key=lambda x: abs(x["pass_rate"] - 0.5))
+
 # Original (raw) metrics for comparison
 total_tests = test_results.get("passed", 0) + test_results.get("failed", 0)
 pass_tests = test_results.get("passed", 0)
@@ -769,7 +846,19 @@ summary = {
             for arch in ["deep_work", "mixed", "exploratory", "fragmented"]
             if any(s.get("archetype") == arch for s in session_durations)
         ]
-    })([s for s in session_durations if s.get("focus_score") is not None])
+    })([s for s in session_durations if s.get("focus_score") is not None]),
+    # Issue #19: Flaky test detection
+    "flaky_tests": {
+        "suspects": flaky_tests[:20],  # Top 20 flaky tests
+        "total_suspects": len(flaky_tests),
+        "tests_tracked": len(per_test_results),
+        "total_test_runs": sum(len(runs) for runs in per_test_results.values()),
+        "detection_criteria": {
+            "min_runs": 2,
+            "pass_rate_range": [0.5, 0.9],
+            "description": "Tests with 50-90% pass rate over rolling 7 days"
+        }
+    }
 }
 
 with open(out_path, "w", encoding="utf-8") as out:
