@@ -66,7 +66,7 @@ if [[ -n "$VIOLATION" ]]; then
   if is_mode "hardening" "release"; then
     # In hardening/release mode, block layering violations outright
     jq -n \
-      --arg reason "BLOCKED ($VIOLATION): $REASON [hardening mode — layering violations are not allowed]" \
+      --arg reason "BLOCKED ($VIOLATION): $REASON [$(get_project_mode) mode — layering violations are not allowed]" \
       '{error: $reason, ok: false}'
   else
     # In default mode, ask for confirmation
