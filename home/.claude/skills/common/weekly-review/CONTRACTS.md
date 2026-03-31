@@ -56,6 +56,19 @@ Each line must be valid JSON with these fields:
 - `cue_applied` - Cue guidance was followed (detected via subsequent tool use)
 - `session_end` - Session ended (includes duration and focus metrics)
 
+**Per-test result log (`~/.claude/per-test-results.jsonl`):**
+
+Individual test results for flakiness tracking:
+```json
+{
+  "name": "test_hook_registration",
+  "status": "passed",              // "passed" | "failed" | "skipped"
+  "file": "test/hooks/registration_test.bats",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "project": "/path/to/project"
+}
+```
+
 ### Output
 
 | Destination | Type | Description |
@@ -145,6 +158,24 @@ interface SummaryJSON {
       avg_focus_score: number | null;
       total_hours: number;
     }>;
+  };
+  flaky_tests: {
+    suspects: Array<{                   // Tests with 50-90% pass rate
+      name: string;                     // Test name
+      pass_rate: number;                // 0.5-0.9 (flagged range)
+      runs: number;                     // Total runs this week
+      passed: number;                   // Passed count
+      failed: number;                   // Failed count
+      file: string;                     // Test file path
+    }>;
+    total_suspects: number;             // Total flaky tests found
+    tests_tracked: number;              // Unique tests with results
+    total_test_runs: number;            // Total individual test runs
+    detection_criteria: {
+      min_runs: number;                 // Min runs required (2)
+      pass_rate_range: [number, number]; // [0.5, 0.9]
+      description: string;
+    };
   };
 }
 ```
@@ -462,6 +493,7 @@ OUT_DIR=$(./run_weekly_review.sh)
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3.0 | 2026-03-31 | Added flaky_tests section for test flakiness detection (Issue #19) |
 | 1.2.0 | 2026-03-31 | Added session_quality metrics (focus_score, archetype) and session_end event type |
 | 1.1.0 | 2026-03-31 | Added cue_applied event type and cue_engagement.conversion_rate metrics |
 | 1.0.0 | 2024-02-25 | Initial contract definition |
