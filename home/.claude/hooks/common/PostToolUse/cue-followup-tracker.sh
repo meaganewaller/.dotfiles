@@ -172,7 +172,8 @@ check_cue_applied() {
 }
 
 # Track which cues were applied to avoid duplicate events
-APPLIED_FILE="/tmp/.claude-devos-cue-applied-${SESSION_ID}"
+# Use different prefix to avoid matching the cue marker glob pattern
+APPLIED_FILE="/tmp/.claude-devos-applied-cues-${SESSION_ID}"
 touch "$APPLIED_FILE"
 
 # Check each fired cue against current tool use
