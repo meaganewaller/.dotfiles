@@ -262,7 +262,7 @@ def infer_project_from_content(content: str) -> str:
     if "pull" in content_lower or "gusto" in content_lower or "database" in content_lower:
         return "pull"
     elif "dotfiles" in content_lower or "claude" in content_lower:
-        return ".dotfiles"
+        return "dotfiles"
     elif "review" in content_lower or "weekly" in content_lower:
         return "reviews"
     return "unknown"
