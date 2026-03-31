@@ -257,7 +257,10 @@ hook_bus_init() {
   input_hash=$(_short_hash "${tool_input}")
 
   _HOOK_BUS_DIR="/tmp/.claude-hook-bus-${session_id}-${tool_name}-${input_hash}"
-  ensure_dir_exists "$_HOOK_BUS_DIR" || return 1
+  ensure_dir_exists "$_HOOK_BUS_DIR" || {
+    _HOOK_BUS_DIR=""  # Signal bus unavailable so hook_bus_put noops
+    return 1
+  }
 }
 
 # Write a named finding to the bus
@@ -450,8 +453,8 @@ get_project_mode() {
   if [[ -n "$mode_file" ]]; then
     local mode
     mode=$(head -1 "$mode_file" 2>/dev/null | tr -d '[:space:]')
-    # Validate mode is in VALID_MODES
-    if [[ " $VALID_MODES " == *" $mode "* ]]; then
+    # Validate mode is non-empty and in VALID_MODES
+    if [[ -n "$mode" && " $VALID_MODES " == *" $mode "* ]]; then
       echo "$mode"
       return 0
     fi
@@ -485,7 +488,7 @@ set_project_mode() {
   local new_mode="$1"
 
   # Validate
-  if [[ " $VALID_MODES " != *" $new_mode "* ]]; then
+  if [[ -z "$new_mode" || " $VALID_MODES " != *" $new_mode "* ]]; then
     echo "Invalid mode: $new_mode. Valid: $VALID_MODES" >&2
     return 1
   fi
