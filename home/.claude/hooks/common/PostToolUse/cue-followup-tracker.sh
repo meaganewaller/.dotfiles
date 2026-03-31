@@ -64,8 +64,8 @@ check_cue_applied() {
       if [[ "$tool" == "Bash" ]]; then
         local cmd
         cmd=$(echo "$tool_input" | jq -r '.command // empty')
-        # Check for conventional commit pattern or test runs
-        if [[ "$cmd" =~ git\ commit.*-m.*(feat|fix|docs|style|refactor|test|chore)\( ]] ||
+        # Check for conventional commit pattern (with or without scope) or test runs
+        if [[ "$cmd" =~ git\ commit.*-m.*(feat|fix|docs|style|refactor|test|chore)(\(|:) ]] ||
            [[ "$cmd" =~ (npm|yarn|bundle|pytest|rspec|cargo).*test ]]; then
           echo "matched"
         fi
