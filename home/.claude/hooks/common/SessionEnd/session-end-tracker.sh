@@ -71,4 +71,7 @@ echo "$INPUT" | "$HOME/.claude/hooks/dev-os-emit.sh" session_end "$PAYLOAD"
 # Clean up old tracker files (older than 48 hours)
 find "$SESSION_TRACKER_DIR" -type f -mmin +2880 -delete 2>/dev/null || true
 
+# Clean up expired hook bus directories
+hook_bus_cleanup 2>/dev/null || true
+
 exit 0

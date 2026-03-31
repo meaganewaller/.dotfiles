@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+# Source for mode functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=../validate-path.sh
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/validate-path.sh"
+
+# Skip test blocker in exploration mode — prototyping freely
+if is_mode "exploration"; then
+  echo '{"ok":true}'
+  exit 0
+fi
+
 STREAM="$HOME/.claude/dev-os-events.jsonl"
 
 # Allow stop if no event stream exists

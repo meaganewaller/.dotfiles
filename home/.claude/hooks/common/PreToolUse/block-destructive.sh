@@ -16,6 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/validate-path.sh"
 hook_register "block-destructive"
 hook_set_context "$INPUT"
+hook_bus_init "$INPUT"
 
 # Only process Bash tool calls
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // ""')
@@ -81,6 +82,13 @@ for entry in "${BLOCK_PATTERNS[@]}"; do
     SUGGESTION=${remainder##*::}
 
     if echo "$COMMAND" | grep -Eqi "$PATTERN"; then
+        # Publish to hook bus for downstream hooks
+        hook_bus_put "block-destructive" "$(jq -n \
+            --arg pattern "$PATTERN" \
+            --arg desc "$DESC" \
+            --argjson blocked true \
+            '{blocked: $blocked, pattern: $pattern, description: $desc}')" 2>/dev/null || true
+
         # Emit telemetry event
         safe_emit "destructive_command_blocked" "$(jq -n \
             --arg pattern "$PATTERN" \

@@ -126,6 +126,22 @@ for root in "${CUE_ROOTS[@]}"; do
     done
     [[ $scope_match -eq 0 ]] && continue
 
+    # Check if cue's mode matches the current project mode
+    # If mode: field is absent, cue fires in all modes (backwards compatible)
+    cue_mode=$(get_frontmatter "$cue_md" "mode")
+    if [[ -n "$cue_mode" ]]; then
+      current_mode=$(get_project_mode)
+      mode_match=0
+      for m in $(echo "$cue_mode" | tr ',' ' '); do
+        m=$(echo "$m" | tr -d '[:space:]')
+        if [[ "$m" == "$current_mode" ]]; then
+          mode_match=1
+          break
+        fi
+      done
+      [[ $mode_match -eq 0 ]] && continue
+    fi
+
     # Extract semantic fields for fallback matching
     description=$(get_frontmatter "$cue_md" "description")
     vocabulary=$(get_frontmatter "$cue_md" "vocabulary")

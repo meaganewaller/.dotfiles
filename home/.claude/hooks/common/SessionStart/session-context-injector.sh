@@ -40,6 +40,12 @@ if validate_dir_exists "$JOURNAL_DIR"; then
   CONTEXT+=$(ls -t "$JOURNAL_DIR"/*.md 2>/dev/null | head -n 1 | xargs cat 2>/dev/null | head -n 30)
 fi
 
+# Show active project mode if not default
+CURRENT_MODE=$(get_project_mode 2>/dev/null || echo "default")
+if [[ "$CURRENT_MODE" != "default" ]]; then
+  CONTEXT+="Project Mode: **${CURRENT_MODE}**\n\n"
+fi
+
 if [[ -f "$CLAUDE_HOME/core.md" ]]; then
   CONTEXT+="\n---\n"
   CONTEXT+=$(cat "$CLAUDE_HOME/core.md" 2>/dev/null || true)
