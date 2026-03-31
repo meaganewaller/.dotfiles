@@ -967,3 +967,51 @@ get_chunk_params() {
 
   echo "total_lines=$total_lines num_chunks=$num_chunks chunk_size=$chunk_size"
 }
+
+# ============================================================================
+# PROJECT DETECTION
+# ============================================================================
+# Detect the current project name from git or working directory.
+# Used for decision journal attribution.
+
+# Detect project from git remote or working directory
+# Usage: PROJECT=$(detect_project)
+# Returns: project name (e.g., "dotfiles", "pull", "dev-os-observability")
+detect_project() {
+  local project="unknown"
+
+  # Try git remote first (most reliable)
+  if git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null || echo "")
+
+    if [[ -n "$remote_url" ]]; then
+      # Extract repo name from various URL formats:
+      # git@github.com:user/repo.git -> repo
+      # https://github.com/user/repo.git -> repo
+      # https://github.com/user/repo -> repo
+      project=$(basename "$remote_url" .git)
+    fi
+
+    # Fallback to git root directory name
+    if [[ "$project" == "unknown" || -z "$project" ]]; then
+      local git_root
+      git_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+      if [[ -n "$git_root" ]]; then
+        project=$(basename "$git_root")
+      fi
+    fi
+  fi
+
+  # Final fallback: current directory name
+  if [[ "$project" == "unknown" || -z "$project" ]]; then
+    project=$(basename "$PWD")
+  fi
+
+  # Normalize common names
+  case "$project" in
+    .dotfiles|dotfiles) project="dotfiles" ;;
+  esac
+
+  echo "$project"
+}

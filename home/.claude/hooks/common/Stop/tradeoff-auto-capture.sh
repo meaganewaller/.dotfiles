@@ -26,11 +26,13 @@ ensure_dir_exists "$JOURNAL_DIR"
 
 LAST_MESSAGE=$(echo "$INPUT" | jq -r '.last_assistant_message // ""')
 
-# Get git branch if available
+# Get git branch and project
 BRANCH="unknown"
+PROJECT="unknown"
 if git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
   BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 fi
+PROJECT=$(detect_project)
 
 DATE_PREFIX=$(date +"%Y-%m-%d-%H%M")
 
@@ -63,15 +65,18 @@ for marker in "$MARKER_DIR"/*.json; do
     # Extract a snippet of context (first 2000 chars with tradeoff keywords)
     CONTEXT_SNIPPET=$(echo "$LAST_MESSAGE" | grep -iE ".{0,200}($TRADEOFF_KEYWORDS).{0,200}" | head -10 | head -c 2000 || echo "")
 
-    # Write journal entry
+    # Write journal entry with YAML frontmatter
     cat > "$JOURNAL_FILE" << EOF
-# Tradeoff: $(date +"%Y-%m-%d")
+---
+project: $PROJECT
+branch: $BRANCH
+source: auto-capture
+files: $FILE
+lines_changed: $LINES_CHANGED
+change_type: $CHANGE_TYPE
+---
 
-**Branch:** $BRANCH
-**Files:** $FILE
-**Lines Changed:** $LINES_CHANGED
-**Change Type:** $CHANGE_TYPE
-**Source:** auto-capture
+# Tradeoff: $(date +"%Y-%m-%d")
 
 ## Context
 
@@ -93,11 +98,13 @@ EOF
     PAYLOAD=$(jq -n \
       --arg file "$FILE" \
       --arg branch "$BRANCH" \
+      --arg project "$PROJECT" \
       --arg change_type "$CHANGE_TYPE" \
       --argjson lines_changed "$LINES_CHANGED" \
       '{
         file: $file,
         branch: $branch,
+        project: $project,
         change_type: $change_type,
         lines_changed: $lines_changed,
         source: "auto-capture-deterministic",
