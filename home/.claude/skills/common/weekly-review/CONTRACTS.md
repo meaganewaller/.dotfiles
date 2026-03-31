@@ -52,6 +52,8 @@ Each line must be valid JSON with these fields:
 - `large_change` - Large file change
 - `reversal` - Code reversal
 - `dependency_change` - Dependency modification
+- `cue_fired` - Cue guidance shown to agent
+- `cue_applied` - Cue guidance was followed (detected via subsequent tool use)
 
 ### Output
 
@@ -105,6 +107,26 @@ interface SummaryJSON {
   top_principles_invoked: Array<{ principle: string; count: number }>;
   top_skills_used: Array<{ skill: string; count: number }>;
   top_files_modified: string[];  // Max 20 items
+  cue_engagement: {
+    total_fires: number;           // Total cue_fired events
+    total_applied: number;         // Total cue_applied events
+    conversion_rate: number | null; // applied / fired (null if no fires)
+    unique_cues_fired: number;
+    unique_cues_applied: number;
+    by_cue: Array<{
+      cue: string;
+      fired: number;
+      applied: number;
+      conversion_rate: number | null;
+    }>;
+    by_trigger: Array<{ trigger: string; count: number }>;
+    low_conversion_cues: Array<{   // Cues with <30% conversion (min 3 fires)
+      cue: string;
+      fired: number;
+      applied: number;
+      conversion_rate: number;
+    }>;
+  };
 }
 ```
 
@@ -421,4 +443,5 @@ OUT_DIR=$(./run_weekly_review.sh)
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-03-31 | Added cue_applied event type and cue_engagement.conversion_rate metrics |
 | 1.0.0 | 2024-02-25 | Initial contract definition |
