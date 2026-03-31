@@ -54,6 +54,7 @@ Each line must be valid JSON with these fields:
 - `dependency_change` - Dependency modification
 - `cue_fired` - Cue guidance shown to agent
 - `cue_applied` - Cue guidance was followed (detected via subsequent tool use)
+- `session_end` - Session ended (includes duration and focus metrics)
 
 ### Output
 
@@ -125,6 +126,24 @@ interface SummaryJSON {
       fired: number;
       applied: number;
       conversion_rate: number;
+    }>;
+  };
+  session_quality: {
+    sessions_tracked: number;           // Sessions with focus data
+    avg_focus_score: number | null;     // 0.0-1.0 (null if no data)
+    deep_work_sessions: number;         // High focus (>=0.8)
+    fragmented_sessions: number;        // Low focus (<0.5)
+    exploratory_sessions: number;       // Few tool calls (<5)
+    mixed_sessions: number;             // Medium focus (0.5-0.8)
+    deep_work_hours: number;            // Total hours in deep work
+    fragmented_hours: number;           // Total hours fragmented
+    total_interruptions: number;        // Gaps >5min between tool calls
+    total_tool_calls: number;           // Total tool calls tracked
+    by_archetype: Array<{
+      archetype: string;                // "deep_work" | "mixed" | "exploratory" | "fragmented"
+      sessions: number;
+      avg_focus_score: number | null;
+      total_hours: number;
     }>;
   };
 }
@@ -443,5 +462,6 @@ OUT_DIR=$(./run_weekly_review.sh)
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.2.0 | 2026-03-31 | Added session_quality metrics (focus_score, archetype) and session_end event type |
 | 1.1.0 | 2026-03-31 | Added cue_applied event type and cue_engagement.conversion_rate metrics |
 | 1.0.0 | 2024-02-25 | Initial contract definition |
