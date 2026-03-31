@@ -477,12 +477,20 @@ for e in events:
     if et == "session_end":
         duration_mins = payload.get("duration_minutes", 0)
         duration_cat = payload.get("duration_category", "unknown")
+        focus_score = payload.get("focus_score")
+        archetype = payload.get("archetype")
+        tool_call_count = payload.get("tool_call_count", 0)
+        interruption_count = payload.get("interruption_count", 0)
         if duration_mins > 0:
             session_durations.append({
                 "session_id": session_id,
                 "project": project,
                 "duration_minutes": duration_mins,
-                "category": duration_cat
+                "category": duration_cat,
+                "focus_score": focus_score,
+                "archetype": archetype,
+                "tool_call_count": tool_call_count,
+                "interruption_count": interruption_count
             })
             duration_categories[duration_cat] += 1
 
@@ -689,7 +697,29 @@ summary = {
             {"project": proj, "compactions": len([c for c in context_compacts if c["project"] == proj])}
             for proj in sorted(set(c["project"] for c in context_compacts))
         ] if context_compacts else []
-    }
+    },
+    "session_quality": (lambda sessions_with_focus: {
+        "sessions_tracked": len(sessions_with_focus),
+        "avg_focus_score": round(sum(s["focus_score"] for s in sessions_with_focus) / len(sessions_with_focus), 4) if sessions_with_focus else None,
+        "deep_work_sessions": len([s for s in session_durations if s.get("archetype") == "deep_work"]),
+        "fragmented_sessions": len([s for s in session_durations if s.get("archetype") == "fragmented"]),
+        "exploratory_sessions": len([s for s in session_durations if s.get("archetype") == "exploratory"]),
+        "mixed_sessions": len([s for s in session_durations if s.get("archetype") == "mixed"]),
+        "deep_work_hours": round(sum(s["duration_minutes"] for s in session_durations if s.get("archetype") == "deep_work") / 60, 2),
+        "fragmented_hours": round(sum(s["duration_minutes"] for s in session_durations if s.get("archetype") == "fragmented") / 60, 2),
+        "total_interruptions": sum(s.get("interruption_count", 0) for s in session_durations),
+        "total_tool_calls": sum(s.get("tool_call_count", 0) for s in session_durations),
+        "by_archetype": [
+            {
+                "archetype": arch,
+                "sessions": len([s for s in session_durations if s.get("archetype") == arch]),
+                "avg_focus_score": round(sum(s["focus_score"] for s in session_durations if s.get("archetype") == arch and s.get("focus_score") is not None) / len([s for s in session_durations if s.get("archetype") == arch and s.get("focus_score") is not None]), 4) if [s for s in session_durations if s.get("archetype") == arch and s.get("focus_score") is not None] else None,
+                "total_hours": round(sum(s["duration_minutes"] for s in session_durations if s.get("archetype") == arch) / 60, 2)
+            }
+            for arch in ["deep_work", "mixed", "exploratory", "fragmented"]
+            if any(s.get("archetype") == arch for s in session_durations)
+        ]
+    })([s for s in session_durations if s.get("focus_score") is not None])
 }
 
 with open(out_path, "w", encoding="utf-8") as out:

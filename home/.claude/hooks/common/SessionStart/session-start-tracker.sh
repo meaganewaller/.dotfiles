@@ -23,8 +23,15 @@ ensure_dir_exists "$SESSION_TRACKER_DIR"
 START_TIME=$(date +%s)
 START_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-# Save session start info
-echo "$START_TIME" > "$SESSION_TRACKER_DIR/$SESSION_ID"
+# Save session start info as JSON (supports tool call tracking for focus analysis)
+jq -n \
+  --argjson start_time "$START_TIME" \
+  --arg start_iso "$START_ISO" \
+  '{
+    start_time: $start_time,
+    start_iso: $start_iso,
+    tool_calls: []
+  }' > "$SESSION_TRACKER_DIR/$SESSION_ID"
 
 # Emit session_start event
 PAYLOAD=$(jq -n \
