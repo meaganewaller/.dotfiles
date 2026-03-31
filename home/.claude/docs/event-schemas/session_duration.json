@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/session_duration",
+  "title": "Session Duration Event",
+  "description": "Emitted when session reaches duration milestones",
+  "type": "object",
+  "required": ["duration_minutes", "archetype"],
+  "properties": {
+    "duration_minutes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current session duration in minutes"
+    },
+    "archetype": {
+      "type": "string",
+      "enum": ["quick", "short", "medium", "long", "marathon"],
+      "description": "Session archetype based on duration"
+    },
+    "has_task_list": {
+      "type": "boolean",
+      "description": "Whether the session has an active task list"
+    }
+  },
+  "additionalProperties": false
+}

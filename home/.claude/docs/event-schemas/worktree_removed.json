@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/worktree_removed",
+  "title": "Worktree Removed Event",
+  "description": "Emitted when a git worktree is cleaned up",
+  "type": "object",
+  "required": ["experiment_path", "result"],
+  "properties": {
+    "experiment_path": {
+      "type": "string",
+      "description": "Path to the worktree that was removed"
+    },
+    "result": {
+      "type": "string",
+      "enum": ["removed", "merged", "abandoned"],
+      "description": "Outcome of the experiment"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/test_run",
+  "title": "Test Run Event",
+  "description": "Emitted when tests are executed, capturing pass/fail statistics",
+  "type": "object",
+  "required": ["result", "framework", "project"],
+  "properties": {
+    "result": {
+      "type": "string",
+      "enum": ["passed", "failed"],
+      "description": "Overall test run outcome"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Test framework detected (rspec, jest, pytest, go, bats, etc.)"
+    },
+    "project": {
+      "type": "string",
+      "description": "Project root path where tests were run"
+    },
+    "test_command": {
+      "type": "string",
+      "description": "The command that was executed to run tests"
+    },
+    "trigger_file": {
+      "type": ["string", "null"],
+      "description": "File edit that triggered the test run"
+    },
+    "passed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of passing tests"
+    },
+    "failed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of failing tests"
+    },
+    "skipped": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Count of skipped/pending tests"
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of tests run"
+    },
+    "error_excerpt": {
+      "type": ["string", "null"],
+      "description": "First failure message if tests failed"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/branch_stale",
+  "title": "Branch Stale Event",
+  "description": "Emitted when the current branch is detected as stale (behind main)",
+  "type": "object",
+  "required": ["branch", "main", "behind"],
+  "properties": {
+    "branch": {
+      "type": "string",
+      "description": "Current branch name"
+    },
+    "main": {
+      "type": "string",
+      "description": "Main branch name (main or master)"
+    },
+    "behind": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of commits behind main"
+    },
+    "ahead": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of commits ahead of main"
+    }
+  },
+  "additionalProperties": false
+}

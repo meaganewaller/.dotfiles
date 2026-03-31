@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/cue_matched",
+  "title": "Cue Matched Event",
+  "description": "Emitted when a cue is triggered and injected into the conversation",
+  "type": "object",
+  "required": ["cue_names"],
+  "properties": {
+    "cue_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Names of cues that matched and were injected"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": ["prompt", "file", "bash"],
+      "description": "Type of trigger that activated the cue"
+    },
+    "trigger_value": {
+      "type": ["string", "null"],
+      "description": "The value that triggered the cue (pattern matched, file path, etc.)"
+    }
+  },
+  "additionalProperties": false
+}
