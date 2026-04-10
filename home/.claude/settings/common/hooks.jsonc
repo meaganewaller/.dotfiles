@@ -50,10 +50,6 @@
                     },
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tradeoff-capture.sh"
-                    },
-                    {
-                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/async-test-runner.sh",
                         "async": true
                     },
@@ -110,10 +106,6 @@
                     },
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/Stop/tradeoff-auto-capture.sh"
-                    },
-                    {
-                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/Stop/leverage-evaluator.sh"
                     },
                     {
@@ -151,17 +143,6 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SubagentStart/cue-inject-subagent.sh"
-                    }
-                ]
-            }
-        ],
-        "SubagentStop": [
-            {
-                "matcher": "Explore|Plan",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/SubagentStop/tradeoff-subagent-capture.sh"
                     }
                 ]
             }
