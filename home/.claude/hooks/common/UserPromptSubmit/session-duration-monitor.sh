@@ -17,8 +17,13 @@ SESSION_TRACKER_DIR="$HOME/.claude/.session-trackers"
 SESSION_FILE="$SESSION_TRACKER_DIR/$SESSION_ID"
 [[ ! -f "$SESSION_FILE" ]] && exit 0
 
-START_TIME=$(cat "$SESSION_FILE" 2>/dev/null) || exit 0
-[[ -z "$START_TIME" ]] && exit 0
+# Same tracker file shape as session-start-tracker (JSON) or legacy plain epoch
+if jq -e '.start_time' "$SESSION_FILE" &>/dev/null; then
+  START_TIME=$(jq -r '.start_time' "$SESSION_FILE")
+else
+  START_TIME=$(cat "$SESSION_FILE" 2>/dev/null) || exit 0
+fi
+[[ -z "$START_TIME" || "$START_TIME" == "null" ]] && exit 0
 
 NOW=$(date +%s)
 DURATION_SECONDS=$((NOW - START_TIME))

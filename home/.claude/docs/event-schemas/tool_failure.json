@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/tool_failure",
+  "title": "Tool Failure Event",
+  "description": "Emitted when a tool execution fails, capturing friction patterns",
+  "type": "object",
+  "required": ["tool", "domain"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "description": "Name of the tool that failed (Bash, Read, Write, Edit, etc.)"
+    },
+    "file_path": {
+      "type": ["string", "null"],
+      "description": "File path involved in the failure, if applicable"
+    },
+    "file_context": {
+      "type": "string",
+      "description": "Context about the file (e.g., test, config, source)"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "File extension or type classification"
+    },
+    "error_excerpt": {
+      "type": ["string", "null"],
+      "description": "Truncated error message from the failure"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["syntax", "type", "state", "logic", "test", "environment", "permission", "resource-limit", "unknown"],
+      "description": "High-level friction category"
+    },
+    "subdomain": {
+      "type": ["string", "null"],
+      "description": "Specific friction subcategory (e.g., file-not-found, command-failed)"
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Actionable hints for resolving the failure"
+    },
+    "friction_domain": {
+      "type": "object",
+      "description": "Structured friction classification",
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "subdomain": {
+          "type": ["string", "null"]
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "repeat_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of similar recent failures"
+    },
+    "is_subagent": {
+      "type": "boolean",
+      "description": "Whether the failure occurred in a subagent"
+    },
+    "context": {
+      "type": ["object", "null"],
+      "description": "Additional context about the failure"
+    },
+    "preceding_tool": {
+      "type": ["string", "null"],
+      "description": "Tool that executed immediately before this failure (Issue #18: friction root-cause chains)"
+    },
+    "preceding_result": {
+      "type": ["string", "null"],
+      "enum": ["success", "failure", null],
+      "description": "Result of the preceding tool execution"
+    },
+    "preceding_file": {
+      "type": ["string", "null"],
+      "description": "File path the preceding tool operated on"
+    },
+    "chain_depth": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Number of consecutive failures in this friction chain (0 = isolated failure)"
+    }
+  },
+  "additionalProperties": false
+}

@@ -52,6 +52,22 @@ Each line must be valid JSON with these fields:
 - `large_change` - Large file change
 - `reversal` - Code reversal
 - `dependency_change` - Dependency modification
+- `cue_fired` - Cue guidance shown to agent
+- `cue_applied` - Cue guidance was followed (detected via subsequent tool use)
+- `session_end` - Session ended (includes duration and focus metrics)
+
+**Per-test result log (`~/.claude/per-test-results.jsonl`):**
+
+Individual test results for flakiness tracking:
+```json
+{
+  "name": "test_hook_registration",
+  "status": "passed",              // "passed" | "failed" | "skipped"
+  "file": "test/hooks/registration_test.bats",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "project": "/path/to/project"
+}
+```
 
 ### Output
 
@@ -105,6 +121,62 @@ interface SummaryJSON {
   top_principles_invoked: Array<{ principle: string; count: number }>;
   top_skills_used: Array<{ skill: string; count: number }>;
   top_files_modified: string[];  // Max 20 items
+  cue_engagement: {
+    total_fires: number;           // Total cue_fired events
+    total_applied: number;         // Total cue_applied events
+    conversion_rate: number | null; // applied / fired (null if no fires)
+    unique_cues_fired: number;
+    unique_cues_applied: number;
+    by_cue: Array<{
+      cue: string;
+      fired: number;
+      applied: number;
+      conversion_rate: number | null;
+    }>;
+    by_trigger: Array<{ trigger: string; count: number }>;
+    low_conversion_cues: Array<{   // Cues with <30% conversion (min 3 fires)
+      cue: string;
+      fired: number;
+      applied: number;
+      conversion_rate: number;
+    }>;
+  };
+  session_quality: {
+    sessions_tracked: number;           // Sessions with focus data
+    avg_focus_score: number | null;     // 0.0-1.0 (null if no data)
+    deep_work_sessions: number;         // High focus (>=0.8)
+    fragmented_sessions: number;        // Low focus (<0.5)
+    exploratory_sessions: number;       // Few tool calls (<5)
+    mixed_sessions: number;             // Medium focus (0.5-0.8)
+    deep_work_hours: number;            // Total hours in deep work
+    fragmented_hours: number;           // Total hours fragmented
+    total_interruptions: number;        // Gaps >5min between tool calls
+    total_tool_calls: number;           // Total tool calls tracked
+    by_archetype: Array<{
+      archetype: string;                // "deep_work" | "mixed" | "exploratory" | "fragmented"
+      sessions: number;
+      avg_focus_score: number | null;
+      total_hours: number;
+    }>;
+  };
+  flaky_tests: {
+    suspects: Array<{                   // Tests with 50-90% pass rate
+      name: string;                     // Test name
+      pass_rate: number;                // 0.5-0.9 (flagged range)
+      runs: number;                     // Total runs this week
+      passed: number;                   // Passed count
+      failed: number;                   // Failed count
+      file: string;                     // Test file path
+    }>;
+    total_suspects: number;             // Total flaky tests found
+    tests_tracked: number;              // Unique tests with results
+    total_test_runs: number;            // Total individual test runs
+    detection_criteria: {
+      min_runs: number;                 // Min runs required (2)
+      pass_rate_range: [number, number]; // [0.5, 0.9]
+      description: string;
+    };
+  };
 }
 ```
 
@@ -421,4 +493,7 @@ OUT_DIR=$(./run_weekly_review.sh)
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.3.0 | 2026-03-31 | Added flaky_tests section for test flakiness detection (Issue #19) |
+| 1.2.0 | 2026-03-31 | Added session_quality metrics (focus_score, archetype) and session_end event type |
+| 1.1.0 | 2026-03-31 | Added cue_applied event type and cue_engagement.conversion_rate metrics |
 | 1.0.0 | 2024-02-25 | Initial contract definition |

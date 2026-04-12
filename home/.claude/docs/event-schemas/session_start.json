@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/session_start",
+  "title": "Session Start Event",
+  "description": "Emitted when a Claude Code session begins",
+  "type": "object",
+  "required": ["cwd"],
+  "properties": {
+    "cwd": {
+      "type": "string",
+      "description": "Current working directory at session start"
+    },
+    "git_branch": {
+      "type": ["string", "null"],
+      "description": "Git branch name if in a git repository"
+    }
+  },
+  "additionalProperties": false
+}

@@ -9,11 +9,23 @@
                 "hooks": [
                     {
                         "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tool-history-tracker.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tool-activity-tracker.sh"
+                    },
+                    {
+                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/loop-detector.sh"
                     },
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/principle-activator.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/cue-followup-tracker.sh"
                     }
                 ]
             },
@@ -35,10 +47,6 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/reversal-detector.sh"
-                    },
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tradeoff-capture.sh"
                     },
                     {
                         "type": "command",
@@ -98,10 +106,6 @@
                     },
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/Stop/tradeoff-auto-capture.sh"
-                    },
-                    {
-                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/Stop/leverage-evaluator.sh"
                     },
                     {
@@ -139,17 +143,6 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SubagentStart/cue-inject-subagent.sh"
-                    }
-                ]
-            }
-        ],
-        "SubagentStop": [
-            {
-                "matcher": "Explore|Plan",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/SubagentStop/tradeoff-subagent-capture.sh"
                     }
                 ]
             }

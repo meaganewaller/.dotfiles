@@ -21,7 +21,12 @@ DURATION_MINUTES=0
 ARCHETYPE="unknown"
 SESSION_TRACKER_DIR="$HOME/.claude/.session-trackers"
 if [[ -n "$SESSION_ID" && -f "$SESSION_TRACKER_DIR/$SESSION_ID" ]]; then
-  START_TIME=$(cat "$SESSION_TRACKER_DIR/$SESSION_ID" 2>/dev/null) || START_TIME=0
+  TRACKER_FILE="$SESSION_TRACKER_DIR/$SESSION_ID"
+  if jq -e '.start_time' "$TRACKER_FILE" &>/dev/null; then
+    START_TIME=$(jq -r '.start_time' "$TRACKER_FILE")
+  else
+    START_TIME=$(cat "$TRACKER_FILE" 2>/dev/null) || START_TIME=0
+  fi
   if [[ -n "$START_TIME" && "$START_TIME" -gt 0 ]]; then
     NOW=$(date +%s)
     DURATION_MINUTES=$(( (NOW - START_TIME) / 60 ))

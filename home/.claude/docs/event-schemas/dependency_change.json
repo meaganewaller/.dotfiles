@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/dependency_change",
+  "title": "Dependency Change Event",
+  "description": "Emitted when a dependency file is modified (Gemfile, package.json, etc.)",
+  "type": "object",
+  "required": ["file_path"],
+  "properties": {
+    "file_path": {
+      "type": "string",
+      "description": "Path to the dependency file that was modified"
+    },
+    "lines_added": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of lines added to the dependency file"
+    },
+    "lines_removed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of lines removed from the dependency file"
+    }
+  },
+  "additionalProperties": false
+}

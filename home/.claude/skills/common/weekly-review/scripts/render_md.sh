@@ -141,11 +141,13 @@ fi
   echo "## 🎯 Cue Engagement"
   echo
   CUE_TOTAL=$(jq -r '.cue_engagement.total_fires // 0' "$SUMMARY_JSON")
+  CUE_APPLIED=$(jq -r '.cue_engagement.total_applied // 0' "$SUMMARY_JSON")
+  CUE_RATE=$(jq -r '.cue_engagement.conversion_rate // "n/a"' "$SUMMARY_JSON")
   CUE_UNIQUE=$(jq -r '.cue_engagement.unique_cues_fired // 0' "$SUMMARY_JSON")
-  echo "**Total fires:** $CUE_TOTAL | **Unique cues:** $CUE_UNIQUE"
+  echo "**Total fires:** $CUE_TOTAL | **Applied:** $CUE_APPLIED | **Conversion:** ${CUE_RATE} | **Unique cues:** $CUE_UNIQUE"
   echo
   echo "### By Cue"
-  jq -r '.cue_engagement.by_cue[]? | "- **\(.cue)**: \(.count)"' "$SUMMARY_JSON" || echo "_(No cue data)_"
+  jq -r '.cue_engagement.by_cue[]? | "- **\(.cue)**: \(.fired) fired, \(.applied) applied (\(if .conversion_rate then (.conversion_rate * 100 | floor | tostring) + "%" else "n/a" end))"' "$SUMMARY_JSON" || echo "_(No cue data)_"
   echo
   echo "### By Trigger Type"
   jq -r '.cue_engagement.by_trigger[]? | "- \(.trigger): \(.count)"' "$SUMMARY_JSON" || echo "_(No trigger data)_"

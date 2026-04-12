@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$SCRIPT_DIR/validate-path.sh"
 hook_register "secret-scanner"
 hook_set_context "$INPUT"
-hook_bus_init "$INPUT"
+hook_bus_init "$INPUT" || true  # Bus is non-critical; don't abort security hook
 
 TOOL=$(jq -r '.tool_name // ""' <<<"$INPUT")
 FILE_PATH=$(jq -r '.tool_input.file_path // ""' <<<"$INPUT")

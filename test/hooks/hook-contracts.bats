@@ -498,3 +498,58 @@ EOF
   echo "$output" | jq -e '.decision == "approve"' >/dev/null
   echo "$output" | jq -e '.reason | contains("worktree")' >/dev/null
 }
+
+# ============================================================================
+# Cue Followup Tracker Tests
+# ============================================================================
+
+@test "PostToolUse/cue-followup-tracker.sh has valid syntax" {
+  bash -n "$HOOKS_DIR/PostToolUse/cue-followup-tracker.sh"
+}
+
+@test "cue-followup-tracker exits silently with no session_id" {
+  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PostToolUse/cue-followup-tracker.sh" 2>/dev/null)
+
+  # Should produce no output when no session_id
+  [[ -z "$output" ]]
+}
+
+@test "cue-followup-tracker exits silently with no cue markers" {
+  input='{"tool_name": "Read", "session_id": "test-no-cues-123", "tool_input": {"file_path": "/test.txt"}}'
+
+  output=$(echo "$input" | "$HOOKS_DIR/PostToolUse/cue-followup-tracker.sh" 2>/dev/null)
+
+  # Should produce no output when no cue markers exist
+  [[ -z "$output" ]]
+}
+
+@test "cue-followup-tracker detects file-verification cue followed by Glob" {
+  # Create cue marker
+  local session_id="test-cue-applied-$$"
+  touch "/tmp/.claude-devos-cue-file-verification-${session_id}"
+
+  # Set up events log and mock HOME to point to repo's home/ dir
+  export CLAUDE_EVENTS_LOG="$TEST_TMPDIR/events.jsonl"
+  export HOME="$BATS_TEST_DIRNAME/../../home"
+  touch "$CLAUDE_EVENTS_LOG"
+
+  input='{"tool_name": "Glob", "session_id": "'$session_id'", "tool_input": {"pattern": "**/*.sh"}}'
+
+  # Run hook (may fail if dev-os-emit.sh can't write, that's ok)
+  "$HOOKS_DIR/PostToolUse/cue-followup-tracker.sh" <<< "$input" 2>/dev/null || true
+
+  # Check that cue_applied event was emitted
+  if [[ -f "$CLAUDE_EVENTS_LOG" && -s "$CLAUDE_EVENTS_LOG" ]]; then
+    grep -q "cue_applied" "$CLAUDE_EVENTS_LOG"
+    grep -q "file-verification" "$CLAUDE_EVENTS_LOG"
+  else
+    # If no events file, at least verify the applied marker was created
+    [[ -f "/tmp/.claude-devos-applied-cues-${session_id}" ]]
+  fi
+
+  # Cleanup
+  rm -f "/tmp/.claude-devos-cue-file-verification-${session_id}"
+  rm -f "/tmp/.claude-devos-applied-cues-${session_id}"
+}

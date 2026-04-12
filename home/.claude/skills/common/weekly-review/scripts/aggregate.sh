@@ -81,8 +81,9 @@ projects_dir = sys.argv[2]
 out_path = sys.argv[3]
 week_start = sys.argv[4]
 week_end = sys.argv[5]
+per_test_log = Path.home() / ".claude" / "per-test-results.jsonl"
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"  # Added flaky_tests section
 
 def parse_ts(s: str):
     if s.endswith("Z"):
@@ -235,13 +236,34 @@ def extract_list_items(content: str, header: str) -> list:
         return [item.strip() for item in items if item.strip()]
     return []
 
+def parse_yaml_frontmatter(content: str) -> dict:
+    """Parse YAML frontmatter from markdown content"""
+    if not content.startswith("---"):
+        return {}
+
+    # Find closing ---
+    end_match = re.search(r"\n---\s*\n", content[3:])
+    if not end_match:
+        return {}
+
+    frontmatter_text = content[3:end_match.start() + 3]
+    result = {}
+
+    # Simple YAML parsing (key: value pairs)
+    for line in frontmatter_text.strip().split("\n"):
+        if ":" in line:
+            key, _, value = line.partition(":")
+            result[key.strip()] = value.strip()
+
+    return result
+
 def infer_project_from_content(content: str) -> str:
     """Infer project from decision journal content"""
     content_lower = content.lower()
     if "pull" in content_lower or "gusto" in content_lower or "database" in content_lower:
         return "pull"
     elif "dotfiles" in content_lower or "claude" in content_lower:
-        return ".dotfiles"
+        return "dotfiles"
     elif "review" in content_lower or "weekly" in content_lower:
         return "reviews"
     return "unknown"
@@ -261,6 +283,9 @@ if journal_dir.exists():
         try:
             content = jf.read_text(encoding="utf-8")
 
+            # Parse YAML frontmatter first (preferred source)
+            frontmatter = parse_yaml_frontmatter(content)
+
             # Extract decision summary (first paragraph after # Tradeoff: or ## Decision Summary)
             summary_match = re.search(r"## Decision Summary\s*\n\s*(.+?)(?:\n\n|\n##)", content, re.DOTALL)
             if not summary_match:
@@ -272,12 +297,16 @@ if journal_dir.exists():
             alternatives = extract_list_items(content, "Alternatives Considered")
             principles = extract_list_items(content, "Principles Applied")
 
-            # Extract source (auto-capture, subagent-capture, or manual)
-            source_match = re.search(r"\*\*Source:\*\*\s*(.+)", content)
-            source = source_match.group(1).strip() if source_match else "manual"
+            # Extract source: prefer frontmatter, then markdown pattern, then default
+            source = frontmatter.get("source", "")
+            if not source:
+                source_match = re.search(r"\*\*Source:\*\*\s*(.+)", content)
+                source = source_match.group(1).strip() if source_match else "manual"
 
-            # Infer project
-            project = infer_project_from_content(content)
+            # Extract project: prefer frontmatter, then fall back to heuristic inference
+            project = frontmatter.get("project", "")
+            if not project or project == "unknown":
+                project = infer_project_from_content(content)
 
             journal_decisions.append({
                 "file": jf.name,
@@ -360,11 +389,16 @@ files_modified = set()
 skills_used = Counter()
 cues_fired = Counter()
 cue_triggers = Counter()
+cues_applied = Counter()  # Track cue guidance followed
 session_durations = []  # List of (session_id, project, duration_minutes, category)
 duration_categories = Counter()
 skills_invoked = Counter()  # Track skill usage
 context_compacts = []  # Track compaction events
 test_runs_by_session = defaultdict(list)  # Track test runs by session for stability analysis
+# Issue #18: Friction root-cause chains
+friction_triggers = Counter()  # preceding_tool -> count
+friction_chains = []  # Events with chain_depth > 0
+friction_trigger_pairs = Counter()  # "preceding_tool -> failed_tool" -> count
 
 for e in events:
     et = e.get("event_type")
@@ -395,6 +429,30 @@ for e in events:
         subdomain = fd.get("subdomain")
         if subdomain:
             friction_subdomains[f"{d}:{subdomain}"] += 1
+
+        # Issue #18: Track friction triggers (preceding tool context)
+        preceding_tool = payload.get("preceding_tool")
+        preceding_result = payload.get("preceding_result")
+        chain_depth = payload.get("chain_depth", 0)
+        failed_tool = payload.get("tool")
+
+        if preceding_tool:
+            friction_triggers[preceding_tool] += 1
+            if failed_tool:
+                pair = f"{preceding_tool} -> {failed_tool}"
+                friction_trigger_pairs[pair] += 1
+
+        if chain_depth and chain_depth > 0:
+            friction_chains.append({
+                "session_id": session_id,
+                "project": project,
+                "preceding_tool": preceding_tool,
+                "preceding_result": preceding_result,
+                "failed_tool": failed_tool,
+                "domain": d,
+                "subdomain": subdomain,
+                "chain_depth": chain_depth
+            })
 
     if et == "decision_tradeoff":
         tradeoffs += 1
@@ -441,15 +499,27 @@ for e in events:
         cues_fired[cue_id] += 1
         cue_triggers[trigger_type] += 1
 
+    if et == "cue_applied":
+        cue_id = payload.get("cue_id", "unknown")
+        cues_applied[cue_id] += 1
+
     if et == "session_end":
         duration_mins = payload.get("duration_minutes", 0)
         duration_cat = payload.get("duration_category", "unknown")
+        focus_score = payload.get("focus_score")
+        archetype = payload.get("archetype")
+        tool_call_count = payload.get("tool_call_count", 0)
+        interruption_count = payload.get("interruption_count", 0)
         if duration_mins > 0:
             session_durations.append({
                 "session_id": session_id,
                 "project": project,
                 "duration_minutes": duration_mins,
-                "category": duration_cat
+                "category": duration_cat,
+                "focus_score": focus_score,
+                "archetype": archetype,
+                "tool_call_count": tool_call_count,
+                "interruption_count": interruption_count
             })
             duration_categories[duration_cat] += 1
 
@@ -512,6 +582,82 @@ stable_session_total = len(stable_session_runs)
 stable_session_stability = (stable_session_passed / stable_session_total) if stable_session_total else None
 
 session_pattern_counts = Counter(session_classifications.values())
+
+# ============================================================================
+# Flaky Test Detection (Issue #19)
+# ============================================================================
+# Read per-test results and calculate pass rates over the week.
+# Flag tests with 50-90% pass rate as "flaky suspects".
+
+per_test_results = defaultdict(list)  # test_key -> list of (timestamp, status)
+flaky_tests = []
+
+if per_test_log.exists():
+    with open(per_test_log, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except Exception:
+                continue
+
+            ts = entry.get("timestamp", "")
+            if not ts:
+                continue
+
+            try:
+                t = parse_ts(ts).astimezone(dt.timezone.utc)
+            except Exception:
+                continue
+
+            # Only include results from this week
+            if not (week_start_dt <= t < week_end_dt):
+                continue
+
+            name = entry.get("name", "")
+            status = entry.get("status", "")
+            file_path = entry.get("file", "")
+
+            if name and status:
+                # Use file:name as unique key
+                test_key = f"{file_path}:{name}" if file_path else name
+                per_test_results[test_key].append({
+                    "timestamp": ts,
+                    "status": status,
+                    "file": file_path
+                })
+
+    # Calculate pass rates and identify flaky tests
+    for test_key, runs in per_test_results.items():
+        total_runs = len(runs)
+        if total_runs < 2:  # Need at least 2 runs to detect flakiness
+            continue
+
+        passed_runs = sum(1 for r in runs if r["status"] == "passed")
+        pass_rate = passed_runs / total_runs
+
+        # Flag tests with 50-90% pass rate as flaky suspects
+        if 0.5 <= pass_rate <= 0.9:
+            # Extract file and name from test_key
+            if ":" in test_key:
+                file_path, test_name = test_key.rsplit(":", 1)
+            else:
+                file_path = ""
+                test_name = test_key
+
+            flaky_tests.append({
+                "name": test_name,
+                "pass_rate": round(pass_rate, 2),
+                "runs": total_runs,
+                "passed": passed_runs,
+                "failed": total_runs - passed_runs,
+                "file": file_path
+            })
+
+    # Sort by pass rate (most flaky first = closest to 50%)
+    flaky_tests.sort(key=lambda x: abs(x["pass_rate"] - 0.5))
 
 # Original (raw) metrics for comparison
 total_tests = test_results.get("passed", 0) + test_results.get("failed", 0)
@@ -588,6 +734,28 @@ summary = {
     "events_by_type": dict(by_type.most_common()),
     "top_friction_domains": [{"domain": d, "count": c} for d, c in friction_domains.most_common(10)],
     "top_friction_subdomains": [{"subdomain": d, "count": c} for d, c in friction_subdomains.most_common(10)],
+    # Issue #18: Friction root-cause chains - identify what actions precede failures
+    "friction_triggers": {
+        "total_with_preceding_context": sum(friction_triggers.values()),
+        "total_friction_chains": len(friction_chains),
+        "max_chain_depth": max((c["chain_depth"] for c in friction_chains), default=0),
+        "top_triggering_tools": [
+            {"tool": t, "friction_count": c}
+            for t, c in friction_triggers.most_common(10)
+        ],
+        "top_trigger_pairs": [
+            {"pattern": p, "count": c}
+            for p, c in friction_trigger_pairs.most_common(10)
+        ],
+        "chains_by_project": [
+            {
+                "project": proj,
+                "chain_count": len([c for c in friction_chains if c["project"] == proj]),
+                "avg_depth": round(sum(c["chain_depth"] for c in friction_chains if c["project"] == proj) / len([c for c in friction_chains if c["project"] == proj]), 2) if [c for c in friction_chains if c["project"] == proj] else 0
+            }
+            for proj in sorted(set(c["project"] for c in friction_chains))
+        ] if friction_chains else []
+    },
     "top_principles_invoked": [{"principle": p, "count": c} for p, c in principles.most_common(10)],
     "decisions": {
         "from_journal": [
@@ -610,9 +778,25 @@ summary = {
     "top_files_modified": sorted(files_modified)[:20],
     "cue_engagement": {
         "total_fires": sum(cues_fired.values()),
+        "total_applied": sum(cues_applied.values()),
+        "conversion_rate": round(sum(cues_applied.values()) / sum(cues_fired.values()), 4) if sum(cues_fired.values()) > 0 else None,
         "unique_cues_fired": len(cues_fired),
-        "by_cue": [{"cue": c, "count": n} for c, n in cues_fired.most_common(10)],
-        "by_trigger": [{"trigger": t, "count": n} for t, n in cue_triggers.most_common()]
+        "unique_cues_applied": len(cues_applied),
+        "by_cue": [
+            {
+                "cue": c,
+                "fired": n,
+                "applied": cues_applied.get(c, 0),
+                "conversion_rate": round(cues_applied.get(c, 0) / n, 4) if n > 0 else None
+            }
+            for c, n in cues_fired.most_common(10)
+        ],
+        "by_trigger": [{"trigger": t, "count": n} for t, n in cue_triggers.most_common()],
+        "low_conversion_cues": [
+            {"cue": c, "fired": n, "applied": cues_applied.get(c, 0), "conversion_rate": round(cues_applied.get(c, 0) / n, 4) if n > 0 else 0}
+            for c, n in cues_fired.most_common()
+            if n >= 3 and (cues_applied.get(c, 0) / n if n > 0 else 0) < 0.3
+        ][:5]
     },
     "session_duration": {
         "sessions_tracked": len(session_durations),
@@ -640,6 +824,40 @@ summary = {
             {"project": proj, "compactions": len([c for c in context_compacts if c["project"] == proj])}
             for proj in sorted(set(c["project"] for c in context_compacts))
         ] if context_compacts else []
+    },
+    "session_quality": (lambda sessions_with_focus: {
+        "sessions_tracked": len(sessions_with_focus),
+        "avg_focus_score": round(sum(s["focus_score"] for s in sessions_with_focus) / len(sessions_with_focus), 4) if sessions_with_focus else None,
+        "deep_work_sessions": len([s for s in session_durations if s.get("archetype") == "deep_work"]),
+        "fragmented_sessions": len([s for s in session_durations if s.get("archetype") == "fragmented"]),
+        "exploratory_sessions": len([s for s in session_durations if s.get("archetype") == "exploratory"]),
+        "mixed_sessions": len([s for s in session_durations if s.get("archetype") == "mixed"]),
+        "deep_work_hours": round(sum(s["duration_minutes"] for s in session_durations if s.get("archetype") == "deep_work") / 60, 2),
+        "fragmented_hours": round(sum(s["duration_minutes"] for s in session_durations if s.get("archetype") == "fragmented") / 60, 2),
+        "total_interruptions": sum(s.get("interruption_count", 0) for s in session_durations),
+        "total_tool_calls": sum(s.get("tool_call_count", 0) for s in session_durations),
+        "by_archetype": [
+            {
+                "archetype": arch,
+                "sessions": len([s for s in session_durations if s.get("archetype") == arch]),
+                "avg_focus_score": round(sum(s["focus_score"] for s in session_durations if s.get("archetype") == arch and s.get("focus_score") is not None) / len([s for s in session_durations if s.get("archetype") == arch and s.get("focus_score") is not None]), 4) if [s for s in session_durations if s.get("archetype") == arch and s.get("focus_score") is not None] else None,
+                "total_hours": round(sum(s["duration_minutes"] for s in session_durations if s.get("archetype") == arch) / 60, 2)
+            }
+            for arch in ["deep_work", "mixed", "exploratory", "fragmented"]
+            if any(s.get("archetype") == arch for s in session_durations)
+        ]
+    })([s for s in session_durations if s.get("focus_score") is not None]),
+    # Issue #19: Flaky test detection
+    "flaky_tests": {
+        "suspects": flaky_tests[:20],  # Top 20 flaky tests
+        "total_suspects": len(flaky_tests),
+        "tests_tracked": len(per_test_results),
+        "total_test_runs": sum(len(runs) for runs in per_test_results.values()),
+        "detection_criteria": {
+            "min_runs": 2,
+            "pass_rate_range": [0.5, 0.9],
+            "description": "Tests with 50-90% pass rate over rolling 7 days"
+        }
     }
 }
 

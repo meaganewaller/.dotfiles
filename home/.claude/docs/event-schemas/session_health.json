@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/session_health",
+  "title": "Session Health Event",
+  "description": "Periodic health snapshot emitted at key session milestones",
+  "type": "object",
+  "required": ["duration_minutes", "archetype", "trigger"],
+  "properties": {
+    "duration_minutes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Session duration at time of snapshot"
+    },
+    "archetype": {
+      "type": "string",
+      "enum": ["quick", "short", "medium", "long", "marathon"],
+      "description": "Current session archetype based on duration"
+    },
+    "trigger": {
+      "type": "string",
+      "description": "What triggered the health snapshot (e.g., pre_compact, duration_milestone)"
+    }
+  },
+  "additionalProperties": false
+}

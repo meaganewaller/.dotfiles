@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/tool_read",
+  "title": "Tool Read Event",
+  "description": "Emitted when a file is read via the Read tool",
+  "type": "object",
+  "required": ["file_path"],
+  "properties": {
+    "file_path": {
+      "type": "string",
+      "description": "Path to the file that was read"
+    },
+    "lines": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of lines read from the file"
+    },
+    "offset": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Line offset if partial read"
+    },
+    "limit": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "Line limit if partial read"
+    },
+    "file_type": {
+      "type": ["string", "null"],
+      "description": "Detected file type (source-code, log-file, etc.)"
+    },
+    "chunked": {
+      "type": "boolean",
+      "description": "Whether the read was chunked due to file size"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/worktree_created",
+  "title": "Worktree Created Event",
+  "description": "Emitted when a git worktree is created for isolated experimentation",
+  "type": "object",
+  "required": ["experiment"],
+  "properties": {
+    "experiment": {
+      "type": "string",
+      "description": "Name of the experiment/worktree"
+    },
+    "hypothesis": {
+      "type": "string",
+      "description": "Hypothesis or goal for the experiment"
+    }
+  },
+  "additionalProperties": false
+}

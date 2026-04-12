@@ -257,7 +257,10 @@ hook_bus_init() {
   input_hash=$(_short_hash "${tool_input}")
 
   _HOOK_BUS_DIR="/tmp/.claude-hook-bus-${session_id}-${tool_name}-${input_hash}"
-  ensure_dir_exists "$_HOOK_BUS_DIR" || return 1
+  ensure_dir_exists "$_HOOK_BUS_DIR" || {
+    _HOOK_BUS_DIR=""  # Signal bus unavailable so hook_bus_put noops
+    return 1
+  }
 }
 
 # Write a named finding to the bus
@@ -418,6 +421,145 @@ safe_emit() {
 }
 
 # ============================================================================
+# FRICTION EVENT EMISSION (Issue #18)
+# ============================================================================
+# Emit friction events with preceding tool context for root-cause analysis.
+# Reads from session tool history to correlate actions.
+
+# Session history directory (matches tool-history-tracker.sh)
+CLAUDE_SESSION_HISTORY_DIR="$CLAUDE_HOME/.session-history"
+
+# Get preceding tool context from session history
+# Usage: PRECEDING=$(get_preceding_tool_context "$SESSION_ID")
+# Returns: JSON object with preceding_tool, preceding_result, preceding_file
+get_preceding_tool_context() {
+  local session_id="$1"
+  local history_file="$CLAUDE_SESSION_HISTORY_DIR/$session_id.jsonl"
+
+  # Default: no preceding context
+  local default='{"preceding_tool":null,"preceding_result":null,"preceding_file":null,"chain_depth":0}'
+
+  if [[ ! -f "$history_file" ]]; then
+    echo "$default"
+    return 0
+  fi
+
+  # Get the last entry (most recent tool call before this one)
+  local last_entry
+  last_entry=$(tail -1 "$history_file" 2>/dev/null || echo "")
+
+  if [[ -z "$last_entry" ]]; then
+    echo "$default"
+    return 0
+  fi
+
+  # Extract fields
+  local tool result file
+  tool=$(echo "$last_entry" | jq -r '.tool // null')
+  result=$(echo "$last_entry" | jq -r '.result // null')
+  file=$(echo "$last_entry" | jq -r '.file // null')
+
+  # Calculate chain depth (consecutive failures)
+  local chain_depth=0
+  if [[ "$result" == "failure" ]]; then
+    # Count consecutive failures from the end
+    chain_depth=$(tail -5 "$history_file" 2>/dev/null | jq -s '
+      [.[] | select(.result == "failure")] | length
+    ' 2>/dev/null || echo "1")
+  fi
+
+  jq -cn \
+    --arg tool "$tool" \
+    --arg result "$result" \
+    --arg file "$file" \
+    --argjson depth "$chain_depth" \
+    '{
+      preceding_tool: (if $tool == "null" then null else $tool end),
+      preceding_result: (if $result == "null" then null else $result end),
+      preceding_file: (if $file == "null" then null else $file end),
+      chain_depth: $depth
+    }'
+}
+
+# Emit a friction event with preceding context
+# Usage: emit_friction "subdomain" "tool_name" "file_path" "error_excerpt" "hint" [session_id]
+# Or pipe input: echo "$INPUT" | emit_friction ...
+emit_friction() {
+  local subdomain="$1"
+  local tool_name="$2"
+  local file_path="${3:-}"
+  local error_excerpt="${4:-}"
+  local hint="${5:-}"
+  local session_id="${6:-}"
+
+  # Try to get session_id from stdin if not provided
+  if [[ -z "$session_id" ]]; then
+    # Check if we have stdin available (not a tty)
+    if [[ ! -t 0 ]]; then
+      local stdin_content
+      stdin_content=$(cat)
+      session_id=$(echo "$stdin_content" | jq -r '.session_id // ""' 2>/dev/null || echo "")
+    fi
+  fi
+
+  # Fallback session ID
+  [[ -z "$session_id" || "$session_id" == "null" ]] && session_id="unknown"
+
+  # Get preceding context
+  local preceding_context
+  preceding_context=$(get_preceding_tool_context "$session_id")
+
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  # Build friction event payload
+  local payload
+  payload=$(jq -cn \
+    --arg subdomain "$subdomain" \
+    --arg tool "$tool_name" \
+    --arg file "$file_path" \
+    --arg error "$error_excerpt" \
+    --arg hint "$hint" \
+    --argjson preceding "$preceding_context" \
+    '{
+      subdomain: $subdomain,
+      tool: $tool,
+      file_path: (if $file == "" then null else $file end),
+      error_excerpt: (if $error == "" then null else $error end),
+      hint: (if $hint == "" then null else $hint end),
+      preceding_tool: $preceding.preceding_tool,
+      preceding_result: $preceding.preceding_result,
+      preceding_file: $preceding.preceding_file,
+      chain_depth: $preceding.chain_depth
+    }')
+
+  # Write to friction log
+  ensure_file_exists "$CLAUDE_FRICTION_LOG" || return 1
+
+  jq -cn \
+    --arg ts "$timestamp" \
+    --arg sid "$session_id" \
+    --argjson payload "$payload" \
+    '{
+      timestamp: $ts,
+      session_id: $sid,
+      event: "friction_event",
+      subdomain: $payload.subdomain,
+      tool_name: $payload.tool,
+      file_path: $payload.file_path,
+      error_excerpt: $payload.error_excerpt,
+      hint: $payload.hint,
+      preceding_tool: $payload.preceding_tool,
+      preceding_result: $payload.preceding_result,
+      preceding_file: $payload.preceding_file,
+      chain_depth: $payload.chain_depth
+    }' >> "$CLAUDE_FRICTION_LOG"
+
+  # Also emit as dev-os event for weekly review aggregation
+  echo "{\"session_id\":\"$session_id\"}" | safe_emit "friction_event" "$payload" 2>/dev/null || true
+}
+
+# ============================================================================
 # PROJECT PHASE MODES
 # ============================================================================
 # Modes control hook/cue behavior intensity across the project lifecycle.
@@ -450,8 +592,8 @@ get_project_mode() {
   if [[ -n "$mode_file" ]]; then
     local mode
     mode=$(head -1 "$mode_file" 2>/dev/null | tr -d '[:space:]')
-    # Validate mode is in VALID_MODES
-    if [[ " $VALID_MODES " == *" $mode "* ]]; then
+    # Validate mode is non-empty and in VALID_MODES
+    if [[ -n "$mode" && " $VALID_MODES " == *" $mode "* ]]; then
       echo "$mode"
       return 0
     fi
@@ -485,7 +627,7 @@ set_project_mode() {
   local new_mode="$1"
 
   # Validate
-  if [[ " $VALID_MODES " != *" $new_mode "* ]]; then
+  if [[ -z "$new_mode" || " $VALID_MODES " != *" $new_mode "* ]]; then
     echo "Invalid mode: $new_mode. Valid: $VALID_MODES" >&2
     return 1
   fi
@@ -963,4 +1105,52 @@ get_chunk_params() {
   fi
 
   echo "total_lines=$total_lines num_chunks=$num_chunks chunk_size=$chunk_size"
+}
+
+# ============================================================================
+# PROJECT DETECTION
+# ============================================================================
+# Detect the current project name from git or working directory.
+# Used for decision journal attribution.
+
+# Detect project from git remote or working directory
+# Usage: PROJECT=$(detect_project)
+# Returns: project name (e.g., "dotfiles", "pull", "dev-os-observability")
+detect_project() {
+  local project="unknown"
+
+  # Try git remote first (most reliable)
+  if git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
+    local remote_url
+    remote_url=$(git remote get-url origin 2>/dev/null || echo "")
+
+    if [[ -n "$remote_url" ]]; then
+      # Extract repo name from various URL formats:
+      # git@github.com:user/repo.git -> repo
+      # https://github.com/user/repo.git -> repo
+      # https://github.com/user/repo -> repo
+      project=$(basename "$remote_url" .git)
+    fi
+
+    # Fallback to git root directory name
+    if [[ "$project" == "unknown" || -z "$project" ]]; then
+      local git_root
+      git_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+      if [[ -n "$git_root" ]]; then
+        project=$(basename "$git_root")
+      fi
+    fi
+  fi
+
+  # Final fallback: current directory name
+  if [[ "$project" == "unknown" || -z "$project" ]]; then
+    project=$(basename "$PWD")
+  fi
+
+  # Normalize common names
+  case "$project" in
+    .dotfiles|dotfiles) project="dotfiles" ;;
+  esac
+
+  echo "$project"
 }

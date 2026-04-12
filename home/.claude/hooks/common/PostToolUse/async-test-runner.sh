@@ -193,6 +193,46 @@ if echo "$TEST_OUTPUT" | grep -qE "^(ok|not ok) [0-9]+" || echo "$TEST_OUTPUT" |
   fi
 fi
 
+# ============================================================================
+# INDIVIDUAL TEST EXTRACTION (Issue #19: Flakiness Detection)
+# ============================================================================
+# Extract individual test names and results for per-test tracking.
+# Currently supports BATS format; other frameworks can be added as needed.
+
+INDIVIDUAL_TESTS="[]"
+PER_TEST_LOG="$HOME/.claude/per-test-results.jsonl"
+
+if [[ "$FRAMEWORK" == "bats" ]]; then
+  # Parse BATS TAP output: "ok 1 test_name" or "not ok 1 test_name"
+  # Extract test file from the output if present
+  TEST_FILE=$(echo "$TEST_OUTPUT" | grep -oE "^# [^ ]+\.bats" | head -1 | sed 's/^# //' || echo "unknown")
+  [[ -z "$TEST_FILE" || "$TEST_FILE" == "unknown" ]] && TEST_FILE="$FILE"
+
+  INDIVIDUAL_TESTS=$(echo "$TEST_OUTPUT" | grep -E "^(ok|not ok) [0-9]+" | while read -r line; do
+    # Parse: "ok 1 test_name" or "not ok 1 test_name # skip reason"
+    if echo "$line" | grep -q "^ok "; then
+      if echo "$line" | grep -q "# skip"; then
+        STATUS="skipped"
+      else
+        STATUS="passed"
+      fi
+    else
+      STATUS="failed"
+    fi
+    # Extract test name (everything after "ok N " or "not ok N ")
+    TEST_NAME=$(echo "$line" | sed -E 's/^(ok|not ok) [0-9]+ //' | sed 's/ # skip.*//' | sed 's/ #.*//')
+    # Output as JSON
+    jq -n --arg name "$TEST_NAME" --arg status "$STATUS" --arg file "$TEST_FILE" \
+      '{name: $name, status: $status, file: $file}'
+  done | jq -s '.')
+
+  # Write individual test results to per-test log
+  if [[ "$INDIVIDUAL_TESTS" != "[]" ]]; then
+    TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    echo "$INDIVIDUAL_TESTS" | jq -c '.[] | . + {timestamp: "'"$TIMESTAMP"'", project: "'"$PROJECT_ROOT"'"}' >> "$PER_TEST_LOG"
+  fi
+fi
+
 # Extract error message for failed tests (first failure line, max 200 chars)
 ERROR_EXCERPT=""
 if [[ "$RESULT" == "failed" ]]; then
@@ -216,6 +256,9 @@ fi
 # }
 # ============================================================================
 
+# Count individual tests tracked
+INDIVIDUAL_COUNT=$(echo "$INDIVIDUAL_TESTS" | jq 'length')
+
 PAYLOAD=$(jq -n \
   --arg result "$RESULT" \
   --arg framework "$FRAMEWORK" \
@@ -226,6 +269,7 @@ PAYLOAD=$(jq -n \
   --argjson passed "$PASSED" \
   --argjson failed "$FAILED" \
   --argjson skipped "$SKIPPED" \
+  --argjson individual_tests_tracked "$INDIVIDUAL_COUNT" \
   '{
     result: $result,
     framework: $framework,
@@ -236,6 +280,7 @@ PAYLOAD=$(jq -n \
     failed: $failed,
     skipped: $skipped,
     total: ($passed + $failed + $skipped),
+    individual_tests_tracked: $individual_tests_tracked,
     error_excerpt: (if $error_excerpt == "" then null else $error_excerpt end)
   }')
 
