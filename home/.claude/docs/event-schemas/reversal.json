@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/reversal",
+  "title": "Reversal Event",
+  "description": "Emitted when a code change is detected as a reversal (more removed than added)",
+  "type": "object",
+  "required": ["file_path", "lines_added", "lines_removed"],
+  "properties": {
+    "file_path": {
+      "type": "string",
+      "description": "Path to the file where reversal occurred"
+    },
+    "file_extension": {
+      "type": ["string", "null"],
+      "description": "File extension for pattern analysis"
+    },
+    "git_branch": {
+      "type": ["string", "null"],
+      "description": "Git branch where reversal occurred"
+    },
+    "lines_added": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of lines added in the change"
+    },
+    "lines_removed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of lines removed in the change"
+    },
+    "removal_ratio": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Ratio of lines removed to lines added"
+    },
+    "likely_cause": {
+      "type": "string",
+      "description": "Heuristic guess at reversal cause"
+    },
+    "reversal_reason": {
+      "type": ["string", "null"],
+      "description": "Detected reason for the reversal if available"
+    },
+    "preceding_action": {
+      "type": ["string", "null"],
+      "description": "The action that preceded this reversal"
+    },
+    "reversal_speed": {
+      "type": "string",
+      "enum": ["immediate", "quick", "delayed"],
+      "description": "How quickly after the original change the reversal occurred"
+    },
+    "seconds_since_change": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Seconds between original change and reversal"
+    },
+    "removed_preview": {
+      "type": ["string", "null"],
+      "description": "Preview of removed content for context"
+    }
+  },
+  "additionalProperties": false
+}

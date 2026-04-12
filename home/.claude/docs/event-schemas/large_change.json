@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/large_change",
+  "title": "Large Change Event",
+  "description": "Emitted when a file change exceeds the large diff threshold",
+  "type": "object",
+  "required": ["file_path", "lines_changed", "risk"],
+  "properties": {
+    "file_path": {
+      "type": "string",
+      "description": "Path to the file with large changes"
+    },
+    "lines_changed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of lines changed (added + removed)"
+    },
+    "risk": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Risk level, typically 'high' for large changes"
+    }
+  },
+  "additionalProperties": false
+}

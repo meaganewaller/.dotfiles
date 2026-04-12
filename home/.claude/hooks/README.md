@@ -52,7 +52,6 @@ hooks/
     │   ├── large-diff-escalator.sh   # Write|Edit
     │   ├── dependency-change-detector.sh  # Write|Edit
     │   ├── reversal-detector.sh      # Write|Edit
-    │   ├── tradeoff-capture.sh       # Write|Edit
     │   ├── async-test-runner.sh      # Write|Edit (async)
     │   ├── ai-guardrails.sh          # Write|Edit - AI pitfall detection
     │   ├── skill-usage-tracker.sh    # Skill
@@ -65,13 +64,9 @@ hooks/
     ├── SubagentStart/
     │   └── cue-inject-subagent.sh
     │
-    ├── SubagentStop/
-    │   └── tradeoff-subagent-capture.sh  # Explore|Plan
-    │
     ├── Stop/
     │   ├── response-topics-writer.sh
     │   ├── hard-stop-test-blocker.sh
-    │   ├── tradeoff-auto-capture.sh
     │   ├── leverage-evaluator.sh
     │   └── cost-tracker.sh           # Track token costs
     │
@@ -168,7 +163,6 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - `large-diff-escalator.sh` - Warn on >250 line changes
 - `dependency-change-detector.sh` - Track dependency file changes
 - `reversal-detector.sh` - Detect exploration reversals
-- `tradeoff-capture.sh` - Capture architectural tradeoffs
 - `async-test-runner.sh` - Run tests asynchronously
 - `ai-guardrails.sh` - Detect AI dev pitfalls (missing tests, placeholders, hallucinated deps)
 
@@ -181,7 +175,6 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 **Stop**
 - `response-topics-writer.sh` - Write topics for next prompt
 - `hard-stop-test-blocker.sh` - Block if last test failed
-- `tradeoff-auto-capture.sh` - Auto-capture session tradeoffs
 - `leverage-evaluator.sh` - Check session produced value
 - `cost-tracker.sh` - Track token costs to `~/.claude/metrics/costs.jsonl`
 
@@ -214,7 +207,7 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - **`dev-os-emit.sh`**
   Used by other hooks to append a single JSON line to `.claude/dev-os-events.jsonl`.
   Usage: `echo '<hook stdin>' | ./dev-os-emit.sh <event_type> '<payload json>'`.
-  Event types used: `test_run`, `task_completed`, `worktree_created`, `worktree_removed`, `large_change`, `dependency_change`, `reversal`, `tool_write`, `tool_failure`, `prompt_opinion`, `cue_fired`. Subagent **SubagentStop** can also write `decision_tradeoff` events to the same file (via the agent, not this script). Output is written to **`$HOME/.claude/dev-os-events.jsonl`**.
+  Event types used: `test_run`, `task_completed`, `worktree_created`, `worktree_removed`, `large_change`, `dependency_change`, `reversal`, `tool_write`, `tool_failure`, `prompt_opinion`, `cue_fired`.
 
 - **`hook-health.sh`**
   CLI tool to check hook execution health. Reads from `$HOME/.claude/hook-health.jsonl`.
@@ -478,9 +471,6 @@ Cues without a `mode:` field fire in all modes (backwards compatible).
 
 - **hard-stop-test-blocker.sh**
   Runs first in the Stop sequence. Reads **`$HOME/.claude/dev-os-events.jsonl`** and finds the most recent `test_run` event. If that event’s `payload.result` is `"failed"`, prints `{"ok":false,"reason":"Cannot stop: last test_run event failed. Fix tests before stopping."}` so the UI blocks stop; otherwise prints `{"ok":true}`. If the file doesn’t exist, allows stop. Always exits 0.
-
-- **tradeoff-auto-capture.sh**
-  Runs in the Stop sequence. Auto-captures tradeoffs from the session if significant decisions were made.
 
 - **leverage-evaluator.sh**
   Runs in the Stop sequence. Evaluates whether the session produced meaningful leverage by checking for indicators like files written, decisions documented, or tests run. Returns `{"ok":true}` to allow stopping if value was produced.

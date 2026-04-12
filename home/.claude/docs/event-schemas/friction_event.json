@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/friction_event",
+  "title": "Friction Event",
+  "description": "Emitted for friction incidents with root-cause chain context (Issue #18)",
+  "type": "object",
+  "required": ["subdomain", "tool"],
+  "properties": {
+    "subdomain": {
+      "type": "string",
+      "description": "Specific friction subcategory (e.g., file-not-found, resource-limit, command-failed)"
+    },
+    "tool": {
+      "type": "string",
+      "description": "Name of the tool that experienced friction"
+    },
+    "file_path": {
+      "type": ["string", "null"],
+      "description": "File path involved in the friction, if applicable"
+    },
+    "error_excerpt": {
+      "type": ["string", "null"],
+      "description": "Truncated error message"
+    },
+    "hint": {
+      "type": ["string", "null"],
+      "description": "Actionable suggestion for resolving the friction"
+    },
+    "preceding_tool": {
+      "type": ["string", "null"],
+      "description": "Tool that executed immediately before this friction event"
+    },
+    "preceding_result": {
+      "type": ["string", "null"],
+      "enum": ["success", "failure", null],
+      "description": "Result of the preceding tool execution"
+    },
+    "preceding_file": {
+      "type": ["string", "null"],
+      "description": "File path the preceding tool operated on"
+    },
+    "chain_depth": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Number of consecutive failures in this friction chain (0 = isolated failure, >0 = cascading failures)"
+    }
+  },
+  "additionalProperties": false
+}

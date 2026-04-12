@@ -6,6 +6,7 @@ set -euo pipefail
 # Source shared validation utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=../validate-path.sh
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/validate-path.sh"
 
 # Register for health monitoring

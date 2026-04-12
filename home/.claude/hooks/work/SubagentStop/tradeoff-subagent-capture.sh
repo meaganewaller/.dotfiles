@@ -24,11 +24,13 @@ if [[ "$AGENT_TYPE" != "Explore" && "$AGENT_TYPE" != "Plan" ]]; then
   exit 0
 fi
 
-# Get git branch if available
+# Get git branch and project
 BRANCH="unknown"
+PROJECT="unknown"
 if git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
   BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
 fi
+PROJECT=$(detect_project)
 
 DATE_PREFIX=$(date +"%Y-%m-%d-%H%M")
 
@@ -47,11 +49,14 @@ if [[ "$HAS_REASONING" == "true" ]]; then
   CONTEXT_SNIPPET=$(echo "$LAST_MESSAGE" | grep -iE ".{0,200}($REASONING_KEYWORDS).{0,200}" | head -10 | head -c 2000 || echo "")
 
   cat > "$JOURNAL_FILE" << EOF
-# Tradeoff: $(date +"%Y-%m-%d")
+---
+project: $PROJECT
+branch: $BRANCH
+source: subagent-capture
+agent_type: $AGENT_TYPE
+---
 
-**Branch:** $BRANCH
-**Source:** subagent-capture
-**Agent Type:** $AGENT_TYPE
+# Tradeoff: $(date +"%Y-%m-%d")
 
 ## Context
 
@@ -72,9 +77,11 @@ EOF
   # Emit event
   PAYLOAD=$(jq -n \
     --arg branch "$BRANCH" \
+    --arg project "$PROJECT" \
     --arg agent_type "$AGENT_TYPE" \
     '{
       branch: $branch,
+      project: $project,
       agent_type: $agent_type,
       source: "subagent-capture-deterministic",
       has_reasoning_signal: true

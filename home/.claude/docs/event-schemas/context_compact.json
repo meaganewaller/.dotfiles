@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/context_compact",
+  "title": "Context Compact Event",
+  "description": "Emitted when context window compaction occurs due to size limits",
+  "type": "object",
+  "required": ["compaction_number", "reason"],
+  "properties": {
+    "transcript_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Size of transcript being compacted in bytes"
+    },
+    "message_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Approximate number of messages in the transcript"
+    },
+    "compaction_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Sequential compaction count for this session"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for compaction (typically 'context_window_limit')"
+    }
+  },
+  "additionalProperties": false
+}

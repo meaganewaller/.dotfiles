@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/skill_invoked",
+  "title": "Skill Invoked Event",
+  "description": "Emitted when a skill is executed via the Skill tool",
+  "type": "object",
+  "required": ["skill_name"],
+  "properties": {
+    "skill_name": {
+      "type": "string",
+      "description": "Name of the skill that was invoked"
+    },
+    "args": {
+      "type": ["string", "null"],
+      "description": "Arguments passed to the skill"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["user", "agent", "hook"],
+      "description": "What triggered the skill invocation"
+    }
+  },
+  "additionalProperties": false
+}

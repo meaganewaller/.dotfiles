@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://devos.local/schemas/decision_tradeoff",
+  "title": "Decision Tradeoff Event",
+  "description": "Emitted when an architectural decision or tradeoff is captured",
+  "type": "object",
+  "required": ["has_tradeoff_signal"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "Project name where the decision was made"
+    },
+    "branch": {
+      "type": ["string", "null"],
+      "description": "Git branch where the decision was made"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Files involved in the change"
+    },
+    "lines_changed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total lines changed in the decision"
+    },
+    "change_type": {
+      "type": ["string", "null"],
+      "description": "Classification of the change type"
+    },
+    "has_tradeoff_signal": {
+      "type": "boolean",
+      "description": "Whether tradeoff discussion signals were detected"
+    },
+    "has_reasoning_signal": {
+      "type": "boolean",
+      "description": "Whether reasoning/justification signals were detected"
+    },
+    "context_summary": {
+      "type": ["string", "null"],
+      "description": "Summary of the decision context"
+    }
+  },
+  "additionalProperties": false
+}
