@@ -30,3 +30,5 @@ home/.claude/docs/blog-drafts
 home/.claude/presentations
 
 .vim/
+
+!.vscode
