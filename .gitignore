@@ -32,3 +32,5 @@ home/.claude/presentations
 .vim/
 
 !.vscode
+
+node_modules
