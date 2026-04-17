@@ -1,143 +1,63 @@
--- Disable vi compatibility
-vim.opt.compatible = false
+-- lua/config/options.lua -- Neovim options
 
--- Basic settings
-vim.opt.wrap = false -- no line wrapping
-vim.opt.encoding = "utf-8"
-vim.opt.hlsearch = true
-vim.opt.timeoutlen = 300
-vim.opt.showmode = false
-vim.opt.termguicolors = true
-vim.opt.synmaxcol = 512
-vim.opt.timeout = false
-vim.opt.ttimeout = true
-vim.opt.cmdheight = 1 -- cmd display (set to zero to autohide)
-vim.opt.shortmess:append("sI") -- disable startup message
-vim.opt.showmatch = true -- show matching brackets/parens
-
-vim.opt.clipboard = "unnamedplus"
-
-vim.opt.backspace = "indent,eol,start"
-vim.opt.backup = false
-vim.opt.writebackup = false
-vim.opt.swapfile = false
-vim.opt.undofile = true
-vim.opt.undodir = vim.fn.stdpath("data") .. "/undo"
-vim.opt.history = 100
-vim.opt.showcmd = true
-vim.opt.incsearch = true
-vim.opt.inccommand = "split"
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
-vim.opt.infercase = true
-vim.opt.laststatus = 2
-vim.opt.autowrite = true
-
-vim.opt.fillchars = { vert = "▒" }
-
--- Tabs (2 spaces)
-vim.opt.tabstop = 2
-vim.opt.softtabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.shiftround = true
-vim.opt.expandtab = true
-
--- Show whitespace
-vim.opt.list = true
-vim.opt.listchars = { tab = "  ", trail = "·", extends = "»", precedes = "«", nbsp = "░" }
-
--- Text formatting
-vim.opt.joinspaces = false
-vim.opt.formatoptions:remove("t")
+local o = vim.opt
 
 -- Line numbers
-vim.opt.number = true
-vim.opt.relativenumber = true
-vim.opt.numberwidth = 3
+o.number = true
+o.relativenumber = true
 
--- Splits
-vim.opt.splitbelow = true
-vim.opt.splitright = true
+-- Indent: 2-space soft tabs; smart-indent on
+o.tabstop = 2
+o.softtabstop = 2
+o.shiftwidth = 2
+o.expandtab = true
+o.smartindent = true
 
--- Diff
-vim.opt.diffopt:append("vertical")
+-- No wrap
+o.wrap = false
 
--- Cursor line
-vim.opt.cursorline = true
+-- No swap / backup; undo persisted in XDG state dir
+o.swapfile = false
+o.backup = false
+o.undofile = true
+o.undodir = vim.fn.stdpath('state') .. '/undo'
 
--- Timing
-vim.opt.updatetime = 250
+-- Search
+o.hlsearch = true
+o.incsearch = true
 
-vim.opt.confirm = true
-vim.opt.breakindent = true -- set indents when wrapped
-vim.opt.exrc = true
+-- Cursor
+o.guicursor = 'n-v-c-sm:block,i-ci-ve:ver25,r-cr-o:hor20'
 
-vim.opt.scrolloff = 13
+-- Scroll contexts
+o.scrolloff = 8
+o.signcolumn = 'yes'
 
-vim.opt.mouse = "a"
+-- Clipboard
+o.clipboard = 'unnamedplus'
 
--- Folding
-vim.opt.foldmethod = "expr"
-vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
-vim.opt.foldlevel = 99
 
--- Indentation
-vim.opt.autoindent = true
-vim.opt.smartindent = true
-vim.opt.cindent = true
+-- Filenames containing @- are valid
+o.isfname:append('@-@')
 
--- Completion
-vim.opt.pumheight = 24
-vim.opt.completeopt = { "fuzzy", "menuone", "noselect", "popup" }
+-- Faster updatetime (CursorHold, gitsigns, etc.)
+o.updatetime = 50
 
--- Cursor shapes
-vim.opt.guicursor = "n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50"
+-- Splits open to the right / below
+o.splitright = true
+o.splitbelow = true
 
--- Enter accepts completion
-vim.keymap.set("i", "<CR>", function()
-  if vim.fn.pumvisible() == 1 then
-    return "<C-y>"
-  else
-    return "<CR>"
-  end
-end, { expr = true })
+-- True color — required by theme
+o.termguicolors = true
 
-vim.o.winborder = "rounded"
-vim.o.pumborder = vim.o.winborder
+-- Leader
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
 
-vim.filetype.add({
-  pattern = {
-    [".*/git/config"] = "gitconfig",
-    [".gitmodules"] = "gitconfig",
-    [".*/.?ssh/config.*"] = "sshconfig",
-  },
+-- Diagnostic display
+vim.diagnostic.config({
+  virtual_text = true,
+  signs = true,
+  update_in_insert = false,
+  severity_sort = true,
 })
-
-vim.filetype.add({
-  extension = { mdx = "markdown" },
-})
-
-vim.o.statuscolumn = "%l%s"
-vim.o.signcolumn = "auto:2" -- gutter sizing
-
-vim.opt.modelines = 0
-vim.opt.hidden = true
-
-
-vim.opt.path:append("**") -- fuzzy find
-vim.opt.wildmode = "list:longest,list:full"
-vim.opt.wildmenu = true
-vim.opt.wildignorecase = true
--- ignore files vim doesnt use
-vim.opt.wildignore:append(".git,.hg,.svn")
-vim.opt.wildignore:append(".aux,*.out,*.toc")
-vim.opt.wildignore:append(".o,*.obj,*.exe,*.dll,*.manifest,*.rbc,*.class")
-vim.opt.wildignore:append(".ai,*.bmp,*.gif,*.ico,*.jpg,*.jpeg,*.png,*.psd,*.webp")
-vim.opt.wildignore:append(".avi,*.divx,*.mp4,*.webm,*.mov,*.m2ts,*.mkv,*.vob,*.mpg,*.mpeg")
-vim.opt.wildignore:append(".mp3,*.oga,*.ogg,*.wav,*.flac")
-vim.opt.wildignore:append(".eot,*.otf,*.ttf,*.woff")
-vim.opt.wildignore:append(".doc,*.pdf,*.cbr,*.cbz")
-vim.opt.wildignore:append(".zip,*.tar.gz,*.tar.bz2,*.rar,*.tar.xz,*.kgb")
-vim.opt.wildignore:append(".swp,.lock,.DS_Store,._*")
-vim.opt.wildignore:append(".,..")
-
