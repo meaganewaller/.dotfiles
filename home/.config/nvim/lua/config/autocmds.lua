@@ -1,9 +1,14 @@
+-- lua/config/autocmds.lua -- Autocmds for Neovim
+
+
 local autocmd = vim.api.nvim_create_autocmd
 local augroup = vim.api.nvim_create_augroup
 
+local aug = augroup('config.autocmds', { clear = true })
+
 -- Restore cursor position
 autocmd("BufReadPost", {
-  group = augroup("mew_restore_cursor", { clear = true }),
+  group = aug,
   callback = function()
     if vim.bo.filetype == "gitcommit" then
       return
@@ -30,7 +35,7 @@ local function close_special_buffer()
 end
 
 autocmd("FileType", {
-  group = augroup("mew_close_with_q", { clear = true }),
+  group = aug,
   pattern = {
     "qf",
     "git",
@@ -54,8 +59,8 @@ autocmd("FileType", {
 })
 
 -- Reload file if changed outside vim
-autocmd("FocusGained", {
-  group = augroup("mew_checktime", { clear = true }),
+autocmd({ "FocusGained", "BufEnter" }, {
+  group = aug,
   callback = function()
     if vim.bo.buftype ~= "nofile" then
       vim.cmd("checktime")
@@ -65,7 +70,7 @@ autocmd("FocusGained", {
 
 -- Resize splits automatically
 autocmd("VimResized", {
-  group = augroup("mew_resize_splits", { clear = true }),
+  group = aug,
   callback = function()
     vim.cmd("wincmd =")
   end,
@@ -73,7 +78,7 @@ autocmd("VimResized", {
 
 -- Auto-create directory on save
 autocmd("BufWritePre", {
-  group = augroup("mew_auto_create_dir", { clear = true }),
+  group = aug,
   callback = function(args)
     local file = args.file
 
@@ -92,7 +97,7 @@ autocmd("BufWritePre", {
 
 -- React to system theme changes
 autocmd("User", {
-  group = augroup("mew_dark_notify", { clear = true }),
+  group = aug,
     pattern = "DarkNotify",
     callback = function()
       local mode = vim.fn.system("dark-notify -e"):gsub("\n", "")
@@ -108,7 +113,7 @@ autocmd("User", {
 
 -- Highlight on yank
 autocmd("TextYankPost", {
-  group = augroup("highlight_on_yank", { clear = true }),
+  group = aug,
   callback = function()
     (vim.hl or vim.highlight).on_yank()
   end,
@@ -123,7 +128,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 
 -- Open quickfix window when searching for symbols
 vim.api.nvim_create_autocmd("QuickFixCmdPost", {
-    group = augroup("mew_quickfix_cmd_post", { clear = true }),
+    group = aug,
     pattern = "lsp_symbols",
     callback = function()
       vim.cmd("copen")

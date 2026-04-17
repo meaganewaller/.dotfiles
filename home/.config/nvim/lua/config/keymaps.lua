@@ -80,8 +80,7 @@ map("n", "<leader>tww", function()
 end, silent)
 
 map("n", "<leader>tbg", function()
-  vim.opt.background =
-    vim.opt.background:get() == "dark" and "light" or "dark"
+  vim.opt.background = vim.opt.background:get() == "dark" and "light" or "dark"
 end, silent)
 
 map("n", "<Esc>", "<cmd>noh<CR>", silent)
@@ -94,19 +93,19 @@ end
 
 map("n", "<leader>yfr", function()
   yank(vim.fn.expand("%"), "Yanked relative path")
-end)
+end, { desc = "Yank relative path" })
 
 map("n", "<leader>yfa", function()
   yank(vim.fn.expand("%:p"), "Yanked absolute path")
-end)
+end, { desc = "Yank absolute path" })
 
 map("n", "<leader>yfn", function()
   yank(vim.fn.expand("%:t"), "Yanked file name")
-end)
+end, { desc = "Yank file name" })
 
 map("n", "<leader>yfl", function()
   yank(vim.fn.expand("%") .. ":" .. vim.fn.line("."), "Yanked location")
-end)
+end, { desc = "Yank location" })
 
 -- Make
 map("n", "<leader>mk", "<cmd>make<CR>", silent)
@@ -124,7 +123,7 @@ map("n", "<leader>sD", function() vim.diagnostic.setqflist() end, { desc = "Show
 
 -- LSP symbols
 map("n", "<leader>ss", function()
- vim.cmd("LspSymbols")
+  vim.cmd("LspSymbols")
 end, { desc = "Search workspace symbols in quickfix" })
 
 -- LSP document symbols
