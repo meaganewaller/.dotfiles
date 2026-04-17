@@ -85,3 +85,7 @@ if [[ -o interactive ]]; then
     exec tmux new-session -A -s main
   fi
 fi
+
+. "$HOME/.atuin/bin/env"
+
+eval "$(atuin init zsh)"
