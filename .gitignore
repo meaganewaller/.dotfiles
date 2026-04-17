@@ -34,3 +34,4 @@ home/.claude/presentations
 !.vscode
 
 node_modules
+.claude/worktrees
