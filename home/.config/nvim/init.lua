@@ -1,31 +1,27 @@
 -- Leader
 vim.g.mapleader = " "
 
-local gh = function(repo)
-    return "https://github.com/" .. repo
-end
-
 local modules = {
-    "options",
-    "autocmds",
-    "keymaps",
-    "tabline",
-    "session",
-    "quickfix",
-    "arglist",
-    "recent",
-    "findgrep",
-    "git",
-    "colorscheme",
-    "editor",
-    "project_dirs",
-    "lsp",
+  "options",
+  "autocmds",
+  "keymaps",
+  "tabline",
+  "session",
+  "quickfix",
+  "arglist",
+  "recent",
+  "findgrep",
+  "git",
+  "colorscheme",
+  "statusline",
+  "editor",
+  "project_dirs",
+  "lsp",
 }
 
 for _, module in ipairs(modules) do
-    require("config." .. module)
+  require("config." .. module)
 end
-
 
 local undodir = vim.fn.stdpath("state") .. "/undo"
 

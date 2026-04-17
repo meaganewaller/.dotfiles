@@ -60,6 +60,10 @@
       "rev": "a12fd5672110c8aa7e3c8419e28c96943ca179be",
       "src": "https://github.com/github/copilot.vim"
     },
+    "cyberdream": {
+      "rev": "39f69ebcd8de69c741bb7a65353aa37dd0680ad1",
+      "src": "https://github.com/scottmckendry/cyberdream.nvim"
+    },
     "cyberdream.nvim": {
       "rev": "0ed48b4cf9dda7c10e1798fa6a6ae8bbabaf406a",
       "src": "https://github.com/scottmckendry/cyberdream.nvim"
