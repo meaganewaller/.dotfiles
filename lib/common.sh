@@ -70,6 +70,25 @@ parse_args() {
   export DOTFILES_PROFILE DOTFILES_DRY_RUN
 }
 
+VALID_PROFILES=(work personal server container)
+
+validate_profile() {
+  local profile="${1:-}"
+  if [[ -z "$profile" ]]; then
+    die "No profile specified. Valid profiles: ${VALID_PROFILES[*]}"
+  fi
+  local valid=0
+  for p in "${VALID_PROFILES[@]}"; do
+    if [[ "$p" == "$profile" ]]; then
+      valid=1
+      break
+    fi
+  done
+  if [[ "$valid" -eq 0 ]]; then
+    die "Unknown profile: '$profile'. Valid profiles: ${VALID_PROFILES[*]}"
+  fi
+}
+
 ensure_mise() {
   if ! command -v mise >/dev/null 2>&1; then
     die "mise not installed. Install it first: https://mise.jdx.dev/"
