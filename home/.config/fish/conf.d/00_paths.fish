@@ -13,3 +13,7 @@ end
 if test -d "$HOME/.local/bin"
     fish_add_path --universal "$HOME/.local/bin"
 end
+
+if test -d "$HOME/.bun/bin"
+    fish_add_path --universal "$HOME/.bun/bin"
+end
