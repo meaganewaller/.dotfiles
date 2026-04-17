@@ -6,6 +6,7 @@ export DOTFILES_ROOT="$ROOT"
 PROFILE="${DOTFILES_PROFILE:-work}"
 CLAUDE_INSTALL_DRY_RUN="${CLAUDE_INSTALL_DRY_RUN:-0}"
 
+# shellcheck disable=SC1091
 source "$ROOT/bin/make-symlink"
 
 log() {

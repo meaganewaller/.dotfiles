@@ -104,11 +104,16 @@
             "Bash(> /etc/*)",
             "Bash(dd:*)",
             "Bash(mkfs:*)",
+            // Dangerous network operations
+            "Bash(wget *|bash*)",
+            "Bash(wget *| bash*)",
             // Process Management
             "Bash(kill -9:*)",
             "Bash(killall:*)",
             // Git & Version Control
             "Bash(git reset --hard:*)",
+            "Bash(git push --force*)",
+            "Bash(git push *--force*)",
             // Node.js
             "Bash(npm publish:*)",
             // System Administration
