@@ -310,6 +310,14 @@
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/friction-escalator.sh"
                     }
                 ]
+            },
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$HOME\"/.claude/hooks/SessionStart/agents-md.sh"
+                    }
+                ]
             }
         ],
         "WorktreeCreate": [

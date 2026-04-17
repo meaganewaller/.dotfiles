@@ -2,16 +2,9 @@
     // Basic WORK configuration for Claude Code
     // General settings, environment variables, and UI customization
     "$schema": "https://json.schemastore.org/claude-code-settings.json",
-    "awsAuthRefresh": "/bin/bash -c 'aws sts get-caller-identity --profile $AWS_PROFILE >/dev/null 2>&1 || aws sso login --profile $AWS_PROFILE'",
     "env": {
-        "AWS_REGION": "us-west-2",
-        "AWS_PROFILE": "bedrock-users",
-        "CLAUDE_CODE_USE_BEDROCK": "true",
-        "ANTHROPIC_DEFAULT_OPUS_MODEL": "us.anthropic.claude-opus-4-5-20251101-v1:0",
-        "ANTHROPIC_MODEL": "us.anthropic.claude-opus-4-5-20251101-v1:0",
         "GUSTO_CLAUDE_SETUP": "true"
     },
-    "model": "us.anthropic.claude-opus-4-5-20251101-v1:0",
     "statusLine": {
         "type": "command",
         "command": "npx -y @owloops/claude-powerline@latest --style=powerline"
