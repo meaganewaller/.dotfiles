@@ -8,6 +8,18 @@
         ],
         "deny": [
             "Read(~/.ssh/**)",
+            "Read(~/.gnupg/**)",
+            "Read(~/.aws/**)",
+            "Read(~/.azure/**)",
+            "Read(~/.config/gh/**)",
+            "Read(~/.git-credentials)",
+            "Read(~/.docker/config.json)",
+            "Read(~/.kube/**)",
+            "Read(~/.npmrc)",
+            "Read(~/.npm/**)",
+            "Read(~/.pypirc)",
+            "Read(~/.gem/credentials)",
+            "Read(~/Library/Keychains/**)",
             "Read(.env)"
         ]
     }
