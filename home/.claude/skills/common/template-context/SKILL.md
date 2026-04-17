@@ -1,6 +1,7 @@
 ---
 name: template-context
 description: This skill should be used when the user asks about "testing Rails generators", "ERB coverage", "template branch coverage", "SimpleCov showing 0%", "untestable template logic", or when building Rails generators with conditional ERB templates. Guides extraction of template conditionals into testable POROs.
+argument-hint: template file or generator with conditional logic
 ---
 
 # TemplateContext Pattern

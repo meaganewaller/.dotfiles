@@ -1,6 +1,7 @@
 ---
 name: tradeoff-memo
 description: This skill should be used when documenting architectural decisions, when the large-diff-escalator requests tradeoff documentation, when writing ADRs, or when asking "why did we choose this?", "document this decision", or "what were the tradeoffs?". Produces staff-level decision memos with options analysis and principles.
+argument-hint: decision or architectural choice to document
 disable-model-invocation: true
 ---
 

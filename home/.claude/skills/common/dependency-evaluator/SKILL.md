@@ -1,7 +1,7 @@
 ---
 name: dependency-evaluator
 description: This skill should be used when asking "should we add this library?", "is this dependency safe?", "should we upgrade X?", or when evaluating npm packages, gems, crates, or any third-party code. Assesses maintenance risk, security, and exit strategy.
-disable-model-invocation: true
+argument-hint: package name, version, or dependency to evaluate
 context: fork
 agent: Plan
 ---

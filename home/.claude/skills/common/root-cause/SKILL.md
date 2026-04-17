@@ -1,6 +1,7 @@
 ---
 name: root-cause
 description: This skill should be used after a bug, incident, or unexpected behavior, when asking "why did this happen?", "what's the root cause?", "why did this break?", or during post-mortems. Performs structured 5-Whys analysis with timeline, contributing factors, and preventative recommendations.
+argument-hint: bug, incident, or unexpected behavior to analyze
 context: fork
 agent: Explore
 allowed-tools: Read, Grep, Glob

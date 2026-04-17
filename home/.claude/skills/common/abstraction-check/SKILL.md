@@ -1,6 +1,7 @@
 ---
 name: abstraction-check
 description: This skill should be used when the user asks "should I extract this?", "is this abstraction worth it?", "am I over-engineering?", "should I DRY this up?", or when evaluating whether to create a helper, utility, base class, or shared module. Use for any "extract vs inline" decision.
+argument-hint: code or abstraction to evaluate
 ---
 
 # Abstraction Check

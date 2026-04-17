@@ -1,6 +1,7 @@
 ---
 name: impact-narrative
 description: This skill should be used when writing self-reviews, preparing for promotion discussions, updating stakeholders, or asking "how do I explain this to leadership?", "what's the business impact?", or "how do I write this for my perf review?". Translates technical work into leadership-ready narratives.
+argument-hint: technical work or accomplishment to translate
 disable-model-invocation: true
 ---
 
@@ -228,3 +229,9 @@ Example:
 ### Narrative Version
 
 [Full paragraph version suitable for self-review or stakeholder update]
+
+---
+
+## Related Skills
+
+- **promotion-draft**: Use when assembling a full promotion packet. Start here with impact-narrative to translate individual accomplishments, then use promotion-draft to structure them into a level-appropriate packet with scope evidence and stakeholder support.

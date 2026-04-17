@@ -1,6 +1,7 @@
 ---
 name: mental-model
 description: This skill should be used before modifying unfamiliar code, when asking "how does this work?", "what would break if I change this?", "help me understand this system", or when onboarding to a new codebase. Builds comprehensive mental model with data flow, invariants, and change impact analysis.
+argument-hint: module, system, or codebase area to understand
 context: fork
 agent: Explore
 allowed-tools: Read, Grep, Glob

@@ -1,7 +1,7 @@
 ---
 name: experiment-design
 description: This skill should be used when asking "how do I test this idea?", "will this change help?", "how do I measure success?", or when planning A/B tests, feature rollouts, or performance experiments. Designs falsifiable hypotheses with clear success/failure criteria.
-disable-model-invocation: true
+argument-hint: hypothesis, feature change, or experiment topic
 context: fork
 agent: Plan
 ---

@@ -1,7 +1,7 @@
 ---
 name: friction-deep-dive
 description: This skill should be used when a friction domain appears repeatedly in weekly reviews, when asking "why do I keep hitting this error?", "how do I get better at X?", or when the friction-escalator surfaces a pattern. Creates deliberate practice plans tied to Dev OS friction taxonomy.
-disable-model-invocation: true
+argument-hint: friction domain or recurring error pattern to analyze
 context: fork
 agent: Explore
 ---

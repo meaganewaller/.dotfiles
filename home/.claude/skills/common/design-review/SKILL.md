@@ -1,6 +1,7 @@
 ---
 name: design-review
 description: This skill should be used when reviewing a technical design, RFC, PR description, or architecture proposal. Use when asking "what's wrong with this design?", "what am I missing?", "review my approach", or before implementing significant changes. Surfaces risks, edge cases, and alternatives.
+argument-hint: design doc, RFC, or approach description to review
 context: fork
 agent: Plan
 allowed-tools: Read, Grep, Glob
