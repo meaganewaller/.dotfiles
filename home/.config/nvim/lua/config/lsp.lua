@@ -2,20 +2,25 @@ vim.pack.add({
     "https://github.com/neovim/nvim-lspconfig",
   }, { confirm = false })
   vim.cmd.packadd("nvim-lspconfig")
+
   local on_attach = function(_, bufnr)
-    local map = function(mode, lhs, rhs)
-      vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true })
+    local map = function(mode, lhs, rhs, desc)
+      if desc then
+        vim.keymap.set(mode, lhs, rhs, { desc = desc, buffer = bufnr, silent = true })
+      else
+        vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true })
+      end
     end
 
-    map("n", "gd", vim.lsp.buf.definition)
-    map("n", "gr", vim.lsp.buf.references)
-    map("n", "K", vim.lsp.buf.hover)
-    map("n", "<leader>rn", vim.lsp.buf.rename)
-    map("n", "<leader>ca", vim.lsp.buf.code_action)
+    map("n", "gd", vim.lsp.buf.definition, "Go to Definition")
+    map("n", "gr", vim.lsp.buf.references, "Go to Reference")
+    map("n", "K", vim.lsp.buf.hover, "Doc Hover")
+    map("n", "<leader>rn", vim.lsp.buf.rename, "Rename under cursor")
+    map("n", "<leader>ca", vim.lsp.buf.code_action, "Code actions")
 
-    map("n", "<leader>e", vim.diagnostic.open_float)
-    map("n", "[d", vim.diagnostic.goto_prev)
-    map("n", "]d", vim.diagnostic.goto_next)
+    map("n", "<leader>e", vim.diagnostic.open_float, "Open diagnostic float")
+    -- ]d jumps to next diagnostic by default
+    -- [d jumps to previous diagnostic by default
   end
 
   --------------------------------------------------

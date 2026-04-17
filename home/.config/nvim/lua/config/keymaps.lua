@@ -134,3 +134,12 @@ map("n", "<leader>sd", vim.lsp.buf.document_symbol, { desc = "Show document symb
 map("n", "<leader>sD", function()
   vim.cmd("Symbols")
 end, { desc = "Search workspace symbols" })
+
+-- Colorizer plugin
+local ok, colorizer = pcall(require, "nvim-highlight-colors")
+
+if ok then
+  map("n", "<leader>tc", function()
+    colorizer.toggle()
+  end, { desc = "Toggle Colorizer" })
+end

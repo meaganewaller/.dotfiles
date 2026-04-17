@@ -3,7 +3,7 @@ experimental = true
 auto_install = true
 
 [settings.ruby]
-# compile = true
+compile = true
 # Lockfiles (mise.lock, mise.<profile>.lock next to this config): run `mise lock`
 # from the linked ~/.config/mise directory after changing [tools], or `mise run mise:lock`
 # from the dotfiles repo. CI can use `mise install --locked` to avoid GitHub API
