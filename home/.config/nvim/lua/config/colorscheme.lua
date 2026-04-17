@@ -1,5 +1,9 @@
 vim.pack.add({
     { src = "https://github.com/scottmckendry/cyberdream.nvim", name = "cyberdream" },
+    { src = "https://github.com/xero/evangelion.nvim" },
+    { src = "https://github.com/xero/miasma.nvim" },
+    { src = "https://github.com/xero/sourcerer.vim" },
+    { src = "https://github.com/brenoprata10/nvim-highlight-colors" },
 }, { confirm = false })
 
 require("cyberdream").setup({
@@ -17,5 +21,7 @@ require("cyberdream").setup({
     }
   end
 })
+
+require('nvim-highlight-colors').setup({})
 
 vim.cmd("colorscheme cyberdream")
