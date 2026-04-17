@@ -136,3 +136,8 @@ fi
 #######################################
 
 tmux source-file ~/.tmux.conf >/dev/null 2>&1 || true
+
+. "$HOME/.atuin/bin/env"
+
+[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+eval "$(atuin init bash)"

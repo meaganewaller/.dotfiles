@@ -8,3 +8,5 @@ log/
 *.pem
 .cursor/plans
 .claude/settings.local.json
+
+.vim/undo
