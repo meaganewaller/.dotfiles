@@ -1,6 +1,7 @@
 ---
 name: promotion-draft
 description: This skill should be used when preparing a promotion packet, writing self-review for leveling, or asking "am I ready for promotion?", "what does senior/staff look like?", or "help me write my promo doc". Generates level-appropriate impact narratives with scope and influence evidence.
+argument-hint: target level, review period, or accomplishments to include
 disable-model-invocation: true
 ---
 
@@ -63,6 +64,12 @@ $ARGUMENTS
 | Company strategy | Influence product/technical direction |
 | Organization building | Grow senior talent, shape culture |
 | Innovation | Novel solutions to hard problems |
+
+---
+
+## Translating Technical Work to Impact
+
+For each accomplishment, use the **impact-narrative** skill to translate technical work into business language. It provides frameworks for quantifying impact, framing for different audiences, and the STAR-L narrative structure. This skill focuses on assembling those translated accomplishments into a level-appropriate promotion packet.
 
 ---
 

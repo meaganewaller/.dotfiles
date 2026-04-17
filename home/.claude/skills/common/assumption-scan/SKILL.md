@@ -1,6 +1,7 @@
 ---
 name: assumption-scan
 description: This skill should be used when reviewing a design proposal, RFC, technical plan, or before starting implementation. Use when asking "what could go wrong?", "what are we assuming?", "where is this fragile?", or "what happens if X changes?". Surfaces hidden dependencies and untested beliefs.
+argument-hint: design proposal, RFC, or technical plan to scan
 ---
 
 # Assumption Scan

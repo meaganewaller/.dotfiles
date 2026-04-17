@@ -1,7 +1,7 @@
 ---
 name: risk-audit
 description: This skill should be used before deploying changes, when asking "what could go wrong?", "is this safe to ship?", "what are the failure modes?", or when reviewing PRs for production readiness. Audits for hidden risks, silent failures, and edge cases.
-disable-model-invocation: true
+argument-hint: change, PR, or deployment to audit
 context: fork
 agent: Explore
 ---

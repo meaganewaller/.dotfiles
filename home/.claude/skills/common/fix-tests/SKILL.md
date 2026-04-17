@@ -28,7 +28,7 @@ Fix all failing tests to match current business logic and implementation.
 
 - **Focus on fixing tests** - avoid changing business logic unless absolutely necessary
 - **Preserve test intent** - ensure tests still validate the expected behavior
-- "Analyze complexity of changess" -
+- "Analyze complexity of changes" -
     - if there are 2 or more changed files, or one file with complex logic, then **Do not write tests yourself** - only orchestrate agents!
     - if there is only one changed file, and it's a simple change, then you can write tests yourself.
 
@@ -36,8 +36,8 @@ Fix all failing tests to match current business logic and implementation.
 
 ### Preparation
 
-1. **Read sadd skill if available**
-    - If available, read the sadd skill to understand best practices for managing agents.
+1. **Read project README if available**
+    - If available, read the project README to understand testing conventions and best practices.
 
 2. **Discover test infrastructure**
     - Read @README.md and package.json, Gemfile (or equivalent project config)

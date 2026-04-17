@@ -1,7 +1,7 @@
 ---
 name: refactor-safely
 description: This skill should be used when planning a refactor, asking "how do I safely change this?", "what's the safest way to restructure?", or before touching legacy code, renaming abstractions, or extracting modules. Creates staged refactor plans with validation checkpoints and rollback strategies.
-disable-model-invocation: true
+argument-hint: code, module, or area to refactor
 context: fork
 agent: Plan
 ---

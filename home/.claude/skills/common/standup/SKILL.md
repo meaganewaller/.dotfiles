@@ -1,15 +1,9 @@
+---
+name: standup
+description: This skill should be used when the user asks for "standup", "daily standup", "what did I do yesterday", "what should I work on today", "standup summary", or at the start of a workday.
+---
+
 # Standup Skill
-
-This skill should be used when the user asks for "standup", "daily standup", "what did I do yesterday", "what should I work on today", "standup summary", or at the start of a workday.
-
-## Trigger Phrases
-- "standup"
-- "daily standup"
-- "what did I do yesterday"
-- "what did I accomplish"
-- "standup summary"
-- "morning standup"
-- "start of day"
 
 ## How to Use
 

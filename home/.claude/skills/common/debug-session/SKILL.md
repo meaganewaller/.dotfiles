@@ -1,16 +1,13 @@
+---
+name: debug-session
+description: This skill should be used when the user asks to "help me debug", "why isn't this working", "this is broken", "debug this", "find the bug", or when systematically investigating an issue.
+argument-hint: error message, symptom description, or file path to investigate
+context: fork
+agent: Explore
+allowed-tools: Read, Grep, Glob, Bash
+---
+
 # Debug Session Skill
-
-This skill should be used when the user asks to "help me debug", "why isn't this working", "this is broken", "debug this", "find the bug", or when systematically investigating an issue.
-
-## Trigger Phrases
-- "help me debug"
-- "why isn't this working"
-- "this is broken"
-- "find the bug"
-- "debug this"
-- "not working as expected"
-- "something's wrong with"
-- "investigate this issue"
 
 ## Methodology
 

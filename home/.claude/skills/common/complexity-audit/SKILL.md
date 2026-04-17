@@ -1,6 +1,7 @@
 ---
 name: complexity-audit
 description: This skill should be used when asking "is this module too complex?", "why is this hard to change?", "what's causing coupling here?", or before refactoring a tangled system. Use to audit for accidental complexity, circular dependencies, god objects, and layering violations.
+argument-hint: module, directory, or file path to audit
 context: fork
 agent: Explore
 allowed-tools: Read, Grep, Glob

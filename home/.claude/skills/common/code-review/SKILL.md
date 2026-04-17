@@ -1,15 +1,13 @@
+---
+name: code-review
+description: This skill should be used when the user asks to "review this code", "check this implementation", "what's wrong with this code", "review my changes", "code review", or when examining code for quality issues.
+argument-hint: file path, PR URL, or description of code to review
+context: fork
+agent: Explore
+allowed-tools: Read, Grep, Glob
+---
+
 # Code Review Skill
-
-This skill should be used when the user asks to "review this code", "check this implementation", "what's wrong with this code", "review my changes", "code review", or when examining code for quality issues.
-
-## Trigger Phrases
-- "review this code"
-- "code review"
-- "check this implementation"
-- "what's wrong here"
-- "review my changes"
-- "is this code okay"
-- "look at this code"
 
 ## Methodology
 

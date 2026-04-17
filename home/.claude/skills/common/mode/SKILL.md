@@ -1,16 +1,10 @@
+---
+name: mode
+description: This skill should be used when the user asks to "set mode", "change mode", "switch to exploration", "switch to hardening", "what mode", "current mode", or "/mode". Manages the project phase mode which controls hook and cue strictness.
+argument-hint: mode name (exploration, default, hardening, release)
+---
+
 # Project Phase Mode
-
-This skill should be used when the user asks to "set mode", "change mode", "switch to exploration", "switch to hardening", "what mode", "current mode", or "/mode". Manages the project phase mode which controls hook and cue strictness.
-
-## Trigger Phrases
-- "mode"
-- "set mode"
-- "change mode"
-- "switch to exploration"
-- "switch to hardening"
-- "switch to release"
-- "what mode"
-- "current mode"
 
 ## How to Use
 
