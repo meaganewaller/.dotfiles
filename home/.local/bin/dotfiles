@@ -4,7 +4,12 @@ set -euo pipefail
 # Dotfiles CLI
 # Usage: dotfiles <command> [options]
 
-DOTFILES_ROOT="${DOTFILES_ROOT:-$HOME/github/meaganewaller/.dotfiles}"
+# Resolve DOTFILES_ROOT by following this script's symlink back to the repo.
+# The script lives at <repo>/home/.local/bin/dotfiles, so the repo root is 4 levels up.
+if [[ -z "${DOTFILES_ROOT:-}" ]]; then
+  script_path="$(realpath "${BASH_SOURCE[0]}")"
+  DOTFILES_ROOT="$(cd "$(dirname "$script_path")/../../.." && pwd)"
+fi
 PROFILE="${DOTFILES_PROFILE:-work}"
 
 # Colors
