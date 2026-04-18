@@ -191,24 +191,21 @@ doctor() {
     log_check warn "current.json missing (run: theme set <name>)"
   fi
 
-  # Validate theme files
-  if has_cmd python3; then
-    local theme_dir="$HOME/.config/theme/themes"
-    if [[ -d "$theme_dir" ]]; then
-      local theme_count=0
-      local theme_errors=0
-      for f in "$theme_dir"/*.json; do
-        [[ -f "$f" ]] || continue
-        ((theme_count++)) || true
-        if ! python3 -c "import json; json.load(open('$f'))" 2>/dev/null; then
-          log_check fail "$(basename "$f"): invalid JSON"
-          ((theme_errors++)) || true
-        fi
-      done
-      if [[ $theme_errors -eq 0 ]]; then
-        log_check ok "$theme_count theme(s) valid"
-      fi
+  # Validate theme files using the full validator (checks fields, colors, wallpapers)
+  local theme_validator="$DOTFILES_ROOT/bin/validate-themes"
+  if has_cmd python3 && [[ -f "$theme_validator" ]]; then
+    local validate_output
+    if validate_output=$(cd "$DOTFILES_ROOT" && python3 "$theme_validator" 2>&1); then
+      local theme_count
+      theme_count=$(echo "$validate_output" | grep -c ": OK" || true)
+      log_check ok "$theme_count theme(s) validated"
+    else
+      log_check fail "theme validation failed"
+      while IFS= read -r line; do echo "    $line"; done <<< "$validate_output"
+      ((errors++)) || true
     fi
+  elif has_cmd python3; then
+    log_check warn "theme validator not found at $theme_validator"
   fi
 
   # Check wallpapers
