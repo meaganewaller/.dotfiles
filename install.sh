@@ -10,6 +10,7 @@ export DOTFILES_ROOT="$ROOT"
 source "$ROOT/lib/common.sh"
 
 parse_args "$@"
+validate_profile "$DOTFILES_PROFILE"
 
 log "Profile: $DOTFILES_PROFILE"
 export MISE_ENV="${DOTFILES_PROFILE:-work}"

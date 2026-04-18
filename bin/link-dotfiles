@@ -9,6 +9,8 @@ DOTFILES_DRY_RUN="${DOTFILES_DRY_RUN:-0}"
 ONLY_MISE=0
 
 # shellcheck source=/dev/null
+source "$ROOT/lib/common.sh"
+# shellcheck source=/dev/null
 source "$ROOT/bin/make-symlink"
 
 log() {
@@ -29,6 +31,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 export DOTFILES_PROFILE="$PROFILE" DOTFILES_DRY_RUN
+
+validate_profile "$PROFILE"
 
 run() {
   if [[ "$DOTFILES_DRY_RUN" -eq 1 ]]; then
