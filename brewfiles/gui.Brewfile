@@ -32,9 +32,6 @@ cask "cloudflare-warp"
 
 # Window management
 cask "loop"
-# NOTE: Trying out aerospace for a bit.
-tap "nikitabobko/tap"
-cask "nikitabobko/tap/aerospace"
 
 # Tools
 cask "fantastical"
