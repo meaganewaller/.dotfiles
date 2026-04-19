@@ -68,7 +68,6 @@ This document describes the structure and design of this dotfiles repository.
 │   ├── base.Brewfile
 │   ├── creative.Brewfile
 │   ├── dev.Brewfile
-│   ├── experimental.Brewfile
 │   ├── gui.Brewfile
 │   ├── infra.Brewfile
 ├── home/                           # Everything here is symlinked to $HOME
