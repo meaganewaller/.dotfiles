@@ -19,6 +19,9 @@ This directory records **repository-wide** decisions: shell layout, bootstrap, m
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [0001](0001-mise-primary-tool-management.md) | mise as primary tool manager | Accepted | 2026-03-23 |
+| [0002](0002-profile-system.md) | Environment-variable-based profile system | Accepted | 2026-04-19 |
+| [0003](0003-symlink-strategy.md) | Symlink strategy for dotfiles deployment | Accepted | 2026-04-19 |
+| [0004](0004-claude-settings-merge.md) | JSONC merge strategy for Claude Code settings | Accepted | 2026-04-19 |
 
 ## Status definitions
 
