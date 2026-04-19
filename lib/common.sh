@@ -91,7 +91,9 @@ validate_profile() {
 
 ensure_mise() {
   if ! command -v mise >/dev/null 2>&1; then
-    die "mise not installed. Install it first: https://mise.jdx.dev/"
+    die "mise not found on PATH. Install it: curl https://mise.jdx.dev/install.sh | sh
+    Then add to your shell: eval \"\$(mise activate bash)\"
+    Docs: https://mise.jdx.dev/getting-started.html"
   fi
 }
 

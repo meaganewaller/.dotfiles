@@ -73,19 +73,34 @@ op_auth_if_needed() {
 }
 
 read_op_field() {
-  op item get "$1" --fields "$2" 2>/dev/null || true
+  local item="$1" field="$2"
+  local value
+  if ! value="$(op item get "$item" --fields "$field" 2>&1)"; then
+    log "WARNING: 'op item get $item --fields $field' failed: $value"
+    echo ""
+    return 1
+  fi
+  if [[ -z "$value" ]]; then
+    log "WARNING: 1Password field '$field' in item '$item' is empty"
+    return 1
+  fi
+  echo "$value"
 }
 
 generate_gitconfigs() {
   log "Generating git configs from 1Password"
 
-  WORK_EMAIL="$(read_op_field "$OP_WORK_ITEM" email)"
-  WORK_KEY="$(read_op_field "$OP_WORK_ITEM" signingkey)"
-  PERSONAL_EMAIL="$(read_op_field "$OP_PERSONAL_ITEM" email)"
-  PERSONAL_KEY="$(read_op_field "$OP_PERSONAL_ITEM" signingkey)"
+  local missing=()
+  WORK_EMAIL="$(read_op_field "$OP_WORK_ITEM" email)" || missing+=("$OP_WORK_ITEM/email")
+  WORK_KEY="$(read_op_field "$OP_WORK_ITEM" signingkey)" || missing+=("$OP_WORK_ITEM/signingkey")
+  PERSONAL_EMAIL="$(read_op_field "$OP_PERSONAL_ITEM" email)" || missing+=("$OP_PERSONAL_ITEM/email")
+  PERSONAL_KEY="$(read_op_field "$OP_PERSONAL_ITEM" signingkey)" || missing+=("$OP_PERSONAL_ITEM/signingkey")
 
-  [[ -n "$WORK_EMAIL" && -n "$WORK_KEY" ]] || die "Missing fields in $OP_WORK_ITEM"
-  [[ -n "$PERSONAL_EMAIL" && -n "$PERSONAL_KEY" ]] || die "Missing fields in $OP_PERSONAL_ITEM"
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    die "Missing 1Password fields: ${missing[*]}
+    Ensure 'op' is signed in (op signin) and items exist with 'email' and 'signingkey' fields.
+    Check with: op item get \"<item>\" --fields email,signingkey"
+  fi
 
   cat > "$HOME/.gitconfig.work" <<EOF
 [user]

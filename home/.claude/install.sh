@@ -115,7 +115,12 @@ merge_config() {
   # 3. Parse JSONC using single Node process
   # ---------------------------------------------
 
-  parsed_json=$(npx -y -p json5 node -e "
+  if ! command -v npx &>/dev/null; then
+    log "npx not found. Install Node.js via mise (mise install node) or brew (brew install node)."
+    return 1
+  fi
+
+  if ! parsed_json=$(npx -y -p json5 node -e "
     const fs = require('fs');
     const JSON5 = require('json5');
 
@@ -126,7 +131,12 @@ merge_config() {
         console.log('{}');
       }
     });
-  " "${settings_files[@]}")
+  " "${settings_files[@]}" 2>&1); then
+    log "JSONC parsing failed. This usually means npm cannot fetch the json5 package."
+    log "Check your network connection, or install json5 globally: npm install -g json5"
+    log "npx output: $parsed_json"
+    return 1
+  fi
 
   # ---------------------------------------------
   # 4. Merge with jq (preserving internal state)
