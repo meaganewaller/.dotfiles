@@ -32,6 +32,8 @@ cask "cloudflare-warp"
 
 # Window management
 cask "loop"
+tap "nikitabobko/tap"
+cask "nikitabobko/tap/aerospace"
 
 # Tools
 cask "fantastical"
