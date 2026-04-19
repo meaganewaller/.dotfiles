@@ -142,7 +142,7 @@ The repository supports multiple profiles to handle different machine contexts:
 │ Full macOS  │ Full macOS  │ CLI only    │ Minimal     │         │
 │ Work git ID │ Personal ID │ No GUI apps │ DevContainer│         │
 │ Work SSH    │ Personal SSH│ SSH only    │ Shell+Git   │         │
-│ Gusto tools │ Personal    │             │             │         │
+│ Gusto tools │ Personal    │ Common only │ Common only │         │
 └─────────────┴─────────────┴─────────────┴─────────────┴─────────┘
 ```
 
