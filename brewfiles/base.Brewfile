@@ -32,6 +32,7 @@ brew "watch"
 brew "rename"
 brew "trash"
 brew "trash-cli"
+brew "libyaml"
 
 # ----------------------------
 # Shell & Environment

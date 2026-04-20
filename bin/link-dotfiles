@@ -94,9 +94,6 @@ if [[ "$ONLY_MISE" -eq 1 ]]; then
   exit 0
 fi
 
-run ".zshrc"
-run ".zsh_prompt"
-run ".zprofile"
 run ".bash_aliases"
 run ".bash_exports"
 run ".bash_exports.local"
@@ -119,8 +116,8 @@ run ".editorconfig"
 run ".config/wezterm"
 run ".config/nvim"
 run ".config/theme"
-run ".config/zsh"
-run_dir_contents ".config/fish"   # links contents only; README.md stays in repo
+run_dir_contents ".config/exports"
+# run_dir_contents ".config/fish"   # links contents only; README.md stays in repo
 run ".local/bin/theme"
 run ".local/bin/dotfiles"
 run ".local/bin/tradeoff"
@@ -136,14 +133,6 @@ run ".config/git/hooks"
 run ".config/mise"
 link_mise_miserc
 
-# Claude Code configuration (hooks, cues, settings, etc.)
-# Uses dedicated install script that handles profile-based merging
-if [[ -x "$ROOT/home/.claude/install.sh" ]]; then
-  log "Running Claude Code install..."
-  CLAUDE_INSTALL_ARGS=(--profile "$PROFILE")
-  [[ "$DOTFILES_DRY_RUN" -eq 1 ]] && CLAUDE_INSTALL_ARGS+=(--dry-run)
-  "$ROOT/home/.claude/install.sh" "${CLAUDE_INSTALL_ARGS[@]}"
-fi
 
 run ".config/atuin/config.toml"
 run ".config/yazi/yazi.toml"
@@ -152,6 +141,8 @@ run ".config/borders/bordersrc"
 
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"
+  run ".zshrc"
+  run_dir_contents ".config/zsh"
   run ".hammerspoon"
   run ".config/karabiner"
   run ".config/sketchybar"
@@ -159,6 +150,7 @@ fi
 
 if [[ "$PROFILE" == "personal" ]]; then
   log "Linking personal dotfiles"
+  run_dir_contents ".config/fish"
   run ".hammerspoon"
   run ".config/karabiner"
   run ".config/sketchybar"
@@ -173,6 +165,15 @@ if [[ "$PROFILE" == "container" ]]; then
   log "Linking container dotfiles"
   # Container: minimal setup for devcontainers
   # Most links already done above (shell, git, editor configs)
+fi
+
+# Claude Code configuration (hooks, cues, settings, etc.)
+# Uses dedicated install script that handles profile-based merging
+if [[ -x "$ROOT/home/.claude/install.sh" ]]; then
+  log "Running Claude Code install..."
+  CLAUDE_INSTALL_ARGS=(--profile "$PROFILE")
+  [[ "$DOTFILES_DRY_RUN" -eq 1 ]] && CLAUDE_INSTALL_ARGS+=(--dry-run)
+  "$ROOT/home/.claude/install.sh" "${CLAUDE_INSTALL_ARGS[@]}"
 fi
 
 log "Done linking."

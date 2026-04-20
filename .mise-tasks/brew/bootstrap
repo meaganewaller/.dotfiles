@@ -171,7 +171,13 @@ echo
 
 if [[ "$FORMULA_DRIFT" -ne 0 || "$CASK_DRIFT" -ne 0 ]]; then
   echo "Drift detected. Machine diverges from declared Brewfiles."
-  exit 1
+  echo "Continue with installation? (y/n)"
+  read -r continue
+  if [[ "$continue" != "y" ]]; then
+    echo "Aborting installation."
+    exit 1
+  fi
+else
+  echo "✓ Brew state matches declaration."
 fi
 
-echo "✓ Brew state matches declaration."

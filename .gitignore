@@ -35,3 +35,4 @@ home/.claude/presentations
 
 node_modules
 .claude/worktrees
+home/.config/exports/secrets

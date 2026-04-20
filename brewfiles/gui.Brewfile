@@ -42,6 +42,7 @@ cask "cameracontroller"
 cask "karabiner-elements"
 cask "hammerspoon"
 brew "felixkratz/formulae/sketchybar"
+brew "felixkratz/formulae/borders"
 
 # Useful Apps
 cask "notion"
