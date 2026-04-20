@@ -16,6 +16,7 @@
 
 # Terminal
 cask "wezterm@nightly"
+cask "ghostty"
 
 # Browsers
 cask "chromium"
