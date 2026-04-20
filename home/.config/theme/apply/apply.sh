@@ -27,6 +27,7 @@ echo "Applying theme: $theme_name"
 
 run_script "macos"
 run_script "wezterm"
+run_script "ghostty"
 run_script "sketchybar"
 run_script "vscode"
 run_script "cursor"

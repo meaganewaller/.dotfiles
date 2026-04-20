@@ -1,0 +1,33 @@
+# Sakura — light theme with pink accent
+# Matches the sakura theme from the dotfiles theme system
+background = #FAFAF9
+foreground = #4C566A
+selection-background = #F28AB2
+selection-foreground = #FAFAF9
+cursor-color = #F28AB2
+cursor-text = #FAFAF9
+
+# Black
+palette = 0=#2E3440
+palette = 8=#A0A0A0
+# Red
+palette = 1=#BF616A
+palette = 9=#D08770
+# Green
+palette = 2=#2DA44E
+palette = 10=#A3BE8C
+# Yellow
+palette = 3=#EBCB8B
+palette = 11=#D4A959
+# Blue
+palette = 4=#0969DA
+palette = 12=#5E81AC
+# Magenta / Pink (accent)
+palette = 5=#F28AB2
+palette = 13=#B48EAD
+# Cyan
+palette = 6=#88C0D0
+palette = 14=#8FBCBB
+# White
+palette = 7=#ECEFF4
+palette = 15=#FAFAF9
