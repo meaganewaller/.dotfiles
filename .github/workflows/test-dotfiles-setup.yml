@@ -107,6 +107,16 @@ jobs:
           # Avoid merging host /etc/mise (e.g. unrelated tools not in this repo’s lockfile).
           MISE_SYSTEM_CONFIG_DIR: /tmp/mise-no-system
 
+      - name: Check mise.lock freshness
+        run: |
+          mise install
+          if [[ $(git diff --name-only mise.lock | wc -l) -gt 0 ]]; then
+            echo "ERROR: mise.lock is stale. Run: mise install && git add mise.lock"
+            exit 1
+          fi
+        env:
+          MISE_SYSTEM_CONFIG_DIR: /tmp/mise-no-system
+
       - name: Test install (dry-run)
         run: |
           export DOTFILES_ROOT="$PWD"
