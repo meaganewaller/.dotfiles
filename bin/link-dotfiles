@@ -129,6 +129,8 @@ run ".local/bin/aerospace-keys"
 run ".local/bin/aerospace-keys-popup"
 run ".aerospace.toml"
 
+run_dir_contents ".config/ghostty"
+
 run ".config/git/hooks"
 
 run ".config/mise"
