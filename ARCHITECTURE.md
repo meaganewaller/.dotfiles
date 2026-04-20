@@ -146,12 +146,25 @@ The repository supports multiple profiles to handle different machine contexts:
 └─────────────┴─────────────┴─────────────┴─────────────┴─────────┘
 ```
 
+### Profile Comparison Matrix
+
+| Dimension | work | personal | server | container |
+|-----------|------|----------|--------|-----------|
+| **Brew layers** | base, gui, dev, infra | base, gui, creative, dev, infra | *(none)* | *(none)* |
+| **mise layer** | `config.work.toml` (java, terraform) | `config.personal.toml` (bun, biome, colima, claude-code) | `config.server.toml` *(empty stub)* | `config.container.toml` *(empty stub)* |
+| **Git identity** | `.gitconfig.work` (Gusto email + key) | `.gitconfig.personal` | *(common only)* | *(common only)* |
+| **SSH config** | `.ssh/config.work` | `.ssh/config.personal` | *(common only)* | *(common only)* |
+| **Claude settings** | `common/` + `work/` (Gusto env, work status line, work hooks) | `common/` + `personal/` (personal status line) | `common/` + `server/` *(stub)* | `common/` + `container/` *(stub)* |
+| **Claude hooks** | `common/` + `work/` | `common/` only | `common/` only | `common/` only |
+| **GUI links** | hammerspoon, karabiner, sketchybar | hammerspoon, karabiner, sketchybar | *(none)* | *(none)* |
+| **Shell/editor/git** | all common dotfiles | all common dotfiles | all common dotfiles | all common dotfiles |
+
 ### How Profiles Work
 
-1. **Brewfiles**: `Brewfile.common` + `Brewfile.{profile}` are both installed
+1. **Brewfiles**: `install.sh` sets `BREW_LAYERS` based on profile; `mise run brew:bootstrap` installs those layers
 2. **Git identity**: `.gitconfig` uses `includeIf` to load `.gitconfig.{profile}`
 3. **SSH config**: `.ssh/config` includes `.ssh/config.{profile}`
-4. **Claude Code**: Settings merged from `settings/common/` + `settings/{profile}/`
+4. **Claude Code**: Settings merged from `settings/common/` + `settings/{profile}/` (see [ADR 0004](docs/architecture/0004-claude-settings-merge.md))
 5. **Conditional linking**: `bin/link-dotfiles` only links certain files per profile
 6. **mise (global)**: `MISE_ENV` matches `DOTFILES_PROFILE`; `miserc.toml` points at `miserc.<profile>.toml`; `config.<profile>.toml` layers on `config.toml` (see below)
 
