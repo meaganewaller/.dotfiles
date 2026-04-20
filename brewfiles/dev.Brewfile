@@ -35,10 +35,13 @@ cask "postico"
 
 brew "colima"
 brew "qemu"
+brew "coreutils"
 
 brew "bash-language-server"
 brew "fish-lsp"
 brew "libpq"
+
+brew "tmux"
 
 cask "claude"
 cask "claude-code"

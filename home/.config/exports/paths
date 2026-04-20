@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# Bun Setup
+if [ ! -d "$HOME/.bun" ]; then
+	export BUN_INSTALL="$HOME/.bun"
+	export PATH="$BUN_INSTALL/bin:$PATH"
+fi
+
+export PATH="/opt/homebrew/bin:$PATH"
+export PATH="/opt/homebrew/sbin:$PATH"

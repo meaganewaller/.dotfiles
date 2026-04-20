@@ -24,8 +24,8 @@ if [[ $DOTFILES_PROFILE == "personal" ]]; then
   log "Personal profile selected. Setting brewfile layers to: base, gui, creative"
   export BREW_LAYERS="base gui creative dev infra"
 else
-  log "Work profile selected. Setting brewfile layers to: base, gui, dev, infra"
-  export BREW_LAYERS="base gui dev infra"
+  log "Work profile selected. Setting brewfile layers to: base, gui, dev, infra, work"
+  export BREW_LAYERS="base gui dev infra work"
 fi
 
 ensure_mise
