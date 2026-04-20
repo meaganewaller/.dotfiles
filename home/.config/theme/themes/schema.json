@@ -87,6 +87,16 @@
         }
       }
     },
+    "ghostty": {
+      "type": "object",
+      "description": "Ghostty terminal configuration",
+      "properties": {
+        "theme": {
+          "type": "string",
+          "description": "Ghostty theme name (from ~/.config/ghostty/themes/)"
+        }
+      }
+    },
     "wallpaper": {
       "type": "string",
       "description": "Wallpaper filename (relative to wallpapers/) or absolute path"
