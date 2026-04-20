@@ -97,7 +97,10 @@ merge_config() {
   # 2. Collect files in deterministic order
   # ---------------------------------------------
 
-  mapfile -t settings_files < <(
+  settings_files=()
+  while IFS= read -r f; do
+    [[ -n "$f" ]] && settings_files+=("$f")
+  done < <(
     {
       fd -t f -e json -e jsonc . "$common_dir" --exclude permissions 2>/dev/null
       fd -t f -e json -e jsonc . "$common_dir/permissions" 2>/dev/null
@@ -112,31 +115,30 @@ merge_config() {
   fi
 
   # ---------------------------------------------
-  # 3. Parse JSONC using single Node process
+  # 3. Parse JSONC files (strip comments + trailing commas)
   # ---------------------------------------------
 
-  if ! command -v npx &>/dev/null; then
-    log "npx not found. Install Node.js via mise (mise install node) or brew (brew install node)."
+  if ! command -v node &>/dev/null; then
+    log "node not found. Install Node.js via mise (mise install node) or brew (brew install node)."
     return 1
   fi
 
-  if ! parsed_json=$(npx -y -p json5 node -e "
+  # Use Node to strip JSONC comments — no npm packages needed.
+  # Node's built-in regex handles the string-vs-comment distinction correctly.
+  parsed_json=$(node -e "
     const fs = require('fs');
-    const JSON5 = require('json5');
-
     process.argv.slice(1).forEach(file => {
       try {
-        console.log(JSON.stringify(JSON5.parse(fs.readFileSync(file, 'utf8'))));
+        let text = fs.readFileSync(file, 'utf8');
+        // Remove block comments, line comments (not inside strings), trailing commas
+        text = text.replace(/\"(?:[^\"\\\\]|\\\\.)*\"|\/\/[^\n]*|\/\*[\s\S]*?\*\//g, m => m[0] === '\"' ? m : '');
+        text = text.replace(/,(\s*[}\]])/g, '\$1');
+        console.log(JSON.stringify(JSON.parse(text)));
       } catch (e) {
         console.log('{}');
       }
     });
-  " "${settings_files[@]}" 2>&1); then
-    log "JSONC parsing failed. This usually means npm cannot fetch the json5 package."
-    log "Check your network connection, or install json5 globally: npm install -g json5"
-    log "npx output: $parsed_json"
-    return 1
-  fi
+  " "${settings_files[@]}")
 
   # ---------------------------------------------
   # 4. Merge with jq (preserving internal state)
