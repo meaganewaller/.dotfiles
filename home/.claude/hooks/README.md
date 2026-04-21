@@ -18,16 +18,13 @@ hooks/
     ├── SessionStart/
     │   ├── clear-cue-markers.sh
     │   ├── session-context-injector.sh
-    │   ├── session-start-tracker.sh
     │   ├── friction-escalator.sh
     │   ├── hook-health-reporter.sh
     │   └── branch-staleness-check.sh
     │
     ├── UserPromptSubmit/
     │   ├── cue-injector-prompt.sh
-    │   ├── state-triggers.sh
-    │   ├── idea-classifier.sh
-    │   └── session-duration-monitor.sh
+    │   └── idea-classifier.sh
     │
     ├── PreToolUse/
     │   ├── mark-tasks-active.sh      # TaskCreate
@@ -54,12 +51,7 @@ hooks/
     │   ├── reversal-detector.sh      # Write|Edit
     │   ├── async-test-runner.sh      # Write|Edit (async)
     │   ├── ai-guardrails.sh          # Write|Edit - AI pitfall detection
-    │   ├── skill-usage-tracker.sh    # Skill
-    │   ├── read-tracker.sh           # Read
     │   └── resource-limit-catcher.sh # Read
-    │
-    ├── PostToolUseFailure/
-    │   └── skill-gap-detector.sh
     │
     ├── SubagentStart/
     │   └── cue-inject-subagent.sh
@@ -67,25 +59,10 @@ hooks/
     ├── Stop/
     │   ├── response-topics-writer.sh
     │   ├── hard-stop-test-blocker.sh
-    │   ├── leverage-evaluator.sh
-    │   └── cost-tracker.sh           # Track token costs
+    │   └── leverage-evaluator
     │
-    ├── TaskCompleted/
-    │   └── task-gate.sh
-    │
-    ├── PreCompact/
-    │   ├── context-compact-tracker.sh
-    │   └── pre-compact-snapshot.sh
-    │
-    ├── SessionEnd/
-    │   ├── session-end-tracker.sh
-    │   └── learning-suggestion-generator.sh
-    │
-    ├── WorktreeCreate/
-    │   └── worktree-create-log.sh
-    │
-    └── WorktreeRemove/
-        └── worktree-remove-log.sh
+    └── SessionEnd/
+        └── learning-suggestion-generator.sh
 ```
 
 Event names match Claude Code’s hook events; scripts under each folder are invoked when that event fires (and when the optional **matcher** in `hooks.jsonc` matches, e.g. `Write|Edit`).
@@ -125,7 +102,6 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 | **SubagentStart** | Pass cue context to subagents |
 | **Stop** | Gate on test status, track costs, evaluate leverage |
 | **TaskCompleted** | Quality gate before task completion |
-| **PreCompact** | Snapshot context before compaction |
 | **SessionEnd** | Generate learning suggestions |
 
 ### Scripts by event
@@ -139,7 +115,6 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 
 **UserPromptSubmit**
 - `cue-injector-prompt.sh` - Match prompt to contextual cues
-- `state-triggers.sh` - Session-start and context-threshold triggers
 - `idea-classifier.sh` - Capture opinions to idea vault
 
 **PreToolUse**
@@ -156,7 +131,6 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - `principle-reinforcer.sh` (Write|Edit) - Reinforce engineering principles
 - `large-file-guard.sh` (Read) - Block/warn on large file reads
 - `bulk-operation-estimator.sh` (Glob|Grep) - Estimate operation scope
-- `agent-spawn-tracker.sh` (Agent) - Track agent spawns, warn on sprawl
 
 **PostToolUse** (matcher: `Write|Edit`)
 - `impact-extractor.sh` - Log change type and skill domains
@@ -166,9 +140,6 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - `async-test-runner.sh` - Run tests asynchronously
 - `ai-guardrails.sh` - Detect AI dev pitfalls (missing tests, placeholders, hallucinated deps)
 
-**PostToolUseFailure** (matcher: `Bash|Task|Read|Write|Edit|Glob|Grep|mcp__.*`)
-- `skill-gap-detector.sh` - Classify failure for learning
-
 **SubagentStart**
 - `cue-inject-subagent.sh` - Inject stashed cue content
 
@@ -176,17 +147,8 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
 - `response-topics-writer.sh` - Write topics for next prompt
 - `hard-stop-test-blocker.sh` - Block if last test failed
 - `leverage-evaluator.sh` - Check session produced value
-- `cost-tracker.sh` - Track token costs to `~/.claude/metrics/costs.jsonl`
-
-**TaskCompleted**
-- `task-gate.sh` - Run quality checks before completion
-
-**PreCompact**
-- `context-compact-tracker.sh` - Track compaction events
-- `pre-compact-snapshot.sh` - Snapshot to `~/.claude/session-summaries/`
 
 **SessionEnd**
-- `session-end-tracker.sh` - Track session end
 - `learning-suggestion-generator.sh` - Generate `~/.claude/learning-targets/latest.md`
 
 ## Helper scripts
@@ -218,9 +180,6 @@ Event names match Claude Code’s hook events; scripts under each folder are inv
   hook-health.sh --failures   # Recent failures only
   hook-health.sh --tail       # Follow log in real-time
   ```
-
-- **`worktree-create-log.sh`** / **`worktree-remove-log.sh`**
-  Emit `worktree_created` / `worktree_removed` via `dev-os-emit.sh` then run the real worktree add/remove. Intended to be used as the actual worktree add/remove command (e.g. from a wrapper or git hook) so experiments are logged.
 
 - **`match-cues.sh`**
   Finds cues matching a subject (prompt, command, or file path). Supports:
