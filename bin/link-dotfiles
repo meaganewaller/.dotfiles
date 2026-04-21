@@ -139,6 +139,8 @@ run ".config/yazi/yazi.toml"
 
 run ".config/borders/bordersrc"
 
+run_dir_contents ".config/tmux"
+
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"
   run ".zshrc"
