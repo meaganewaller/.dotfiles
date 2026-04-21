@@ -1,4 +1,35 @@
 {
- "$schema": "https://json.schemastore.org/claude-code-settings.json",
- "enabledPlugins": {}
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "extraKnownMarketplaces": {
+        "meaganewaller-marketplace": {
+            "source": {
+                "source": "github",
+                "repo": "meaganewaller/marketplace"
+            }
+        },
+        "onlooker-marketplace": {
+            "source": {
+                "source": "github",
+                "repo": "onlooker-community/marketplace"
+            }
+        }
+    },
+    "enabledPlugins": {
+        "decision-journal@meaganewaller-marketplace": true,
+        "github@meaganewaller-marketplace": true,
+        "skill-creator@meaganewaller-marketplace": true,
+        "archivist@onlooker-marketplace": true,
+        "relativity@onlooker-marketplace": true,
+        "sentinel@onlooker-marketplace": true,
+        "warden@onlooker-marketplace": true,
+        "oracle@onlooker-marketplace": true,
+        "tribunal@onlooker-marketplace": true,
+        "echo@onlooker-marketplace": true,
+        "ledger@onlooker-marketplace": true,
+        "cartographer@onlooker-marketplace": true,
+        "scribe@onlooker-marketplace": true,
+        "cues@onlooker-marketplace": true,
+        "counsel@onlooker-marketplace": true,
+        "onlooker@onlooker-marketplace": true
+    }
 }
