@@ -10,6 +10,9 @@
 
 # -- Typography ---
 font-family = "iA Writer Mono V Text"
+font-feature = -calt
+font-feature = -liga
+font-feature = -dlig
 font-size = 16
 font-thicken = true
 adjust-cell-height = 2
@@ -19,14 +22,13 @@ adjust-cell-height = 2
 theme = light:sakura,dark:jubi
 
 # --- Window and Appearance ---
-background-opacity = 1.0
+background-opacity = 0.9
 background-image = ~/.config/ghostty/backgrounds/tamagotchi-rainbow-clouds-wallpaper-kawaii-hoshi.jpg
 background-image-opacity = 0.2
 background-image-fit = cover
 background-image-position = center
 unfocused-split-opacity = 0.8
-background-blur-radius = 0
-window-decoration = true
+background-blur-radius = 20
 window-padding-x = 10
 window-padding-y = 8
 window-save-state = always
@@ -35,7 +37,7 @@ window-step-resize = true
 
 # --- Cursor ---
 adjust-cursor-thickness = 2
-cursor-style = bar
+cursor-style = block
 cursor-style-blink = true
 cursor-opacity = 0.8
 
@@ -60,10 +62,6 @@ macos-titlebar-style          = tabs
 macos-window-shadow           = false
 macos-secure-input-indication = false
 macos-shortcuts = deny
-
-
-
-
 
 # -- Security ---
 clipboard-paste-protection = true
@@ -115,3 +113,6 @@ auto-update = check
 auto-update-channel = stable
 desktop-notifications = true
 link-url = true
+window-inherit-working-directory = false
+app-notifications = no-clipboard-copy
+confirm-close-surface = false
