@@ -1,3 +1,7 @@
 {
-  "recommendations": ["tamasfe.even-better-toml", "mkhl.shfmt"]
+  "recommendations": [
+    "tamasfe.even-better-toml",
+    "mkhl.shfmt",
+    "jetmartin.bats"
+  ]
 }

@@ -410,7 +410,7 @@ safe_emit() {
     ensure_file_exists "$CLAUDE_EVENTS_LOG" || return 1
     local timestamp session_id
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    session_id=$(jq -r '.session_id // "unknown"' 2>/dev/null || echo "unknown")
+    session_id=$(jq -r '.session_id // "unknown"' < /dev/null 2>/dev/null || echo "unknown")
     jq -cn \
       --arg ts "$timestamp" \
       --arg sid "$session_id" \

@@ -6,5 +6,9 @@ if [ ! -d "$HOME/.bun" ]; then
 	export PATH="$BUN_INSTALL/bin:$PATH"
 fi
 
+if [ ! -d "$HOME/.cache/.bun/bin" ]; then
+  export PATH="$HOME/.cache/.bun/bin:$PATH"
+fi
+
 export PATH="/opt/homebrew/bin:$PATH"
 export PATH="/opt/homebrew/sbin:$PATH"

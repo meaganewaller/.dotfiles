@@ -55,10 +55,6 @@ teardown() {
   bash -n "$HOOKS_DIR/PostToolUse/async-test-runner.sh"
 }
 
-@test "PostToolUse/skill-usage-tracker.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/PostToolUse/skill-usage-tracker.sh"
-}
-
 @test "PostToolUseFailure/skill-gap-detector.sh has valid syntax" {
   bash -n "$HOOKS_DIR/PostToolUseFailure/skill-gap-detector.sh"
 }
@@ -71,16 +67,8 @@ teardown() {
   bash -n "$HOOKS_DIR/SessionStart/session-context-injector.sh"
 }
 
-@test "SessionStart/session-start-tracker.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/SessionStart/session-start-tracker.sh"
-}
-
 @test "SessionEnd/learning-suggestion-generator.sh has valid syntax" {
   bash -n "$HOOKS_DIR/SessionEnd/learning-suggestion-generator.sh"
-}
-
-@test "SessionEnd/session-end-tracker.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/SessionEnd/session-end-tracker.sh"
 }
 
 @test "Stop/hard-stop-test-blocker.sh has valid syntax" {
@@ -93,18 +81,6 @@ teardown() {
 
 @test "PreToolUse/layering-guard.sh has valid syntax" {
   bash -n "$HOOKS_DIR/PreToolUse/layering-guard.sh"
-}
-
-@test "PreCompact/pre-compact-snapshot.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/PreCompact/pre-compact-snapshot.sh"
-}
-
-@test "PreCompact/context-compact-tracker.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/PreCompact/context-compact-tracker.sh"
-}
-
-@test "TaskCompleted/task-gate.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/TaskCompleted/task-gate.sh"
 }
 
 @test "UserPromptSubmit/idea-classifier.sh has valid syntax" {
@@ -121,10 +97,6 @@ teardown() {
 
 @test "UserPromptSubmit/cue-injector-prompt.sh has valid syntax" {
   bash -n "$HOOKS_DIR/UserPromptSubmit/cue-injector-prompt.sh"
-}
-
-@test "UserPromptSubmit/state-triggers.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/UserPromptSubmit/state-triggers.sh"
 }
 
 @test "PreToolUse/cue-injector-bash.sh has valid syntax" {
@@ -465,39 +437,6 @@ EOF
   echo "$output" | jq -e '.decision == "block"' >/dev/null
 }
 
-# ============================================================================
-# Agent Spawn Tracker Tests
-# ============================================================================
-
-@test "PreToolUse/agent-spawn-tracker.sh has valid syntax" {
-  bash -n "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh"
-}
-
-@test "agent-spawn-tracker approves non-Agent tools" {
-  input='{"tool_name": "Read", "tool_input": {"file_path": "/test.txt"}}'
-
-  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
-
-  echo "$output" | jq -e '.decision == "approve"' >/dev/null
-}
-
-@test "agent-spawn-tracker tracks agent spawn" {
-  input='{"tool_name": "Agent", "session_id": "test-session-123", "tool_input": {"subagent_type": "Explore", "description": "Find files", "run_in_background": false}}'
-
-  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
-
-  echo "$output" | jq -e '.decision == "approve"' >/dev/null
-  echo "$output" | jq -e '.reason | contains("Explore")' >/dev/null
-}
-
-@test "agent-spawn-tracker notes worktree isolation" {
-  input='{"tool_name": "Agent", "session_id": "test-session-456", "tool_input": {"subagent_type": "general-purpose", "description": "Test", "isolation": "worktree"}}'
-
-  output=$(echo "$input" | "$HOOKS_DIR/PreToolUse/agent-spawn-tracker.sh" 2>/dev/null)
-
-  echo "$output" | jq -e '.decision == "approve"' >/dev/null
-  echo "$output" | jq -e '.reason | contains("worktree")' >/dev/null
-}
 
 # ============================================================================
 # Cue Followup Tracker Tests

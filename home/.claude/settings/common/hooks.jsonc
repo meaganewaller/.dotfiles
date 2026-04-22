@@ -9,14 +9,6 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tool-history-tracker.sh"
-                    },
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/tool-activity-tracker.sh"
-                    },
-                    {
-                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/loop-detector.sh"
                     },
                     {
@@ -60,35 +52,11 @@
                 ]
             },
             {
-                "matcher": "Skill",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/skill-usage-tracker.sh"
-                    }
-                ]
-            },
-            {
                 "matcher": "Read",
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PostToolUse/read-tracker.sh"
-                    },
-                    {
-                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/PostToolUse/resource-limit-catcher.sh"
-                    }
-                ]
-            }
-        ],
-        "PostToolUseFailure": [
-            {
-                "matcher": "Bash|Task|Read|Write|Edit|Glob|Grep|mcp__.*",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PostToolUseFailure/skill-gap-detector.sh"
                     }
                 ]
             }
@@ -107,10 +75,6 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/Stop/leverage-evaluator.sh"
-                    },
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/Stop/cost-tracker.sh"
                     }
                 ]
             }
@@ -124,15 +88,7 @@
                     },
                     {
                         "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/UserPromptSubmit/state-triggers.sh"
-                    },
-                    {
-                        "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/UserPromptSubmit/idea-classifier.sh"
-                    },
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/UserPromptSubmit/session-duration-monitor.sh"
                     }
                 ]
             }
@@ -150,10 +106,6 @@
         "SessionEnd": [
             {
                 "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/SessionEnd/session-end-tracker.sh"
-                    },
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionEnd/learning-suggestion-generator.sh"
@@ -250,49 +202,12 @@
                         "command": "\"$HOME\"/.claude/hooks/PreToolUse/bulk-operation-estimator.sh"
                     }
                 ]
-            },
-            {
-                "matcher": "Agent",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PreToolUse/agent-spawn-tracker.sh"
-                    }
-                ]
-            }
-        ],
-        "TaskCompleted": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/TaskCompleted/task-gate.sh"
-                    }
-                ]
-            }
-        ],
-        "PreCompact": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PreCompact/context-compact-tracker.sh"
-                    },
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/PreCompact/pre-compact-snapshot.sh"
-                    }
-                ]
             }
         ],
         "SessionStart": [
             {
                 "matcher": "startup|resume",
                 "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/SessionStart/session-start-tracker.sh"
-                    },
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/branch-staleness-check.sh"
@@ -316,26 +231,6 @@
                     {
                         "type": "command",
                         "command": "\"$HOME\"/.claude/hooks/SessionStart/agents-md.sh"
-                    }
-                ]
-            }
-        ],
-        "WorktreeCreate": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/WorktreeCreate/worktree-create-log.sh"
-                    }
-                ]
-            }
-        ],
-        "WorktreeRemove": [
-            {
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$HOME\"/.claude/hooks/WorktreeRemove/worktree-remove-log.sh"
                     }
                 ]
             }
