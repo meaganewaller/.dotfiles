@@ -18,13 +18,13 @@ font-thicken = true
 adjust-cell-height = 2
 
 # --- Theme and Colors
-# Custom themes matching dotfiles theme system (jubi=dark, sakura=light)
-theme = light:sakura,dark:jubi
+# Custom themes matching dotfiles theme system
+theme = jubi
 
 # --- Window and Appearance ---
-background-opacity = 0.9
+background-opacity = 0.98
 background-image = ~/.config/ghostty/backgrounds/tamagotchi-rainbow-clouds-wallpaper-kawaii-hoshi.jpg
-background-image-opacity = 0.2
+background-image-opacity = 0.125
 background-image-fit = cover
 background-image-position = center
 unfocused-split-opacity = 0.8
@@ -32,7 +32,6 @@ background-blur-radius = 20
 window-padding-x = 10
 window-padding-y = 8
 window-save-state = always
-window-theme = system
 window-step-resize = true
 
 # --- Cursor ---
