@@ -1,0 +1,197 @@
+{
+  "editor.accessibilitySupport": "off",
+  "editor.aiStats.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.linkedEditing": true,
+  "editor.renderWhitespace": "all",
+  "editor.stickyScroll.enabled": true,
+  "editor.tabSize": 2,
+  "editor.wordSeparators": " `~!@#$%^&*()-=_+[{]}\\|;:'\",.<>/?",
+  "editor.cursorBlinking": "smooth",
+  "editor.fontFamily": "'Fira Code Retina', HackGen35-Regular, 'Symbols Nerd Font'",
+  "editor.fontLigatures": "cv25, cv26, cv27, cv32, ss02, ss03, ss08, ss09",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.size": "fill",
+  "editor.suggest.preview": true,
+  "files.autoSave": "afterDelay",
+  "files.trimTrailingWhitespace": true,
+  // Workbench
+  "workbench.layoutControl.enabled": false,
+  "workbench.productIconTheme": "Tabler",
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "workbench.startupEditor": "none",
+  // Appearance
+  "workbench.activityBar.location": "top",
+  "workbench.colorCustomizations": {
+    "terminal.ansiBlack": "#000000",
+    "terminal.ansiRed": "#C51E14",
+    "terminal.ansiGreen": "#1DC121",
+    "terminal.ansiYellow": "#C7C329",
+    "terminal.ansiBlue": "#0A2FC4",
+    "ter{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": { "padding": { "top": 2 } },
+  "display": { "percent": { "type": 11 } },
+  "modules": [
+    "title",
+    "separator",
+    "os",
+    "host",
+    "bios",
+    "bootmgr",
+    { "type": "kernel", "format": "{1} {2}" },
+    "initsystem",
+    "uptime",
+    "processes",
+    "packages",
+    { "type": "shell", "format": "{2} {4}" },
+    { "type": "display", "preciseRefreshRate": true },
+    "brightness",
+    "monitor",
+    "de",
+    "wm",
+    "wmtheme",
+    "font",
+    "cursor",
+    "wallpaper",
+    "terminal",
+    "terminalfont",
+    "terminalsize",
+    "terminaltheme",
+    { "type": "cpu", "temp": true },
+    "cpuusage",
+    "gpu",
+    "memory",
+    "swap",
+    { "type": "disk", "showExternal": true },
+    { "type": "battery", "temp": true },
+    "poweradapter",
+    "publicip",
+    "localip",
+    "dns",
+    "wifi",
+    "locale",
+    "opengl",
+    "opencl",
+    "bluetooth",
+    "bluetoothradio",
+    "sound",
+    "camera",
+    "netio",
+    "diskio",
+    "version",
+    "break",
+    "colors"
+  ]
+}minal.ansiMagenta": "#C839C5",
+    "terminal.ansiCyan": "#20C5C6",
+    "terminal.ansiWhite": "#C7C7C7",
+    "terminal.ansiBrightBlack": "#686868",
+    "terminal.ansiBrightRed": "#FD6F6B",
+    "terminal.ansiBrightGreen": "#67F86F",
+    "terminal.ansiBrightYellow": "#FFFA72",
+    "terminal.ansiBrightBlue": "#6A76FB",
+    "terminal.ansiBrightMagenta": "#FD7CFC",
+    "terminal.ansiBrightCyan": "#68FDFE",
+    "terminal.ansiBrightWhite": "#FFFFFF"
+  },
+  "workbench.iconTheme": "vscode-great-icons",
+  "workbench.preferredDarkColorTheme": "sukadia.dev/dark",
+  "workbench.preferredLightColorTheme": "Brackets Light Pro",
+  "workbench.tree.renderIndentGuides": "always",
+    // Editor Management
+    "workbench.editor.highlightModifiedTabs": true,
+    "workbench.editor.tabSizing": "shrink",
+
+  // Window
+  "window.autoDetectColorScheme": true,
+  "window.commandCenter": false,
+  "window.title": "${dirty}${activeEditorMedium}${separator}${rootName}",
+
+  // Features
+  // Explorer
+  "explorer.compactFolders": false,
+  "explorer.sortOrder": "type",
+  // Search
+  "search.quickOpen.includeHistory": false,
+  // Extensions
+  "extensions.closeExtensionDetailsOnViewChange": true,
+  // Terminal
+  "terminal.external.osxExec": "Ghostty.app",
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.cursorWidth": 2,
+  "terminal.integrated.fontFamily": "'Fira Code Retina', HackGen35Console-Regular, 'Symbols Nerd Font'",
+  "terminal.integrated.fontLigatures.enabled": true,
+  "terminal.integrated.fontLigatures.featureSettings": "cv25, cv26, cv27, cv32, ss02 on, ss03, ss08, ss09",
+  "terminal.integrated.fontSize": 15,
+  "terminal.integrated.stickyScroll.enabled": false,
+  "terminal.integrated.wordSeparators": " -,.;:\"()[]{}@/=|'",
+  // Chat
+  "chat.agent.maxRequests": 40,
+
+  // Security
+  // Workspace
+  "security.workspace.trust.untrustedFiles": "open",
+
+  // Extensions
+  // code-eol Configuration
+  "code-eol.color": "#d0d0d0",
+  // Deno
+  "deno.codeLens.implementations": true,
+  "deno.codeLens.references": true,
+  "deno.codeLens.referencesAllFunctions": true,
+  "deno.codeLens.test": true,
+  // Git
+  "git.alwaysSignOff": true,
+  "git.autofetch": true,
+  // GitHub Copilot Chat
+  "github.copilot.enable": { "*": true, "plaintext": true, "markdown": true },
+  // Go
+  "go.alternateTools": { "customFormatter": "golangci-lint-v2" },
+  "go.formatFlags": ["fmt", "--stdin"],
+  "go.formatTool": "custom",
+  "go.inlayHints.assignVariableTypes": true,
+  "go.inlayHints.compositeLiteralFields": true,
+  "go.inlayHints.compositeLiteralTypes": true,
+  "go.inlayHints.constantValues": true,
+  "go.inlayHints.functionTypeParameters": true,
+  "go.inlayHints.parameterNames": true,
+  "go.inlayHints.rangeVariableTypes": true,
+  "go.lintTool": "golangci-lint-v2",
+  // HTML
+  "html.format.indentInnerHtml": true,
+  "html.format.wrapLineLength": 0,
+  // JSON
+  "json.schemaDownload.enable": true,
+  // Lua
+  "Lua.diagnostics.globals": ["hs"],
+  // Marp for VS Code
+  "markdown.marp.pdf.outlines": "headings",
+  // path-intellisense
+  "path-intellisense.autoSlashAfterDirectory": true,
+  "path-intellisense.autoTriggerNextSuggestion": true,
+  // Project Manager
+  "projectManager.git.baseFolders": ["~/github/meaganeawaller/.dotfiles", "~/ghq"],
+  // rumdl
+  "rumdl.rules.disable": ["MD013", "MD024", "MD033", "MD036"],
+  // TypeScript
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "js/ts.inlayHints.functionLikeReturnTypes.enabled": true,
+  "js/ts.inlayHints.parameterNames.enabled": "all",
+  "js/ts.inlayHints.parameterTypes.enabled": true,
+  "js/ts.inlayHints.propertyDeclarationTypes.enabled": true,
+  "js/ts.inlayHints.variableTypes.enabled": true,
+  "js/ts.inlayHints.enumMemberValues.enabled": true,
+  // VersionLens
+  "versionlens.suggestions.showOnStartup": true,
+  // WordCounter
+  "wordcounter.side.left": [],
+  "wordcounter.side.right": ["word", "char", "line"],
+  // YAML
+  "redhat.telemetry.enabled": false
+}

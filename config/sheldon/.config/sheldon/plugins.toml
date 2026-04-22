@@ -1,0 +1,48 @@
+shell = "zsh"
+apply = ["defer"]
+
+[templates]
+defer = "{{ hooks?.pre | nl }}{% for file in files %}zsh-defer source \"{{ file }}\"\n{% endfor %}{{ hooks?.post | nl }}"
+
+
+[plugins.zsh-defer]
+github = "romkatv/zsh-defer"
+apply = ["source"]
+
+[plugins.ni]
+github = "azu/ni.zsh"
+[plugins.ni.hooks]
+post = "export NI_USE_SOCKET_FIREWALL=1"
+
+[plugins.zsh-autopair]
+github = "hlissner/zsh-autopair"
+
+[plugins.zsh-you-should-use]
+github = "MichaelAquilina/zsh-you-should-use"
+[plugins.zsh-you-should-use.hooks]
+post = 'export YSU_MESSAGE_FORMAT="💡 \033[36m%alias\033[m"'
+
+[plugins.powerlevel10k]
+github = "romkatv/powerlevel10k"
+apply = ["source"]
+[plugins.powerlevel10k.hooks]
+post = """
+if [[ -r "$XDG_CACHE_HOME/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "$XDG_CACHE_HOME/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+[ -f "$ZDOTDIR/extra/p10k.zsh" ] && source "$ZDOTDIR/extra/p10k.zsh"
+"""
+
+[plugins.zsh-bench]
+github = "romkatv/zsh-bench"
+apply = ["PATH"]
+
+[plugins.zsh-autosuggestions]
+github = "zsh-users/zsh-autosuggestions"
+apply = ["source"]
+
+[plugins.zsh-completions]
+github = "zsh-users/zsh-completions"
+
+[plugins.zsh-syntax-highlighting]
+github = "zsh-users/zsh-syntax-highlighting"

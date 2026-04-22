@@ -1,0 +1,20 @@
+blocks:
+  - permission
+  - user
+  - group
+  - size
+  - date
+  - git
+  - name
+
+display: almost-all
+
+ignore-globs:
+  - .DS_Store
+
+size: short
+
+sorting:
+  dir-grouping: first
+
+total-size: true

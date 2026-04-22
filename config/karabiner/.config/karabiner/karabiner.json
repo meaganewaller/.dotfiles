@@ -1,0 +1,75 @@
+{
+  "global": { "show_in_menu_bar": false },
+  "profiles": [
+    {
+      "devices": [
+        {
+          "identifiers": {
+            "is_keyboard": true,
+            "is_pointing_device": true,
+            "product_id": 9248,
+            "vendor_id": 9639
+          },
+          "ignore": false
+        }
+      ],
+      "name": "NJ80 Keyboard",
+      "selected": true,
+      "simple_modifications": [
+        {
+          "from": { "key_code": "caps_lock" },
+          "to": [{ "key_code": "left_control" }]
+        },
+        {
+          "from": { "key_code": "right_command" },
+          "to": [{ "key_code": "f18" }]
+        }
+      ],
+      "complex_modifications": {
+        "rules": [
+          {
+            "description": "F18 + / → Aerospace keybindings cheatsheet",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "slash",
+                  "modifiers": {
+                    "mandatory": ["f18"],
+                    "optional": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "/bin/bash -c '$HOME/.local/bin/aerospace-keys-popup'"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "description": "Ctrl+Alt+/ → Aerospace keybindings cheatsheet (alternative)",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "slash",
+                  "modifiers": {
+                    "mandatory": ["control", "option"],
+                    "optional": ["caps_lock"]
+                  }
+                },
+                "to": [
+                  {
+                    "shell_command": "/bin/bash -c '$HOME/.local/bin/aerospace-keys-popup'"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "virtual_hid_keyboard": { "keyboard_type_v2": "ansi" }
+    }
+  ]
+}

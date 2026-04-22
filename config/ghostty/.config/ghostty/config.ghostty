@@ -1,0 +1,41 @@
+font-family = "Fira Code SemiBold"
+font-family = "HackGen35Console-Bold"
+font-family = "Symbols Nerd Font"
+font-feature = "cv25"
+font-feature = "cv26"
+font-feature = "cv27"
+font-feature = "cv32"
+font-feature = "ss02"
+font-feature = "ss03"
+font-feature = "ss08"
+font-feature = "ss09"
+font-size = 18
+
+adjust-cursor-thickness = 3
+
+theme = "light:minimal-light.ghostty,dark:minimal-dark.ghostty"
+config-file = "themes/minimal-ansi.ghostty"
+
+cursor-style = bar
+
+mouse-scroll-multiplier = 3
+
+notify-on-command-finish = "always"
+
+keybind = "cmd+enter=ignore"
+keybind = "opt+delete=esc:d"
+keybind = "cmd+backspace=text:\x15"
+keybind = "cmd+delete=text:\x0b"
+keybind = "opt+[=previous_tab"
+keybind = "opt+]=next_tab"
+keybind = "cmd+r=reload_config"
+
+window-padding-x = 40
+window-padding-y = 40
+window-inherit-working-directory = false
+window-height = 30
+window-width = 70
+
+copy-on-select = false
+
+macos-titlebar-style = "tabs"

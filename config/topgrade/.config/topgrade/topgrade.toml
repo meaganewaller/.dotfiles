@@ -1,0 +1,18 @@
+[misc]
+disable = ["containers", "system"]
+display_time = false
+cleanup = true
+
+[brew]
+greedy_cask = true
+autoremove = true
+
+[git]
+repos = ["~/*", "~/ghq/**"]
+
+[commands]
+Jetpack = "vim +Jetpack +qall"
+dorg = '_run dorg save --file="$data/dorg.yml"'
+mackup = "_run mackup -f backup"
+mksei = '_run mksei save "$data/keyboard_shortcuts.json"'
+mli = '_run mli save -f --file="$data/login_items.json"'

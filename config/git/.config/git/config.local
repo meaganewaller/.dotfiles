@@ -1,0 +1,15 @@
+# Work-specific configurations
+[includeIf "hasconfig:remote.*.url:*gusto/*"]
+  path = ~/.gitconfig.work
+[includeIf "gitdir:~/workspace/**"]
+  path = ~/.gitconfig.work
+
+# Personal-specific configurations
+[includeIf "gitdir:~/github/meaganewaller/**"]
+  path = ~/.gitconfig.personal
+[includeIf "gitdir:~/github/garbagecollectorsdaughter/**"]
+  path = ~/.gitconfig.personal
+[includeIf "gitdir:~/github/onlooker-community/**"]
+  path = ~/.gitconfig.personal
+
+

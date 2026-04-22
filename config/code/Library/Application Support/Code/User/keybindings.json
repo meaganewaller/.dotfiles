@@ -1,0 +1,54 @@
+[
+  {
+    "key": "cmd+l",
+    "command": "editor.action.addSelectionToNextFindMatch",
+    "when": "editorFocus"
+  },
+  {
+    "key": "cmd+,",
+    "command": "workbench.action.openSettingsJson"
+  },
+  {
+    "key": "alt+[",
+      "command": "workbench.action.previousEditorInGroup"
+  },
+  {
+    "key": "alt+]",
+    "command": "workbench.action.nextEditorInGroup"
+  },
+  {
+    "key": "alt+shift+[",
+      "command": "workbench.action.focusPreviousGroup"
+  },
+  {
+    "key": "alt+shift+]",
+    "command": "workbench.action.focusNextGroup"
+  },
+  {
+    "key": "alt+shift+[",
+      "command": "workbench.action.terminal.focusPreviousPane",
+      "when": "terminalFocus && terminalHasBeenCreated || terminalFocus && terminalProcessSupported"
+  },
+  {
+    "key": "alt+shift+]",
+    "command": "workbench.action.terminal.focusNextPane",
+    "when": "terminalFocus && terminalHasBeenCreated || terminalFocus && terminalProcessSupported"
+  },
+  {
+    "key": "cmd+enter",
+    "command": "search.action.replaceAll",
+    "when": "replaceActive && searchViewletVisible && !findWidgetVisible"
+  },
+  {
+    "key": "cmd+n",
+    "command": "explorer.newFile"
+  },
+  {
+    "key": "cmd+shift+n",
+    "command": "explorer.newFolder"
+  },
+  {
+    "key": "cmd+d",
+    "command": "duplicate.execute"
+  }
+]

@@ -1,0 +1,64 @@
+[core]
+  hooksPath = ~/.config/git/hooks
+  attributesfile = ~/.config/git/attributes
+
+[sequence]
+  editor = interactive-rebase-tool
+
+[gpg]
+  format = ssh
+
+[gpg "ssh"]
+  program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+
+[branch]
+  sort = -committerdate
+
+[clone]
+  recurse-submodule = true
+
+[commit]
+  gpgsign = true
+  verbose = true
+
+[fetch]
+  prune = true
+
+[diff]
+  algorithm = histogram
+
+[init]
+  defaultBranch = main
+
+[push]
+  autoSetupRemote = true
+  default = simple
+
+[rebase]
+  autostash = true
+
+[tag]
+  gpgsign = true
+
+[url "git@github.com:"]
+  pushInsteadOf = https://github.com/
+
+[merge "weave"]
+  name = Entity-level semantic merge
+  driver = weave-driver %O %A %B %L %P
+
+[ghq]
+  user = meaganewaller
+
+[interactive-rebase-tool]
+  inputMoveLeft = h
+  inputMoveDown = j
+  inputMoveUp = k
+  inputMoveRight = l
+  inputMoveHome = g
+  inputMoveEnd = G
+  inputMoveSelectionDown = J
+  inputMoveSelectionUp = K
+
+[include]
+  path = ~/.config/git/config.local

@@ -1,0 +1,14 @@
+[mgr]
+layout = [2, 5, 3]
+sort_by = "natural"
+sort_sensitive = true
+sort_reverse = false
+show_hidden = true
+linemode = "size"
+
+[opener]
+edit = [
+  { run = 'nvim "$@"', desc = "Vim", block = true },
+  { run = 'cursor "@"', desc = "Cursor" },
+  { run = 'code "$@"', desc = "VS Code" },
+]

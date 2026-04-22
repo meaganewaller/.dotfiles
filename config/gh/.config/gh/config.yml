@@ -1,0 +1,4 @@
+git_protocol: ssh
+editor: vim
+prompt: enabled
+version: "1"
