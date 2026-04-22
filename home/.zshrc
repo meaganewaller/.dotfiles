@@ -3,6 +3,10 @@ zmodload zsh/zprof
 
 fpath=($HOME/.config/zsh/plugins $fpath)
 
+autoload -Uz compinit
+compinit -d "$XDG_DATA_HOME/zsh/compdump"
+
+
 ########################################
 # Base PATH
 ########################################
@@ -354,8 +358,6 @@ setopt list_types
 setopt print_eight_bit
 setopt share_history
 
-autoload -Uz compinit
-zsh-defer compinit -d "$XDG_DATA_HOME/zsh/compdump"
 
 autoload -Uz select-word-style
 select-word-style default
