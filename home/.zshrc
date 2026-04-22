@@ -1,13 +1,22 @@
 #!/usr/bin/env zsh
+zmodload zsh/zprof
 
 fpath=($HOME/.config/zsh/plugins $fpath)
-
-
 
 ########################################
 # Base PATH
 ########################################
 export PATH="$HOME/.local/bin:$PATH"
+
+########################################
+# Emacs Keymap
+########################################
+
+# emacs mode (terminal only)
+bindkey -e
+
+# Press <delete> to delete characters instead of producing a ~
+bindkey "^[[3~" delete-char
 
 ########################################
 # Dotfiles bin
@@ -25,46 +34,20 @@ fi
 # zsh options
 ########################################
 setopt APPEND_HISTORY         # Append to history file instead of overwriting
-setopt EXTENDED_HISTORY       # Write the history file in the ':start:elapsed;command' format.
-setopt HIST_IGNORE_DUPS       # Do not record an event that was just recorded again.
+setopt EXTENDED_HISTORY       # Write the history file in the ':start:elapsed;command' format
+setopt HIST_IGNORE_DUPS       # Do not record an event that was just recorded again
 setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicates
 setopt HIST_IGNORE_SPACE      # Ignore commands that start with a space
 setopt HIST_NO_FUNCTIONS      # Don't save functions to history
+setopt HIST_VERIFY            # Don't execute immediately when picking from history
 setopt HIST_REDUCE_BLANKS     # Remove extra blanks from history
 setopt INC_APPEND_HISTORY     # Append history incrementally
 setopt SHARE_HISTORY          # Share history between all sessions
 
 HISTSIZE=50000
-SAVEHIST=50000
+SAVEHIST=$HISTSIZE
 HISTFILE="$HOME/.zsh_history"
 
-autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
-bindkey "^[[A" up-line-or-beginning-search    # Up arrow
-bindkey "^[[B" down-line-or-beginning-search  # Down arrow
-bindkey "^[^?" backward-kill-word             # Alt+Backspace: delete word
-setopt AUTO_CD               # cd by typing directory name
-setopt INTERACTIVE_COMMENTS  # Allow comments in interactive shell
-setopt PUSHD_IGNORE_DUPS    # Do not store duplicates in the stack.
-setopt PUSHD_SILENT         # Do not print the directory stack after pushd or popd.
-setopt CORRECT              # Spelling correction
-setopt CDABLE_VARS          # Change directory to a path stored in a variable.
-setopt EXTENDED_GLOB        # Use extended globbing syntax.
-
-# Filter commands from history (uses HISTORY_IGNORE from exports)
-zshaddhistory() {
-  emulate -L zsh
-  [[ $1 != ${~HISTORY_IGNORE} ]]
-}
-
-# Completion settings
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'  # Case insensitive
-zstyle ':completion:*' menu select                       # Menu selection
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" # Colored completions
-autoload -Uz compinit && compinit
-
-_comp_options+=(globdots) # With hidden files
 
 # API tokens for mise/Homebrew/etc. (generate: DOTFILES_ROOT/bin/generate-api-keys --refresh)
 [[ -f ${HOME}/.config/dotfiles/secrets.env ]] && source ${HOME}/.config/dotfiles/secrets.env
@@ -72,7 +55,6 @@ _comp_options+=(globdots) # With hidden files
 ########################################
 # Exports & Environment Variables
 ########################################
-
 export GPG_TTY=$(tty)
 export EXPORTS_DIR="$HOME/.config/exports"
 
@@ -221,7 +203,7 @@ distroprompt_os_symbol() {
                echo -n "%B%F{125}"
             else
                # Distro cant be determined
-               echo -n "%B%F{253}" 
+               echo -n "%B%F{253}"
             fi
          ;;
          "FreeBSD")
@@ -268,7 +250,7 @@ distroprompt_git_info() {
       else
          if [[ "$DISTROPROMPT_SHOW_DIR" == "right" ]] ; then
             echo -n "$DISTROPROMPT_GIT_CLEAN"
-         fi 
+         fi
       fi
    fi
 
@@ -278,10 +260,10 @@ distroprompt_git_info() {
 
 # Executed before each prompt
 precmd() {
-   local distroprompt_exit_color="%(?.${DISTROPROMPT_NOERROR_COLOR}.${DISTROPROMPT_ERROR_COLOR})"  
+   local distroprompt_exit_color="%(?.${DISTROPROMPT_NOERROR_COLOR}.${DISTROPROMPT_ERROR_COLOR})"
 
    # Update terminal title
-   print -Pn "\e]0;%n@%m:%/\a"  
+   print -Pn "\e]0;%n@%m:%/\a"
 
    # Directory name placement
    if [[ "$DISTROPROMPT_SHOW_DIR" == "left" ]] ; then
@@ -309,9 +291,22 @@ DISTROPROMPT_RIGHT_PROMPT_COLOR="%B%F{84}"
 DISTROPROMPT_ERROR_COLOR="%B%F{203}"
 DISTROPROMPT_NOERROR_COLOR="%B%F{84}"
 DISTROPROMPT_SHOW_DIR="right" # left, right or off
+
 ########################################
 # Utility Functions
 ########################################
+
+# Find out what's running on a given port
+whatsonport() {
+  lsof -i tcp:$1
+}
+
+# Convert a bunch of images to a single PDF
+# Requires imagemagick to be installed
+# Example: img2pdf 2025-01-01-* 2025-01-01-january-in-photos.pdf
+img2pdf() {
+  magick $1 -auto-orient $2
+}
 
 function cursor {
 	(nohup /Applications/Cursor.app/Contents/MacOS/Cursor "$@" > /dev/null 2>&1 &)
@@ -345,63 +340,46 @@ alias ruok='
     echo -e "\nDNS Lookup for Google using nslookup:"
     nslookup google.com
 '
-########################################
-# Vi Keymap
-########################################
-
-# Vi mode
-bindkey -v
-export KEYTIMEOUT=1
-
-# Add Vi text-objects for brackets and quotes
-autoload -Uz select-bracketed select-quoted
-zle -N select-quoted
-zle -N select-bracketed
-for km in viopp visual; do
-  bindkey -M $km -- '-' vi-up-line-or-history
-  for c in {a,i}${(s..)^:-\'\"\`\|,./:;=+@}; do
-    bindkey -M $km $c select-quoted
-  done
-  for c in {a,i}${(s..)^:-'()[]{}<>bB'}; do
-    bindkey -M $km $c select-bracketed
-  done
-done
-
-# Emulation of vim-surround
-autoload -Uz surround
-zle -N delete-surround surround
-zle -N add-surround surround
-zle -N change-surround surround
-bindkey -M vicmd cs change-surround
-bindkey -M vicmd ds delete-surround
-bindkey -M vicmd ys add-surround
-bindkey -M visual S add-surround
-
-# Increment a number
-autoload -Uz incarg
-zle -N incarg
-bindkey -M vicmd '^a' incarg
 
 ########################################
-# Bindings
+# Autocompletion
 ########################################
 
-# ctrl+l used for tmux (switch pane)
-bindkey -r '^l'
-bindkey -r '^g'
-bindkey '^g' .clear-screen
+setopt auto_cd
+setopt correct
+setopt glob_dots
+setopt hist_ignore_all_dups
+setopt hist_reduce_blanks
+setopt list_types
+setopt print_eight_bit
+setopt share_history
 
-bindkey -r '^p'
-bindkey -s '^p' 'fpdf\n'
+autoload -Uz compinit
+zsh-defer compinit -d "$XDG_DATA_HOME/zsh/compdump"
 
-# bindkey -s '^b' 'go run .\n'
+autoload -Uz select-word-style
+select-word-style default
+zstyle ':zle:*' word-chars ' -_,.;:"()[]{}@/=|'
+zstyle ':zle:*' word-style unspecified
 
-# edit current command line with vim (vim-mode, then CTRL-v)
-autoload -Uz edit-command-line
-zle -N edit-command-line
-bindkey -M vicmd '^v' edit-command-line
+zstyle ':completion:*:default' menu select=1
+bindkey '^[[Z' reverse-menu-complete
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+autoload -U up-line-or-beginning-search
+autoload -U down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey '^[[A' up-line-or-beginning-search
+bindkey '^[[B' down-line-or-beginning-search
+
+export HISTFILE="$XDG_DATA_HOME/zsh/history"
+mkdir -p "$(dirname "$HISTFILE")"
+export HISTSIZE=100000
+export SAVEHIST=100000
+
+_comp_options+=(globdots) # With hidden files
 
 source "$HOME/.config/zsh/bindings.zsh"
-
 source "$HOME/.config/zsh/completion.zsh"
 source "$HOME/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"

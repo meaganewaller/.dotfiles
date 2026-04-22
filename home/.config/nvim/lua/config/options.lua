@@ -20,7 +20,7 @@ o.wrap = false
 o.swapfile = false
 o.backup = false
 o.undofile = true
-o.undodir = vim.fn.stdpath('state') .. '/undo'
+-- o.undodir = vim.fn.stdpath('state') .. '/undo'
 
 -- Search
 o.hlsearch = true

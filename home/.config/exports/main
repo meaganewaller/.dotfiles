@@ -7,8 +7,13 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 # Cache Homebrew prefix (avoid slow brew --prefix calls)
 export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 
-export EDITOR="nvim"
+export TERM=tmux-256color
+
 export VISUAL="nvim"
+export EDITOR="$VISUAL"
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 
 export MANPAGER="less -X"
 
