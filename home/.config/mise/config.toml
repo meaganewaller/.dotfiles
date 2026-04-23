@@ -49,6 +49,7 @@ ffmpeg = "8.0.1"
 colima = "latest"
 
 lua-language-server = "latest"
+bun = "1.3.11"
 
 # Global tasks (available in any directory once `dotfiles` is on PATH).
 # Profile: export DOTFILES_PROFILE or pass via dotfiles CLI where supported.
