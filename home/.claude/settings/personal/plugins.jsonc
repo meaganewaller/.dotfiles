@@ -15,7 +15,32 @@
         }
     },
     "enabledPlugins": {
-        "decision-journal@meaganewaller-marketplace": true,
-        "onlooker@onlooker-marketplace": true
+      "code-simplifier@claude-plugins-official": true,
+      "claude-md-management@claude-plugins-official": true,
+      "pr-review-toolkit@claude-plugins-official": true,
+      "pyright-lsp@claude-plugins-official": true,
+      "claude-code-setup@claude-plugins-official": true,
+      "plugin-dev@claude-plugins-official": true,
+      "skill-creator@claude-plugins-official": true,
+      "lua-lsp@claude-plugins-official": true,
+      "code-review@claude-plugins-official": true,
+      "bun@meaganewaller-marketplace": true,
+      "decision-journal@meaganewaller-marketplace": true,
+      "git@meaganewaller-marketplace": true,
+      "tools@meaganewaller-marketplace": true,
+      "typescript-architect@meaganewaller-marketplace": true,
+      "archivist@onlooker-marketplace": true,
+      "cartographer@onlooker-marketplace": true,
+      "counsel@onlooker-marketplace": true,
+      "cues@onlooker-marketplace": true,
+      "echo@onlooker-marketplace": true,
+      "ledger@onlooker-marketplace": true,
+      "onlooker@onlooker-marketplace": true,
+      "oracle@onlooker-marketplace": true,
+      "relay@onlooker-marketplace": true,
+      "scribe@onlooker-marketplace": true,
+      "sentinel@onlooker-marketplace": true,
+      "tribunal@onlooker-marketplace": true,
+      "warden@onlooker-marketplace": true
     }
 }
