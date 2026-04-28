@@ -155,7 +155,7 @@ function M.neovim_logs(opts)
   return Snacks.picker.files(vim.tbl_deep_extend("keep", opts or {}, {
     title = "Neovim Log Files",
     cwd = log_dir,
-    confirm = function(picker, item)
+    confirm = function(picker)
       local selected = picker:selected({ fallback = true })
       picker:close()
       for i, selected_item in ipairs(selected) do
