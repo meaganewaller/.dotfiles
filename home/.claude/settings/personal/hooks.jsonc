@@ -1,0 +1,18 @@
+{
+    // Personal hooks configuration for Claude Code, ordered alphabetically.
+    // These hooks execute in response to events during Claude Code's operation
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "hooks": {
+        "Notification": [
+            {
+                "matcher": "idle_prompt",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "$HOME/.claude/hooks/Notification/idle_prompt.sh"
+                    }
+                ]
+            }
+        ]
+    }
+}
