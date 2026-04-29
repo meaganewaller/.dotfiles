@@ -2,14 +2,9 @@ require("lazyload").on_vim_enter(function()
   vim.pack.add({
     { src = "https://github.com/mason-org/mason.nvim" },
     { src = "https://github.com/mason-org/mason-lspconfig.nvim" },
-    { src = "https://github.com/zapling/mason-lock.nvim" },
   })
 
   require("mason").setup({ PATH = "append" })
-
-  require("mason-lock").setup({
-    lockfile_path = vim.env.DOTFILES .. "/nvim-fredrik/mason-lock.json",
-  })
 
   require("mason-lspconfig").setup({
     automatic_enable = false, -- we handle vim.lsp.enable() ourselves
@@ -50,15 +45,10 @@ require("lazyload").on_vim_enter(function()
     "stylua",
     "superhtml",
     "taplo",
-    "templ",
-    "terraform-ls",
-    "tflint",
     "ts_query_ls",
-    "vtsls",
     "yaml-language-server",
     "yamlfmt",
     "yamllint",
-    "zls",
   }
 
   local mason_registry = require("mason-registry")

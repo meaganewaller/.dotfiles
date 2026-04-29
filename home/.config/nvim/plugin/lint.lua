@@ -20,17 +20,17 @@ require("lazyload").on_vim_enter(function()
 
   lint.linters.markdownlint.args = {
     "--config",
-    vim.env.DOTFILES .. "/extras/templates/.markdownlint.json",
+    vim.env.DOTFILES_ROOT .. "/extras/templates/.markdownlint.json",
     "--stdin",
   }
   lint.linters.protolint.args = {
     "lint",
     "--reporter=json",
-    "--config_path=" .. vim.env.DOTFILES .. "/extras/templates/.protolint.yaml",
+    "--config_path=" .. vim.env.DOTFILES_ROOT .. "/extras/templates/.protolint.yaml",
   }
   lint.linters.yamllint.args = {
     "--config-file",
-    vim.env.DOTFILES .. "/extras/templates/.yamllint.yml",
+    vim.env.DOTFILES_ROOT .. "/extras/templates/.yamllint.yml",
     "--format",
     "parsable",
     "-",
