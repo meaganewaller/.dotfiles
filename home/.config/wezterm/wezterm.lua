@@ -14,7 +14,7 @@ require("lua.colors")(config)
 require("lua.layout")(config)
 require("lua.agent").apply(config)
 require("lua.tabs")(config)
-require("lua.status")
+require("lua.status")()
 require("lua.mux")(config)
 require("lua.platform")(config)
 
