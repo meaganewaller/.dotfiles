@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Claude Code Telemetry and Exit Speed Optimization
 export DISABLE_TELEMETRY=1
@@ -15,9 +15,8 @@ export DISABLE_BEDROCK=1
 # Override: MISE_USE_SHIMS_ONLY=1
 if command -v mise >/dev/null 2>&1; then
   if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
-	source "$HOME/.gusto/init.sh"
+    . "$HOME/.gusto/init.sh"
   else
     eval "$(mise activate zsh)"
   fi
 fi
-

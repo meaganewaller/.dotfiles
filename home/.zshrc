@@ -2,6 +2,7 @@
 zmodload zsh/zprof
 
 fpath=($HOME/.config/zsh/plugins $fpath)
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 autoload -Uz compinit
 compinit -d "$XDG_DATA_HOME/zsh/compdump"

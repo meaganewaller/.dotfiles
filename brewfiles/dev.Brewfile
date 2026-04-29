@@ -45,3 +45,5 @@ brew "tmux"
 
 cask "claude"
 cask "claude-code"
+
+brew "sethdeckard/tap/atria"
