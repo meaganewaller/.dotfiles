@@ -1,0 +1,20 @@
+local wezterm = require("wezterm")
+
+return function(config)
+  config.font = wezterm.font_with_fallback({
+    {
+      family = "Maple Mono NF CN",
+      harfbuzz_features = { "calt=0", "clig=0", "liga=0" },
+      weight = 300,
+    },
+    { family = "Symbols Nerd Font Mono", scale = 0.75 },
+    { family = "BabelStone Runic Elder Futhark", scale = 0.9 },
+    "Apple Color Emoji",
+  })
+
+  config.line_height = 1
+  config.underline_thickness = "0.08cell"
+  config.underline_position = "-0.16cell"
+  config.cursor_thickness = 1
+  config.custom_block_glyphs = true
+end
