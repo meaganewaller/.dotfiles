@@ -459,6 +459,10 @@
       "rev": "208e1c5b8170c01fd1d07df0139322a76479b235",
       "src": "https://github.com/folke/sidekick.nvim"
     },
+    "smart-splits.nvim": {
+      "rev": "033a1ff747652dfa27bfbe90e0844b5cb59a741f",
+      "src": "https://github.com/mrjones2014/smart-splits.nvim"
+    },
     "snacks.nvim": {
       "rev": "fe7cfe9800a182274d0f868a74b7263b8c0c020b",
       "src": "https://github.com/folke/snacks.nvim"

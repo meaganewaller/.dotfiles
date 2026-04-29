@@ -6,18 +6,6 @@ if Config.use_arborist then
 
     local custom_parsers = {
       {
-        lang = "fga",
-        filetype = "fga",
-        config = {
-          install_info = {
-            url = "https://github.com/matoous/tree-sitter-fga",
-            branch = "main",
-            generate = false,
-            queries = "queries",
-          },
-        },
-      },
-      {
         lang = "godoc",
         filetype = "godoc",
         config = {

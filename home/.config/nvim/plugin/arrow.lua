@@ -10,4 +10,3 @@ require("lazyload").on_vim_enter(function()
     always_show_path = true,
   })
 end)
-
