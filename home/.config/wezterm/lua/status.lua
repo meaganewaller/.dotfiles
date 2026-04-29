@@ -35,7 +35,7 @@ local function get_workhours_display(window)
   end
 
   local user_vars = active_pane:get_user_vars() or {}
-  local hours_worked = time_utils.calculate_hour_difference(user_vars.first_login, wezterm.strftime("%H:%M:%S"))
+  local hours_worked = time_utils.calculate_hour_difference(user_vars.first_login, wezterm.strftime("%I:%M:%S"))
   if hours_worked == nil or hours_worked <= 0 or hours_worked >= 10 then
     return wezterm.nerdfonts.fa_hourglass_start, "-.-", color_workhours_start
   end
@@ -61,6 +61,12 @@ local function get_workhours_display(window)
 end
 
 local function update_right_status(window)
+  local leader = ""
+  if window:leader_is_active() then
+    leader = "󰘀"
+  end
+  window:set_left_status(leader)
+
   local waiting_count = 0
   local init_notice = agent_deck.consume_init_notice and agent_deck.consume_init_notice() or nil
   if init_notice then
@@ -81,7 +87,7 @@ local function update_right_status(window)
   end
 
   local date = wezterm.strftime("(%Y-%m-%d) %a %b %-d ")
-  local time = wezterm.strftime("%H:%M")
+  local time = wezterm.strftime("%I:%M")
   local week_number = os.date("%V")
   local workhours_icon, workhours_text, workhours_color = get_workhours_display(window)
 
