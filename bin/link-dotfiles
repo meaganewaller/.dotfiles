@@ -23,10 +23,22 @@ log() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --profile) PROFILE="$2"; shift 2 ;;
-    --dry-run) DOTFILES_DRY_RUN=1; shift ;;
-    --only-mise) ONLY_MISE=1; shift ;;
-    *) log "Unknown arg: $1"; exit 1 ;;
+  --profile)
+    PROFILE="$2"
+    shift 2
+    ;;
+  --dry-run)
+    DOTFILES_DRY_RUN=1
+    shift
+    ;;
+  --only-mise)
+    ONLY_MISE=1
+    shift
+    ;;
+  *)
+    log "Unknown arg: $1"
+    exit 1
+    ;;
   esac
 done
 
@@ -83,7 +95,7 @@ link_mise_miserc() {
     log "Would symlink $d/miserc.toml -> $src"
     return 0
   fi
-  ( cd "$d" && ln -sfn "$src" miserc.toml )
+  (cd "$d" && ln -sfn "$src" miserc.toml)
   log "Linked mise miserc.toml -> $src"
 }
 
@@ -126,13 +138,13 @@ run ".local/bin/aerospace-keys"
 run ".local/bin/aerospace-keys-popup"
 run ".aerospace.toml"
 
-run_dir_contents ".config/ghostty"
+# run_dir_contents ".config/ghostty"
+run_dir_contents ".config/wezterm"
 
 run ".config/git/hooks"
 
 run ".config/mise"
 link_mise_miserc
-
 
 run ".config/atuin/config.toml"
 run ".config/yazi/yazi.toml"

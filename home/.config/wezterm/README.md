@@ -1,295 +1,107 @@
 # WezTerm Configuration
 
-Modular WezTerm configuration with theme integration, workspace management, and extensible command launcher.
-
-## Structure
-
-```
-wezterm/
-├── wezterm.lua              # Entry point
-├── settings.lua             # Font, colors, tabs, background
-├── theme.lua                # Theme system integration
-├── keys.lua                 # Keybindings DSL
-├── events.lua               # Tab formatting, status line
-├── commands.lua             # Quick command launcher
-├── commands.local.lua       # Machine-specific commands (gitignored)
-├── projects.lua             # Project workspace launcher
-├── projects.local.lua       # Machine-specific projects (gitignored)
-├── cheatsheet.lua           # Keybinding cheatsheet
-├── util.lua                 # Helper functions
-└── wallpapers/              # Background images
-```
+Modular WezTerm configuration with theme integration, workspace management, and
+extensible command launcher.
 
 ## Keybindings
 
-### Leader Key
-
-**`Ctrl+a`** (3 second timeout)
-
-The leader key activates key tables for panes and workspaces.
-
-### Tabs
-
-| Key | Action |
-|-----|--------|
-| `Cmd+t` | New tab (after current) |
-| `Cmd+x` | Close current tab |
-| `Cmd+h` | Previous tab |
-| `Cmd+l` | Next tab |
-| `Cmd+Shift+h` | Move tab left |
-| `Cmd+Shift+l` | Move tab right |
-| `Cmd+o` | Switch to last active tab |
-| `Cmd+n` | Rename current tab |
-| `Cmd+b` | Fuzzy tab switcher |
-
-### Panes
-
-| Key | Action |
-|-----|--------|
-| `Alt+h/j/k/l` | Navigate panes (vim-style) |
-| `Cmd+s` | Enter **splits mode** |
-
-#### Splits Mode (after `Cmd+s`)
-
-| Key | Action |
-|-----|--------|
-| `v` | Split vertical (right) |
-| `s` | Split horizontal (down) |
-| `h/j/k/l` | Navigate panes |
-| `r` | Rotate panes |
-| `c` | Close current pane |
-| `R` | Enter **resize mode** |
-
-#### Resize Mode (after `Cmd+s`, `R`)
-
-| Key | Action |
-|-----|--------|
-| `h/j/k/l` | Resize pane |
-| `Escape` | Exit resize mode |
-
-### Workspaces
-
-| Key | Action |
-|-----|--------|
-| `Cmd+w` | Enter **workspace mode** |
-| `Cmd+d` | Fuzzy workspace switcher |
-
-#### Workspace Mode (after `Cmd+w`)
-
-| Key | Action |
-|-----|--------|
-| `n` | New workspace (prompts for name) |
-| `r` | Rename current workspace |
-| `o` | Fuzzy workspace picker |
-| `j` | Next workspace |
-| `k` | Previous workspace |
-
-### Tools
-
-| Key | Action |
-|-----|--------|
-| `Cmd+k` | Toggle lazygit tab |
-| `Cmd+u` | Toggle scratch pad (nvim ~/scratchpad.md) |
-| `Cmd+i` | Open scrollback in editor |
-| `Cmd+e` | Quick select and open URLs |
-
-### Launchers
-
-| Key | Action |
-|-----|--------|
-| `Cmd+p` | Project workspace picker |
-| `Cmd+r` | Run custom command |
-| `Cmd+a` | Command palette |
-| `Cmd+y` | WezTerm command palette |
-
-### Copy/Paste
-
-| Key | Action |
-|-----|--------|
-| `Ctrl+c` | Smart copy (copies selection if present, else sends SIGINT) |
-| `Ctrl+v` | Paste from clipboard |
-
-### Help & Debug
-
-| Key | Action |
-|-----|--------|
-| `Cmd+Shift+k` | Keybinding help (fuzzy searchable) |
-| `Cmd+Shift+i` | Show debug overlay |
-
-## Theme Integration
-
-The configuration reads from `~/.config/theme/current.json` for:
-
-- Color scheme selection
-- Light/dark mode
-- Accent colors for tabs and status bar
-
-The theme changes automatically when you run `theme set <name>` or `theme dark`/`theme light`.
-
-## Custom Commands
-
-### Default Commands
-
-Available out of the box via `Cmd+r`:
-
-- `nvim` - Open Neovim
-- `vim-diff` - Open vim in diff mode
-- `htop` - System monitor
-- `dotfiles` - Open dotfiles directory
-
-### Adding Machine-Specific Commands
-
-Create `~/.config/wezterm/commands.local.lua` (not tracked in git):
-
-```lua
-return {
-  {
-    label = "my-project",
-    title = "my-project",
-    cwd = "~/projects/my-project",
-  },
-  {
-    label = "dev-server",
-    title = "dev",
-    cwd = "~/projects/webapp",
-    cmds = { "npm run dev" },
-  },
-}
-```
-
-See `commands.local.lua.example` for more examples including:
-- Environment variable expansion (`$WORK_REPO`)
-- Complex multi-tab setups with callbacks
-
-## Project Workspaces
-
-Project workspaces let you quickly switch between predefined project directories. Each project gets its own workspace, preserving window/tab/pane state between switches.
-
-### Usage
-
-Press `Cmd+p` to open the project picker:
-
-- First time selecting a project → creates new workspace at that directory
-- Subsequent selections → switches to existing workspace (preserves state)
-
-The current workspace name is shown in the status bar.
-
-### Adding Projects
-
-Create `~/.config/wezterm/projects.local.lua` (not tracked in git):
-
-```lua
-return {
-  {
-    name = "work-monolith",
-    path = "~/work/monolith",
-    icon = "󰬟",
-    cmds = { "nvim" },
-  },
-  {
-    name = "side-project",
-    path = "~/projects/side-project",
-    icon = "󰛦",
-  },
-  {
-    name = "notes",
-    path = "~/notes",
-    icon = "󰠮",
-    cmds = { "nvim ." },
-  },
-}
-```
-
-### Project Options
-
-| Option | Required | Description |
-|--------|----------|-------------|
-| `name` | Yes | Workspace name, shown in picker and status bar |
-| `path` | Yes | Directory to open (supports `~` and `$ENV_VAR`) |
-| `icon` | No | Nerd font icon (defaults to 󰉋) |
-| `cmds` | No | Commands to run when workspace is first created |
-
-See `projects.local.lua.example` for more examples.
-
-## Customization
-
-### Changing Leader Key
-
-Edit `keys.lua`:
-
-```lua
-config.leader = leader("a", "CTRL", 3000)  -- key, mods, timeout_ms
-```
-
-### Changing Font
-
-Edit `settings.lua`:
-
-```lua
-config.font = wezterm.font_with_fallback({
-  { family = "Your Font Name" },
-  { family = "Symbols Nerd Font Mono" },
-})
-config.font_size = 15
-```
-
-### Changing Background
-
-Edit `settings.lua`, modify the `config.background` table:
-
-```lua
-config.background = {
-  { source = { Color = bg_color }, ... },
-  { source = { File = "path/to/image.jpg" }, opacity = 0.1, ... },
-}
-```
-
-### Adding New Key Tables
-
-Use the DSL in `keys.lua`:
-
-```lua
-M.table("my_mode", {
-  { "a", nil, act.SomeAction },
-  { "b", nil, act.AnotherAction },
-})
-```
-
-Then activate with:
-
-```lua
-{ "m", "CMD", mode("my_mode", true) }  -- one_shot = true
-```
-
-## Troubleshooting
-
-### Commands or projects not loading
-
-Check syntax of your local config:
-
-```bash
-lua -c "dofile('~/.config/wezterm/commands.local.lua')"
-lua -c "dofile('~/.config/wezterm/projects.local.lua')"
-```
-
-### Theme not applying
-
-Ensure theme file exists:
-
-```bash
-cat ~/.config/theme/current.json
-```
-
-### Keybindings not working
-
-1. Check for conflicts with system shortcuts
-2. Use `Cmd+Shift+i` to open debug overlay
-3. Use `Cmd+Shift+k` to see keybinding reference
-
-### Fish/zsh not loading as login shell
-
-Check `util.lua` shell detection or set explicitly:
-
-```bash
-export WEZTERM_SHELL=/path/to/shell
-```
+Porting familiar tmux keybindings to wezterm, since with wezterm we don't
+actually need tmux at all. Really.
+[Read about it here](https://wezterm.org/multiplexing.html).
+
+| Tmux Concept | WezTerm Equivalent                                       | Description                                                  |
+| ------------ | -------------------------------------------------------- | ------------------------------------------------------------ |
+| Session      | [Workspace](https://wezterm.org/recipes/workspaces.html) | Isolated environments for different projects/contexts        |
+| Window       | Tab                                                      | Multiple terminal views within a session/workspace           |
+| Pane         | Pane                                                     | Split views within a window/tab                              |
+| Prefix key   | Leader key                                               | Modifier that activates tmux-style commands (I use `Ctrl+a`) |
+| Copy mode    | Copy mode                                                | Text selection and navigation mode with enhanced abilities   |
+
+### Reference
+
+#### Leader Key Basics
+
+| Key Combo         | Info                               |
+| ----------------- | ---------------------------------- |
+| `leader + leader` | Send the leader key itself         |
+| `leader + [`      | Enter copy mode for text selection |
+
+#### Workspace Management
+
+| Key Combo    | Info                           |
+| ------------ | ------------------------------ |
+| `leader + $` | Rename current workspace       |
+| `leader + s` | Interactive workspace switcher |
+| `leader + (` | Switch to previous workspace   |
+| `leader + )` | Switch to next workspace       |
+
+#### Tab Operations
+
+| Key Combo      | Info                                  |
+| -------------- | ------------------------------------- |
+| `leader + c`   | Create new tab in current domain      |
+| `leader + &`   | Close current tab (with confirmation) |
+| `leader + p`   | Switch to previous tab                |
+| `leader + n`   | Switch to next tab                    |
+| `leader + l`   | Switch to last active tab             |
+| `leader + 1-9` | Switch to specific tab by index       |
+
+#### Pane Management
+
+##### Splitting & Navigation
+
+| Key Combo        | Info                           |
+| ---------------- | ------------------------------ |
+| `leader + %`     | Split pane horizontally        |
+| `leader + "`     | Split pane vertically          |
+| `leader + {`     | Rotate panes counter-clockwise |
+| `leader + }`     | Rotate panes clockwise         |
+| `leader + arrow` | Navigate to pane in direction  |
+| `leader + q`     | Interactive pane selector      |
+
+##### Resizing & Operations
+
+| Key Combo               | Info                                   |
+| ----------------------- | -------------------------------------- |
+| `leader + z`            | Zoom/unzoom current pane               |
+| `leader + !`            | Move pane to new tab                   |
+| `leader + ctrl + arrow` | Resize pane in direction (5 cells)     |
+| `leader + x`            | Close current pane (with confirmation) |
+
+#### Copy Mode (Advanced Text Selection)
+
+##### Navigation
+
+| Key Combo | Info                       |
+| --------- | -------------------------- |
+| `h/j/k/l` | Basic directional movement |
+| `w/b/e`   | Word-based navigation      |
+| `0`       | Beginning of line          |
+| `$`       | End of line content        |
+| `^`       | Start of line content      |
+| `g`       | Top of scrollback          |
+| `G`       | Bottom of scrollback       |
+| `H/M/L`   | Viewport positioning       |
+
+##### Scrolling & Paging
+
+| Key Combo  | Info                  |
+| ---------- | --------------------- |
+| `ctrl + b` | Page up               |
+| `ctrl + f` | Page down             |
+| `ctrl + u` | Scroll up half page   |
+| `ctrl + d` | Scroll down half page |
+
+##### Search & Selection
+
+| Key Combo   | Info                    |
+| ----------- | ----------------------- |
+| `/`         | Search forward          |
+| `?`         | Search backward         |
+| `n`         | Next search result      |
+| `N`         | Previous search result  |
+| `v`         | Cell selection mode     |
+| `shift + v` | Line selection mode     |
+| `ctrl + v`  | Block selection mode    |
+| `y`         | Copy selection and exit |
+| `Escape`    | Clear selection or exit |

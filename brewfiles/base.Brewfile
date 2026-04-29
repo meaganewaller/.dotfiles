@@ -33,6 +33,7 @@ brew "rename"
 brew "trash"
 brew "trash-cli"
 brew "libyaml"
+brew "terminal-notifier"
 
 # ----------------------------
 # Shell & Environment
