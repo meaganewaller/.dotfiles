@@ -24,7 +24,7 @@ if Config.use_diffview then
       enhanced_diff_hl = true, -- See ':h diffview-config-enhanced_diff_hl'
       hooks = {
         -- do not fold
-        diff_buf_win_enter = function(bufnr)
+        diff_buf_win_enter = function()
           vim.opt_local.foldenable = false
         end,
 
