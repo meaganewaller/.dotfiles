@@ -1,6 +1,4 @@
-local wezterm = require("wezterm")
-local is_windows = package.config:sub(0, 1) == "\\"
-local is_linux = wezterm.target_triple:find("linux") ~= nil
+local path_utils = require("lua.utils.path")
 
 -- Cached VirtualBox detection result
 local cached_is_vbox = nil
@@ -11,7 +9,7 @@ local function is_virtualbox()
     return cached_is_vbox
   end
 
-  if is_windows then
+  if path_utils.is_windows then
     cached_is_vbox = false
     return false
   end
@@ -45,7 +43,7 @@ local function is_virtualbox()
 end
 
 return function(config)
-  if is_windows then
+  if path_utils.is_windows then
     config.default_domain = "WSL:Ubuntu"
     config.window_decorations = "TITLE | RESIZE"
     config.font_size = 12
@@ -60,7 +58,7 @@ return function(config)
     config.max_fps = 60 -- Lower FPS for better performance
     config.animation_fps = 30 -- Reduce animation overhead
     config.cursor_blink_rate = 0 -- Disable cursor blinking
-  elseif is_linux then
+  elseif path_utils.is_linux then
     -- Other Linux systems
     config.font_size = 12
     config.window_background_opacity = 0.96

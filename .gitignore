@@ -11,7 +11,7 @@ home/.config/zsh/.zsh_history
 home/.config/zsh/.zsh_sessions
 home/.gitconfig.local
 home/.config/theme/current.json
-home/.config/wezterm/commands.local.lua
+home/.config/wezterm/commands/local.lua
 fish_variables
 .env
 lib/env.sh

@@ -1,6 +1,6 @@
 local wezterm = require("wezterm")
 local theme = require("lua.theme")
-local scanlines_path = wezterm.config_dir .. "/scanlines.png"
+local scanlines_path = wezterm.config_dir .. "/wallpapers/scanlines.png"
 
 local function depending_on_appearance(arg)
   local appearance = wezterm.gui.get_appearance()

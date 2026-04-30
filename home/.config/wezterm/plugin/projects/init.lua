@@ -1,7 +1,7 @@
 local wezterm = require("wezterm")
 local act = wezterm.action
 local mux = wezterm.mux
-local theme = require("lua.theme")
+local zoxide_workspace = require("lua.zoxide_workspace")
 local utils = require("lua.utils")
 
 local M = {}
@@ -10,6 +10,9 @@ local M = {}
 -- Project Workspace System
 -- ============================================
 M.projects_dir = wezterm.home_dir .. "/.config/wezterm/projects"
+
+--- Extra arguments appended to `zoxide query -l` (e.g. `--exclude foo`). Empty string by default.
+M.zoxide_query_extra_args = ""
 
 local prev_pos = 1
 local stack = { "default" }
@@ -49,10 +52,23 @@ local function stack_prune()
   prev_pos = math.min(new_prev, #stack)
 end
 
+-- Expand ~ to home directory
+local function expand_path(path)
+  if path and path:sub(1, 1) == "~" then
+    return wezterm.home_dir .. path:sub(2)
+  end
+  return path
+end
+
+-- Safe single-quoted shell argument (paths with spaces or quotes)
+local function shell_single_quote(s)
+  return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
 -- Paths relative to projects_dir without .lua, e.g. "dotfiles", "onlooker/plugins"
 local function discover_project_files(root)
   local entries = {}
-  local cmd = "cd " .. utils.shell_single_quote(root) .. " && find . -type f -name '*.lua' 2>/dev/null"
+  local cmd = "cd " .. shell_single_quote(root) .. " && find . -type f -name '*.lua' 2>/dev/null"
   local handle = io.popen(cmd)
   if handle then
     for line in handle:lines() do
@@ -85,7 +101,7 @@ local function load_projects()
   for _, entry in ipairs(discover_project_files(M.projects_dir)) do
     local ok, project = pcall(dofile, entry.fullpath)
     if ok and project and project.workspace then
-      project.cwd = utils.expand_path(project.cwd)
+      project.cwd = expand_path(project.cwd)
       project._relpath = entry.relpath
       projects[project.workspace] = project
     end
@@ -294,6 +310,14 @@ function M.build_project_choices()
     end
   end
 
+  local skip_zoxide_paths = {}
+  for _, project in pairs(projects) do
+    if project.cwd and project.cwd ~= "" then
+      skip_zoxide_paths[project.cwd] = true
+    end
+  end
+  zoxide_workspace.append_query_choices(choices, skip_zoxide_paths, M.zoxide_query_extra_args)
+
   return choices, projects
 end
 
@@ -344,9 +368,28 @@ function M.switch_or_start_project(window, pane, id)
     return
   end
 
+  local zpath = id:match("^zoxide:(.+)$")
+  if zpath then
+    local tilde = zoxide_workspace.path_to_tilde(zpath)
+    window:perform_action(
+      act.SwitchToWorkspace({
+        name = tilde,
+        spawn = {
+          label = "Workspace: " .. tilde,
+          cwd = zpath,
+        },
+      }),
+      pane
+    )
+    zoxide_workspace.record_visit(zpath)
+    wezterm.emit("projects.workspace_switcher.created")
+    return
+  end
+
   local ws_name = id:match("^workspace:(.+)$")
   if ws_name then
     window:perform_action(act.SwitchToWorkspace({ name = ws_name }), pane)
+    wezterm.emit("projects.workspace_switcher.chosen")
     return
   end
 
@@ -361,6 +404,7 @@ function M.switch_or_start_project(window, pane, id)
 
   if active[name] then
     window:perform_action(act.SwitchToWorkspace({ name = name }), pane)
+    wezterm.emit("projects.workspace_switcher.chosen")
   else
     window:perform_action(
       act.SwitchToWorkspace({
@@ -373,15 +417,23 @@ function M.switch_or_start_project(window, pane, id)
     if project and project.tabs then
       M.setup_project_tabs(project)
     end
+    wezterm.emit("projects.workspace_switcher.created")
   end
 end
 
-set_workspace_formatter(function(label)
-  return wezterm.format({
-    { Attribute = { Italic = true } },
-    { Foreground = { Color = theme.colors.hl_1 } },
-    { Text = " " .. label },
+M.picker_action = function()
+  return wezterm.action.InputSelector({
+    fuzzy = true,
+    title = " Switch to Project Workspace",
+    choices = M.build_project_choices(),
+    action = wezterm.action_callback(function(window, pane, id, label)
+    if id and label then
+      M.switch_or_start_project(window, pane, id)
+    end
+  end)
   })
-end)
+end
+
+M.expand_path = utils.path.expand_path
 
 return M
