@@ -33,8 +33,10 @@ mise install
 
 if [[ "${DOTFILES_DRY_RUN:-0}" -eq 1 ]]; then
   log "Dry-run mode: skipping brew:bootstrap"
+	log "Dry-run mode: skipping fonts:install"
 else
   mise run brew:bootstrap
+  mise run fonts:install
 fi
 
 "$ROOT"/home/.local/bin/dotfiles link --profile "$DOTFILES_PROFILE"

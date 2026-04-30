@@ -3,6 +3,7 @@ local M = {}
 local wezterm = require("wezterm")
 local act = wezterm.action
 local mux = wezterm.mux
+local projects = require("lua.projects")
 
 local search_direction = {
   BACKWARD = 0,
@@ -212,6 +213,12 @@ function M.apply_to_config(config, _)
       action = act.SendKey({ key = config.leader.key, mods = config.leader.mods }),
     },
 
+    {
+      key = "Enter",
+      mods = "SHIFT",
+      action = act.SendKey({ key = "Enter", mods = "ALT" }),
+    },
+
     -- Workspaces
     { key = "$", mods = "LEADER|SHIFT", action = M.action.RenameWorkspace },
     { key = "s", mods = "LEADER", action = M.action.WorkspaceSelect },
@@ -229,6 +236,7 @@ function M.apply_to_config(config, _)
     { key = "n", mods = "LEADER", action = act.ActivateTabRelative(1) },
     { key = "l", mods = "LEADER", action = act.ActivateLastTab },
     { key = ",", mods = "LEADER", action = M.action.RenameCurrentTab },
+    { key = "w", mods = "LEADER", action = act.ShowTabNavigator },
 
     -- Panes
     {
@@ -264,6 +272,37 @@ function M.apply_to_config(config, _)
 
     -- Copy Mode
     { key = "[", mods = "LEADER", action = act.ActivateCopyMode },
+
+    {
+      key = "f",
+      mods = "LEADER",
+      action = wezterm.action_callback(function(window, pane)
+        local choices, _ = projects.build_project_choices()
+
+        if #choices == 0 then
+          window:toast_notification("WezTerm", "No projects found in " .. projects.projects_dir, nil, 3000)
+          return
+        end
+
+        window:perform_action(
+          act.InputSelector({
+            title = "Switch to Project",
+            choices = choices,
+            fuzzy = true,
+            action = wezterm.action_callback(function(inner_window, inner_pane, id, label)
+              if id then
+                projects.switch_or_start_project(inner_window, inner_pane, id)
+              end
+            end),
+          }),
+          pane
+        )
+      end),
+    },
+
+    { key = "d", mods = "LEADER", action = act.QuitApplication }, -- detach (quit)
+    { key = ":", mods = "LEADER|SHIFT", action = act.ActivateCommandPalette },
+    { key = "r", mods = "LEADER", action = act.ReloadConfiguration }, -- reload config
   }
 
   local index_offset = config.tab_and_split_indices_are_zero_based and 0 or 1

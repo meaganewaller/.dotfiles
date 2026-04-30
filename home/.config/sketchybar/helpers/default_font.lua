@@ -1,6 +1,6 @@
 return {
-  text = "VictorMono Nerd Font",
-  numbers = "VictorMono Nerd Font",
+  text = "Maple Mono NF CN",
+  numbers = "Maple Mono NF CN",
 
   -- Unified font style map
   style_map = {

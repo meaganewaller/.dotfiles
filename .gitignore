@@ -36,3 +36,5 @@ home/.claude/presentations
 node_modules
 .claude/worktrees
 home/.config/exports/secrets
+
+home/.config/wezterm/projects/work

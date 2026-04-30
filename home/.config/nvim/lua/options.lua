@@ -26,6 +26,7 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 
 -- Undo and swap
+vim.opt.swapfile = false
 vim.opt.undofile = true
 vim.opt.undolevels = 10000
 vim.opt.updatetime = 200
@@ -84,3 +85,4 @@ if vim.fn.getenv("TERM_PROGRAM") == "ghostty" then
   vim.opt.title = true
   vim.opt.titlestring = "%{fnamemodify(getcwd(), ':t')}"
 end
+
