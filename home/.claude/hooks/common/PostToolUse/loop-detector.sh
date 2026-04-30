@@ -44,9 +44,11 @@ extract_file() {
 }
 
 fingerprint_error() {
+  local hash_cmd="md5sum"
+  command -v md5sum >/dev/null 2>&1 || hash_cmd="md5"
   grep -iE "error|failed|exception|traceback" <<<"$toolOutput" \
     | head -n1 \
-    | md5sum \
+    | $hash_cmd \
     | cut -c1-10 || true
 }
 
@@ -76,9 +78,17 @@ file=$(extract_file)
 error_fp=$(fingerprint_error)
 progress=$(progress_signal)
 
-# Use flock for exclusive access to state file
-exec 200>"$LOCKFILE"
-flock -w 5 200 || { echo "Failed to acquire lock" >&2; exit 0; }
+# Use mkdir-based lock (cross-platform, works on macOS and Linux)
+_lock_acquired=false
+for _i in 1 2 3 4 5; do
+  if mkdir "$LOCKFILE" 2>/dev/null; then
+    _lock_acquired=true
+    trap 'rmdir "$LOCKFILE" 2>/dev/null' EXIT
+    break
+  fi
+  sleep 1
+done
+$_lock_acquired || { echo "Failed to acquire lock" >&2; exit 0; }
 
 state=$(load_state)
 
@@ -115,8 +125,9 @@ fi
 
 save_state "$state"
 
-# Release lock (fd 200 closes automatically on script exit, but explicit is clearer)
-flock -u 200
+# Release lock
+rmdir "$LOCKFILE" 2>/dev/null
+trap - EXIT
 
 # ---------------------------------------------------
 # LOOP DETECTION
