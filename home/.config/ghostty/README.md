@@ -1,6 +1,7 @@
 # Ghostty Configuration
 
 <div align="center">
+
 [![Ghostty](https://img.shields.io/badge/ghostty-%3E%3D1.2-purple)](https://ghostty.org)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Maintenance](https://img.shields.io/badge/maintained-yes-brightgreen)]()
