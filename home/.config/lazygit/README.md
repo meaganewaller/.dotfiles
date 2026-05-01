@@ -1,0 +1,1 @@
+# LazyGit Configuration

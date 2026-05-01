@@ -1,0 +1,12 @@
+[theme]
+name = "oscura-midnight"
+
+[colors]
+AlertInfo = "#e6e7a3"
+AlertWarn = "#f9b98c"
+AlertError = "#d84f68"
+Annotation = "#4ebe96"
+Base = "#e6e6e6"
+Guidance = "#868f97"
+Important = "#54c0a3"
+Title = "#e6e7a3"
