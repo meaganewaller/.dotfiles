@@ -1,6 +1,6 @@
 # yazi.toml
 [mgr]
-ratio=[1,2,3]
+ratio = [1, 2, 3]
 
 [plugin]
 prepend_preloaders = [

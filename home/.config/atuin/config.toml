@@ -4,7 +4,76 @@
 ## Defaults to true. If enabled, upon hitting enter Atuin will immediately execute the command.
 ## Press tab to return to the shell and edit.
 enter_accept = true
-search_mode = "daemon-fuzzy"
+## which search mode to use
+## possible values: prefix, fulltext, fuzzy, skim
+search_mode = "fuzzy"
+
+## which filter mode to use
+## possible values: global, host, session, directory
+filter_mode = "host"
+
+## with workspace filtering enabled. atuin will filter for commands executed.
+## in any directory within a git repository (default: false)
+workspaces = true
+
+## which style to use
+## possible values: auto, full, compact
+style = "compact"
+
+## the maximum number of lines the interface should take up
+## set it to 0 to always go full screen
+inline_height = 10
+
+## Invert the UI - put the search bar at the top , Default to `false`
+invert = false
+
+## enable or disable showing a preview of the selected command
+## useful when the command is longer than the terminal width and is cut off
+show_preview = true
+
+## Configure whether or not to show the help row, which includes the current Atuin
+## version (and whether an update is available), a keymap hint, and the total
+## amount of commands in your history.
+show_help = false
+
+## Configure whether or not to show tabs for search and inspect
+show_tabs = false
+
+## Defaults to true. If enabled, upon hitting enter Atuin will immediately execute the command. Press tab to return to the shell and edit.
+# This applies for new installs. Old installs will keep the old behaviour unless configured otherwise.
+enter_accept = true
+
+[stats]
+common_subcommands = [
+"brew",
+"bun",
+"cargo",
+"dnf",
+"docker",
+"git",
+"go",
+"ip",
+"kubectl",
+"mise",
+"npm",
+"pnpm",
+"port",
+"systemctl",
+"tmux",
+"yarn",
+"hx"
+]
+
+common_prefix = ["sudo"]
+
+## set commands that will be completely ignored from stats
+ignored_commands = [
+  "cd",
+  "ls",
+  "l",
+  "z"
+]
+
 
 [sync]
 # Enable sync v2 by default
@@ -16,3 +85,6 @@ enabled = true
 [daemon]
 enabled = true
 autostart = true
+
+[theme]
+name = "oscura-midnight"

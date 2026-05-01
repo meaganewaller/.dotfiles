@@ -118,7 +118,6 @@ run ".gitconfig"
 run ".gitconfig.work"
 run ".gitconfig.personal"
 run ".gitconfig.local" || true
-run ".gitignore_global"
 
 run ".ssh/config"
 run ".ssh/config.work"
@@ -128,8 +127,16 @@ run ".editorconfig"
 run ".config/wezterm"
 run ".config/nvim"
 run ".config/theme"
+run_dir_contents ".config/bat"
 run_dir_contents ".config/exports"
-# run_dir_contents ".config/fish"   # links contents only; README.md stays in repo
+run_dir_contents ".config/btop"
+run_dir_contents ".config/fd"
+run_dir_contents ".config/gh"
+run_dir_contents ".config/git"
+run_dir_contents ".config/htop"
+run_dir_contents ".config/lazydocker"
+run_dir_contents ".config/fish" # links contents only; README.md stays in repo
+run_dir_contents ".config/rg"
 run ".local/bin/theme"
 run ".local/bin/dotfiles"
 run ".local/bin/tradeoff"
@@ -141,13 +148,11 @@ run ".aerospace.toml"
 # run_dir_contents ".config/ghostty"
 run_dir_contents ".config/wezterm"
 
-run ".config/git/hooks"
-
 run ".config/mise"
 link_mise_miserc
 
 run ".config/atuin/config.toml"
-run ".config/yazi/yazi.toml"
+run_dir_contents ".config/yazi"
 
 run ".config/borders/bordersrc"
 

@@ -554,6 +554,22 @@ backend = "aqua:hashicorp/terraform"
 version = "latest"
 backend = "aqua:sxyazi/yazi"
 
+[tools.yazi."platforms.linux-x64"]
+checksum = "sha256:a136269b2d5fbb5fb43f3fac3391446e8fbc72aba1c4bb4fae6e6d1556420750"
+url = "https://github.com/sxyazi/yazi/releases/download/v26.1.22/yazi-x86_64-unknown-linux-gnu.zip"
+
+[tools.yazi."platforms.linux-x64-musl"]
+checksum = "sha256:b977351968206c0b78d2ef5bf21351685cc191b58a4c7e1c98c37db5d0a381f8"
+url = "https://github.com/sxyazi/yazi/releases/download/v26.1.22/yazi-x86_64-unknown-linux-musl.zip"
+
+[tools.yazi."platforms.macos-arm64"]
+checksum = "sha256:8355ad582dd9f4ef1f88a228080f2b6116bbb483dd48d1bde555d475f4d2afe4"
+url = "https://github.com/sxyazi/yazi/releases/download/v26.1.22/yazi-aarch64-apple-darwin.zip"
+
+[tools.yazi."platforms.macos-x64"]
+checksum = "sha256:1e097c015a968aba29bbc11bffdb99a7aedaf92c78df09d00613283dac0f148c"
+url = "https://github.com/sxyazi/yazi/releases/download/v26.1.22/yazi-x86_64-apple-darwin.zip"
+
 [[tools.yq]]
 version = "4.52.5"
 backend = "aqua:mikefarah/yq"
