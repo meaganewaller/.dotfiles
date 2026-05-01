@@ -1,19 +1,30 @@
-local is_windows = package.config:sub(0, 1) == "\\"
+local path_utils = require("lua.utils.path")
 local wezterm = require("wezterm")
 local agent_deck = require("lua.agent")
 local theme = require("lua.theme")
 local time_utils = require("lua.utils.time")
+
+local DIV_R = (theme.tab_bar.powerline and theme.tab_bar.powerline.rounded_right) or utf8.char(0xe0b4)
+local PL = theme.tab_bar.powerline or {}
+local TAB_ROUND_L = PL.rounded_left or " "
+local TAB_ROUND_R = PL.rounded_right or ""
+
+local KEY_TABLE_LABELS = {
+  resize_mode = "RESIZE",
+  copy_mode = "VISUAL",
+  search_mode = "SEARCH",
+}
 
 -- Pre-allocate color tables to reduce allocations
 local color_gray = { Color = theme.base.fg_muted }
 local color_separator = { Color = theme.base.separator }
 local color_white = { Color = theme.base.fg }
 local color_waiting = { Color = theme.agent.waiting }
-local color_workhours_start = { Color = "#999999" }
-local color_workhours_half = { Color = "#B77E64" }
-local color_workhours_end = { Color = "#d2af0d" }
-local color_workhours_good = { Color = "#819B69" }
-local color_workhours_over = { Color = "#d79999" }
+local color_workhours_start = { Color = theme.workhours.start_fg }
+local color_workhours_half = { Color = theme.workhours.half_fg }
+local color_workhours_end = { Color = theme.workhours.end_fg }
+local color_workhours_good = { Color = theme.workhours.good_fg }
+local color_workhours_over = { Color = theme.workhours.over_fg }
 
 -- Reusable status table structure
 local status = {}
@@ -60,13 +71,57 @@ local function get_workhours_display(window)
   return icon, hours_text, color
 end
 
-local function update_right_status(window)
-  local leader = ""
-  if window:leader_is_active() then
-    leader = "󰘀"
-  end
-  window:set_left_status(leader)
+local function left_status_bar_plugin(window, conf)
+  local palette = conf.resolved_palette
+  local tab_colors = palette.tab_bar
+  local leader_icon = window:leader_is_active() and wezterm.nerdfonts.cod_circle_large_filled
+    or wezterm.nerdfonts.cod_circle_large_outline
+  local leader = wezterm.format({
+    { Foreground = { Color = palette.background } },
+    { Background = { Color = palette.ansi[5] } },
+    { Text = " " .. leader_icon .. " " },
+  })
 
+  local mode = ""
+  local kt = window:active_key_table()
+  if kt and KEY_TABLE_LABELS[kt] then
+    mode = wezterm.format({
+      { Foreground = { Color = palette.background } },
+      { Background = { Color = palette.ansi[5] } },
+      { Attribute = { Intensity = "Bold" } },
+      { Text = " " .. KEY_TABLE_LABELS[kt] },
+      "ResetAttributes",
+    })
+  end
+
+  local mux = window:mux_window()
+  local first_active = false
+  if mux then
+    local info = mux:tabs_with_info()
+    first_active = info[1] and info[1].is_active or false
+  end
+  local divider_bg = first_active and palette.ansi[2] or tab_colors.inactive_tab.bg_color
+  local divider = wezterm.format({
+    { Background = { Color = divider_bg } },
+    { Foreground = { Color = palette.ansi[5] } },
+    { Text = DIV_R },
+  })
+
+  local p = theme.palette_from_config(conf)
+  local workspace = wezterm.format(theme.compact(theme.segment(
+    p.edge_bg,
+    theme.base.bg,
+    theme.tab_bar.active_fg,
+    TAB_ROUND_L,
+    "  " .. window:active_workspace() .. " ",
+    TAB_ROUND_R,
+    nil
+  )))
+
+  return leader .. mode .. divider .. workspace
+end
+
+local function build_right_status(window)
   local waiting_count = 0
   local init_notice = agent_deck.consume_init_notice and agent_deck.consume_init_notice() or nil
   if init_notice then
@@ -117,11 +172,22 @@ local function update_right_status(window)
     table.insert(status, { Text = workhours_icon .. " " .. workhours_text .. " " })
   end
 
-  window:set_right_status(wezterm.format(status))
+  return status
+end
+
+local function update_status(window)
+  local ok, conf = pcall(window.effective_config, window)
+  if ok and conf then
+    window:set_left_status(left_status_bar_plugin(window, conf))
+  else
+    window:set_left_status(" " .. window:active_workspace() .. " ")
+  end
+
+  window:set_right_status(wezterm.format(build_right_status(window)))
 end
 
 return function()
-  if not is_windows then
-    wezterm.on("update-right-status", update_right_status)
+  if not path_utils.is_windows then
+    wezterm.on("update-status", update_status)
   end
 end

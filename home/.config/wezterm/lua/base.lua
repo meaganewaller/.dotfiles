@@ -1,4 +1,5 @@
 return function(config)
+  config.automatically_reload_config = true
   config.front_end = "OpenGL"
   config.webgpu_power_preference = "HighPerformance"
   config.max_fps = 120

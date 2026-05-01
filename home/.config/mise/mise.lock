@@ -64,6 +64,10 @@ url = "https://github.com/sharkdp/bat/releases/download/v0.26.1/bat-v0.26.1-x86_
 checksum = "sha256:0f729b4b6f5f28d395c641eacc2e9ff68d0096b85aa0eec344aa62425144b69b"
 url = "https://github.com/sharkdp/bat/releases/download/v0.26.1/bat-v0.26.1-x86_64-pc-windows-msvc.zip"
 
+[[tools.bun]]
+version = "1.3.11"
+backend = "core:bun"
+
 [[tools.colima]]
 version = "0.10.1"
 backend = "aqua:abiosoft/colima"

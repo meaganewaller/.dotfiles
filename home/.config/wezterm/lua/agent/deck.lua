@@ -20,8 +20,7 @@ local attention_notification_cooldown_ms = 5000
 local notification_debug = os.getenv("WEZTERM_AGENT_DECK_NOTIFY_DEBUG") == "1"
 
 local target_triple = wezterm.target_triple or ""
-local is_linux = target_triple:find("linux") ~= nil
-local is_macos = target_triple:find("apple%-darwin") ~= nil
+local path_utils = require("lua.utils.path")
 
 local allowed_agents = {
   opencode = true,
@@ -244,7 +243,7 @@ local function notify_attention(window, pane, agent_type, reason)
 
   log_notification_debug("toast unavailable: " .. tostring(toast_err) .. ", reason=" .. tostring(reason))
 
-  if is_linux then
+  if path_utils.is_linux then
     local ok = select(
       1,
       try_background_child_process({
@@ -263,7 +262,7 @@ local function notify_attention(window, pane, agent_type, reason)
     log_notification_debug("linux notify-send fallback failed")
   end
 
-  if is_macos then
+  if path_utils.is_macos then
     local notifier_group = "wezterm-agent-deck-" .. tostring(agent_type or "unknown")
     local terminal_notifier_paths = {
       "/opt/homebrew/bin/terminal-notifier",

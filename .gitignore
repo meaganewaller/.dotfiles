@@ -11,7 +11,7 @@ home/.config/zsh/.zsh_history
 home/.config/zsh/.zsh_sessions
 home/.gitconfig.local
 home/.config/theme/current.json
-home/.config/wezterm/commands.local.lua
+home/.config/wezterm/commands/local.lua
 fish_variables
 .env
 lib/env.sh
@@ -36,3 +36,5 @@ home/.claude/presentations
 node_modules
 .claude/worktrees
 home/.config/exports/secrets
+
+home/.config/wezterm/projects/work

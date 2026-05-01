@@ -1,7 +1,7 @@
-local is_windows = package.config:sub(0, 1) == "\\"
+local path_utils = require("lua.utils.path")
 
 return function(config)
-  if is_windows then
+  if path_utils.is_windows then
     return
   end
 

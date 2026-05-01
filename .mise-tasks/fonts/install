@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#MISE description="Install all fonts needed for config"
+set -euo pipefail
+
+FONTS_DIR="extras/fonts"
+
+echo "==> Installing fonts..."
+
+while IFS= read -r -d '' font; do
+  echo "→ Installing $font"
+  cp -R "$font" "$HOME/Library/Fonts/"
+done < <(find "$FONTS_DIR" -type f -name "*.ttf" -print0)
