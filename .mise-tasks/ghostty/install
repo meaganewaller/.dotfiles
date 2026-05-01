@@ -1,0 +1,277 @@
+#!/usr/bin/env bash
+#MISE description="Automated bootstrap script for Ghostty configuration."
+#MISE tools={coreutils="latest"}
+#USAGE flag "-d --dry-run" help="Dry run of installation"
+
+set -euo pipefail
+IFS=$'\n\t'
+
+# ── Constants ────────────────────────────────────────────────────────────────
+
+readonly VERSION="1.0.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../home/.config/ghostty" && pwd)"
+readonly SCRIPT_DIR
+readonly GHOSTTY_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
+readonly REQUIRED_FILES=(
+  "config"
+  "conf.d/00-core.conf"
+  "conf.d/10-font.conf"
+  "conf.d/20-colors.conf"
+  "conf.d/30-keybindings.conf"
+  "conf.d/40-window.conf"
+  "conf.d/50-cursor.conf"
+  "conf.d/60-mouse.conf"
+  "conf.d/70-security.conf"
+  "conf.d/80-performance.conf"
+  "conf.d/85-platform.conf"
+  "conf.d/99-local.conf"
+)
+
+# ── Logging ──────────────────────────────────────────────────────────────────
+
+# @description  Colored log helpers for consistent output formatting.
+# @param        $* — message string
+
+readonly R='\033[0;31m' # Red    (error)
+readonly G='\033[0;32m' # Green  (success)
+readonly B='\033[0;34m' # Blue   (info)
+readonly Y='\033[1;33m' # Yellow (warning)
+readonly C='\033[0;36m' # Cyan   (section header)
+readonly NC='\033[0m'   # No color (reset)
+
+info() { echo -e "${B}[INFO]${NC}  $*"; }
+ok() { echo -e "${G}[ OK ]${NC}  $*"; }
+warn() { echo -e "${Y}[WARN]${NC}  $*"; }
+err() { echo -e "${R}[ ERR]${NC}  $*" >&2; }
+section() { echo -e "\n${C}── $* ──${NC}"; }
+
+# ── Platform Detection ───────────────────────────────────────────────────────
+
+# @description  Detect the current operating system and Linux distribution.
+# @return       Sets global variables PLATFORM and DISTRO.
+# @field        PLATFORM — "macos" | "linux" | "wsl" | "windows" | "unknown"
+# @field        DISTRO   — "debian" | "fedora" | "arch" | "unknown" | "n/a"
+
+detect_platform() {
+  section "Platform Detection"
+
+  case "$(uname -s)" in
+  Darwin)
+    PLATFORM="macos"
+    ;;
+  Linux)
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+      PLATFORM="wsl"
+    else
+      PLATFORM="linux"
+    fi
+    ;;
+  MINGW* | MSYS* | CYGWIN*)
+    PLATFORM="windows"
+    ;;
+  *)
+    PLATFORM="unknown"
+    ;;
+  esac
+
+  if [[ "$PLATFORM" == "linux" || "$PLATFORM" == "wsl" ]]; then
+    if command -v apt &>/dev/null; then
+      DISTRO="debian"
+    elif command -v dnf &>/dev/null; then
+      DISTRO="fedora"
+    elif command -v pacman &>/dev/null; then
+      DISTRO="arch"
+    else
+      DISTRO="unknown"
+    fi
+  else
+    DISTRO="n/a"
+  fi
+
+  info "Platform : ${PLATFORM}"
+  info "Distro   : ${DISTRO}"
+}
+
+# ── Dependency Audit ─────────────────────────────────────────────────────────
+
+# @description  Verify that Ghostty and required fonts are available.
+#               Prints installation hints for missing dependencies.
+# @return       void (advisory only, does not abort)
+
+check_dependencies() {
+  section "Dependency Audit"
+
+  # -- Ghostty binary --
+  if command -v ghostty &>/dev/null; then
+    local ghostty_version
+    ghostty_version="$(ghostty --version 2>/dev/null || echo 'installed')"
+    ok "Ghostty found: ${ghostty_version}"
+  else
+    warn "Ghostty not found in PATH"
+    warn "  → https://ghostty.org/download"
+  fi
+
+  # -- Font verification (requires fontconfig) --
+  if ! command -v fc-list &>/dev/null; then
+    warn "fc-list not available — cannot verify fonts"
+    warn "  Install fontconfig to enable font checks"
+    return
+  fi
+
+  local fonts_missing=false
+
+  if fc-list --format="%{family[0]}\n" | sort | uniq | grep -qi "Maple Mono NF CN"; then
+    ok "Font: Maple Mono NF CN"
+  else
+    warn "Font: Maple Mono NF CN — NOT FOUND"
+    fonts_missing=true
+  fi
+
+  if fc-list --format="%{family[0]}\n" | sort | uniq | grep -qi "Symbols Nerd Font"; then
+    ok "Font: Symbols Nerd Font"
+  else
+    warn "Font: Symbols Nerd Font — NOT FOUND"
+    fonts_missing=true
+  fi
+
+  if [[ "$fonts_missing" == true ]]; then
+    echo ""
+    info "Install missing fonts:"
+    case "$DISTRO" in
+    debian)
+      info "  # brew install --cask font-maple-mono-nf-cn"
+      info "  # Nerd Font Symbols: download from GitHub releases"
+      ;;
+    fedora)
+      info "  # Maple Mono: download from GitHub releases"
+      info "  # Nerd Font Symbols: download from GitHub releases"
+      ;;
+    arch)
+      info "  # paru -S ttf-maplemono-nf-cn-unhinted ttf-nerd-fonts-symbols"
+      info "  # Nerd Font Symbols: download from GitHub releases"
+      ;;
+    *)
+      info "  Maple Mono     : https://github.com/subframe7536/maple-font/releases"
+      info "                   Download: MapleMono-NF-CN-unhinted.zip"
+      info "  Nerd Fonts     : https://github.com/ryanoasis/nerd-fonts/releases"
+      info "                   Download: NerdFontsSymbolsOnly.tar.xz"
+      ;;
+    esac
+  fi
+}
+
+# ── Configuration Setup ─────────────────────────────────────────────────────
+
+# @description  Create symlink from the repo to ~/.config/ghostty,
+#               back up any existing configuration, and ensure
+#               99-local.conf and shaders/ directory exist.
+# @return       void
+
+setup_config() {
+  section "Configuration Setup"
+
+  # -- Symlink or in-place detection --
+  if [[ "$SCRIPT_DIR" == "$GHOSTTY_DIR" ]]; then
+    info "Repository IS the config directory (in-place install)"
+  else
+    # Back up existing config if it's not already our symlink
+    if [[ -e "$GHOSTTY_DIR" && ! -L "$GHOSTTY_DIR" ]]; then
+      local backup
+      backup="${GHOSTTY_DIR}.backup.$(date +%Y%m%d%H%M%S)"
+      warn "Existing config backed up → ${backup}"
+      mv "$GHOSTTY_DIR" "$backup"
+    fi
+
+    ln -sfn "$SCRIPT_DIR" "$GHOSTTY_DIR"
+    ok "Symlink: ${GHOSTTY_DIR} → ${SCRIPT_DIR}"
+  fi
+
+  # -- Ensure 99-local.conf exists (never overwrite) --
+  if [[ ! -f "$GHOSTTY_DIR/conf.d/99-local.conf" ]]; then
+    cat >"$GHOSTTY_DIR/conf.d/99-local.conf" <<'LOCALEOF'
+# ============================================================================
+# @module       99-local
+# @description  Machine-local overrides. NOT version-controlled.
+#               See the template in the repository for examples.
+# @since        1.0.0
+# ============================================================================
+LOCALEOF
+    ok "Created: conf.d/99-local.conf (empty)"
+  else
+    ok "Exists:  conf.d/99-local.conf (preserved)"
+  fi
+
+  # -- Ensure shaders directory exists --
+  mkdir -p "$GHOSTTY_DIR/shaders"
+  ok "Directory: shaders/"
+}
+
+# ── Validation ───────────────────────────────────────────────────────────────
+
+# @description  Verify that all required configuration files exist.
+# @return       exit 0 if all files present, logs errors for missing files.
+
+validate() {
+  section "Validation"
+
+  local error_count=0
+
+  for f in "${REQUIRED_FILES[@]}"; do
+    if [[ -f "$GHOSTTY_DIR/$f" ]]; then
+      ok "  ✓ ${f}"
+    else
+      err "  ✗ ${f} — MISSING"
+      ((error_count++))
+    fi
+  done
+
+  echo ""
+
+  if [[ $error_count -eq 0 ]]; then
+    echo -e "  ${G}╔══════════════════════════════════════════╗${NC}"
+    echo -e "  ${G}║  ✓  All modules validated successfully   ║${NC}"
+    echo -e "  ${G}║     Configuration is ready.               ║${NC}"
+    echo -e "  ${G}╚══════════════════════════════════════════╝${NC}"
+  else
+    echo -e "  ${R}╔══════════════════════════════════════════╗${NC}"
+    echo -e "  ${R}║  ✗  ${error_count} file(s) missing                    ║${NC}"
+    echo -e "  ${R}║     Review errors above.                 ║${NC}"
+    echo -e "  ${R}╚══════════════════════════════════════════╝${NC}"
+  fi
+}
+
+# ── Usage Hints ──────────────────────────────────────────────────────────────
+
+# @description  Print useful post-install commands.
+# @return       void
+
+print_usage() {
+  section "Quick Reference"
+  info "ghostty +show-config       Resolved config (all modules merged)"
+  info "ghostty +list-themes       Available built-in themes"
+  info "ghostty +list-fonts        Detected system fonts"
+  info "ghostty +list-keybinds     Active keybindings"
+  info "ghostty +list-actions      All bindable actions"
+  info "Ctrl+Shift+,              Reload config (hot-reload)"
+  echo ""
+}
+
+# ── Main ─────────────────────────────────────────────────────────────────────
+
+# @description  Entry point. Orchestrates all installation steps in order.
+# @return       exit 0
+
+main() {
+  echo ""
+  echo "  ╔══════════════════════════════════════════════╗"
+  echo "  ║  🔮 Ghostty Power User — Installer v${VERSION}     ║"
+  echo "  ╚══════════════════════════════════════════════╝"
+
+  detect_platform
+  check_dependencies
+  setup_config
+  validate
+  print_usage
+}
+
+main "$@"

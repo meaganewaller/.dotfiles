@@ -3,121 +3,198 @@
 #     / | |/\  / \_/ \_|  |  |  |
 #     \/|/|  |/\_/  \/ |_/|_/ \/|/
 #      (|                      (|
-# ============================================
-# File: ~/.config/ghostty/config
-# Reload: Cmd+Shift+, (macOS)
-# View options: ghostty +show-config --default --docs
-
-# -- Typography ---
-font-family = "iA Writer Mono V Text"
-font-feature = -calt
-font-feature = -liga
-font-size = 16
-font-thicken = true
-adjust-cell-height = 10%
-
-# --- Theme and Colors
-# Custom themes matching dotfiles theme system
-theme = jubi
-
-# --- Window and Appearance ---
-background-opacity = 0.98
-background-image = ~/.config/ghostty/backgrounds/tamagotchi-rainbow-clouds-wallpaper-kawaii-hoshi.jpg
-background-image-opacity = 0.125
-background-image-fit = cover
-background-image-position = center
-unfocused-split-opacity = 0.8
-background-blur-radius = 20
-window-padding-x = 10
-window-padding-y = 8
-window-padding-color = extend-always
-window-padding-balance = true
-window-save-state = always
-window-step-resize = true
-
-custom-shader = shaders/cursor_warp.glsl
-
-# --- Cursor ---
-adjust-cursor-thickness = 2
-cursor-style = block
-cursor-style-blink = true
-custom-shader-animation = always
-cursor-opacity = 0.8
-
-# --- Mouse ---
-mouse-hide-while-typing = true
-copy-on-select = clipboard
-
-# --- Quick Terminal ---
-quick-terminal-position = bottom
-quick-terminal-screen = main
-quick-terminal-size     = 45%, 90%
-quick-terminal-animation-duration = 0.1
-quick-terminal-autohide = true
-quick-terminal-animation-duration = 0.15
-
-# --- MacOS Specific ---
-macos-auto-secure-input = false
-macos-non-native-fullscreen   = visible-menu
-macos-option-as-alt = false
-macos-titlebar-style          = tabs
-macos-window-shadow           = false
-macos-secure-input-indication = false
-macos-shortcuts = deny
-
-# --- Shell Integration ---
-shell-integration = detect
-shell-integration-features = cursor,sudo,no-title
-clipboard-trim-trailing-spaces = true
-
-# --- Keybindings ---
-# Windows
-keybind = ctrl+n=new_window
-
-# # Tabs
-# keybind = cmd+t=new_tab
-# keybind = ctrl+a>n=next_tab
-# keybind = ctrl+a>p=previous_tab
-# keybind = cmd+w=close_surface
 #
-# ### Splits
+# @module         config
+# @description    Root entrypoint for Ghostty terminal configuration
+#                 This file acts as an orchestrator: it loads numbered modules
+#                 from conf.d/ in deterministic order. Last writer wins when the
+#                 same key appears in multiple files.
 #
-# # Split navigation
-# keybind = ctrl+h=goto_split:left
-# keybind = ctrl+j=goto_split:bottom
-# keybind = ctrl+k=goto_split:top
-# keybind = ctrl+l=goto_split:right
+# @author         Meagan Waller
+# @repository     https://github.com/meaganewaller/.dotfiles
+# @license        MIT
+# @since          1.0.0
 #
-# keybind = ctrl+a>h=new_split:left
-# keybind = ctrl+a>j=new_split:down
-# keybind = ctrl+a>k=new_split:up
-# keybind = ctrl+a>l=new_split:right
-# keybind = ctrl+a>f=toggle_split_zoom
+# @architecture
+#   config (this file)
+#     └─► conf.d/00-core.conf          Shell integration, fundamentals
+#     └─► conf.d/10-font.conf          ✦ Source of truth: typography & icons
+#     └─► conf.d/20-colors.conf        ✦ Source of truth: colors & highlights
+#     └─► conf.d/30-keybindings.conf   Keyboard shortcuts
+#     └─► conf.d/40-window.conf        Window chrome, padding, opacity
+#     └─► conf.d/50-cursor.conf        Cursor shape & behavior
+#     └─► conf.d/60-mouse.conf         Mouse behavior & selection
+#     └─► conf.d/70-security.conf      Permissions, clipboard, updates
+#     └─► conf.d/80-performance.conf   Scrollback, shaders, GPU
+#     └─► conf.d/85-platform.conf      macOS / Linux / WSL specifics
+#     └─► conf.d/99-local.conf         Machine-local overrides (GITIGNORED)
 #
-# # Font size
-# keybind = cmd+plus=increase_font_size:1
-# keybind = cmd+minus=decrease_font_size:1
-# keybind = cmd+zero=reset_font_size
-#
-# # Quick terminal global hotkey
-# keybind = global:ctrl+grave_accent=toggle_quick_terminal
-#
-# # Split management
-# keybind = cmd+shift+e=equalize_splits
-# keybind = cmd+shift+f=toggle_split_zoom
-#
-# # Reload config
-# keybind = cmd+shift+comma=reload_config
+# @note         NEVER write configuration keys directly in this file.
+#               Every parameter belongs in exactly ONE conf.d/ module.
+# @note         99-local.conf is gitignored and created empty by install.sh.
+#               It is always loaded last so it can override anything.
 
-# --- Performance ---
-# Generous scrollback (25MB)
-scrollback-limit = 25000000
+config-file = conf.d/00-core.conf
+config-file = conf.d/10-font.conf
+config-file = conf.d/20-colors.conf
+config-file = conf.d/30-keybindings.conf
+config-file = conf.d/40-window.conf
+config-file = conf.d/50-cursor.conf
+config-file = conf.d/60-mouse.conf
+config-file = conf.d/70-security.conf
+config-file = conf.d/80-performance.conf
+config-file = conf.d/85-platform.conf
+config-file = conf.d/99-local.conf
 
-# --- App Behavior ---
-auto-update = check
-auto-update-channel = stable
-desktop-notifications = true
-link-url = true
-window-inherit-working-directory = false
-app-notifications = no-clipboard-copy
-confirm-close-surface = false
+# # === MACOS ===
+# macos-titlebar-style="hidden"
+# macos-titlebar-style="transparent"
+# macos-option-as-alt=true
+# macos-non-native-fullscreen=true
+# macos-window-buttons=hidden
+# macos-icon=holographic
+# macos-secure-input-indication=true
+# macos-dock-drop-behavior=window
+# macos-non-native-fullscreen = true
+# macos-window-shadow=false
+#
+# config-file = configs/window.conf
+#
+# cursor-click-to-move=true
+# cursor-style-blink=false
+# cursor-style="underline"
+# adjust-cursor-thickness=2
+#
+# config-file = configs/fonts.conf
+#
+# bold-color=bright
+# cursor-color=cell-foreground
+# cursor-text=cell-background
+#
+# mouse-hide-while-typing=true
+#
+# config-file = configs/theme.conf
+# background-opacity = 0.85
+# background-blur = true
+#
+# clipboard-read = allow
+# selection-clear-on-copy = true
+# unfocused-split-opacity = 0.75
+#
+# config-file = configs/keybinds.conf
+# config-file = configs/command-palette.conf
+# config-file = configs/custom-shaders.conf
+#
+# # # -- Typography ---
+# # font-family = "Maple Mono NF CN"
+# # font-feature = -calt
+# # font-feature = -liga
+# # font-size = 16
+# # font-thicken = true
+# # adjust-cell-height = 10%
+# #
+# # # --- Theme and Colors
+# # # Custom themes matching dotfiles theme system
+# # theme = jubi
+# #
+# # # --- Window and Appearance ---
+# # background-opacity = 0.98
+# # background-image = ~/.config/ghostty/backgrounds/tamagotchi-rainbow-clouds-wallpaper-kawaii-hoshi.jpg
+# # background-image-opacity = 0.125
+# # background-image-fit = cover
+# # background-image-position = center
+# # unfocused-split-opacity = 0.8
+# # background-blur-radius = 20
+# # window-padding-x = 10
+# # window-padding-y = 8
+# # window-padding-color = extend-always
+# # window-padding-balance = true
+# # window-save-state = always
+# # window-step-resize = true
+# #
+# # custom-shader = shaders/cursor_warp.glsl
+# #
+# # # --- Cursor ---
+# # adjust-cursor-thickness = 2
+# # cursor-style = block
+# # cursor-style-blink = true
+# # custom-shader-animation = always
+# # cursor-opacity = 0.8
+# #
+# # # --- Mouse ---
+# # mouse-hide-while-typing = true
+# # copy-on-select = clipboard
+# #
+# # # --- Quick Terminal ---
+# # quick-terminal-position = bottom
+# # quick-terminal-screen = main
+# # quick-terminal-size     = 45%, 90%
+# # quick-terminal-animation-duration = 0.1
+# # quick-terminal-autohide = true
+# # quick-terminal-animation-duration = 0.15
+# #
+# # # --- MacOS Specific ---
+# # macos-auto-secure-input = false
+# # macos-non-native-fullscreen   = visible-menu
+# # macos-option-as-alt = false
+# # macos-titlebar-style          = tabs
+# # macos-window-shadow           = false
+# # macos-secure-input-indication = false
+# # macos-shortcuts = deny
+# #
+# # # --- Shell Integration ---
+# # shell-integration = detect
+# # shell-integration-features = cursor,sudo,no-title
+# # clipboard-trim-trailing-spaces = true
+# #
+# # # --- Keybindings ---
+# # # Windows
+# # keybind = ctrl+n=new_window
+# #
+# # # # Tabs
+# # # keybind = cmd+t=new_tab
+# # # keybind = ctrl+a>n=next_tab
+# # # keybind = ctrl+a>p=previous_tab
+# # # keybind = cmd+w=close_surface
+# # #
+# # # ### Splits
+# # #
+# # # # Split navigation
+# # # keybind = ctrl+h=goto_split:left
+# # # keybind = ctrl+j=goto_split:bottom
+# # # keybind = ctrl+k=goto_split:top
+# # # keybind = ctrl+l=goto_split:right
+# # #
+# # # keybind = ctrl+a>h=new_split:left
+# # # keybind = ctrl+a>j=new_split:down
+# # # keybind = ctrl+a>k=new_split:up
+# # # keybind = ctrl+a>l=new_split:right
+# # # keybind = ctrl+a>f=toggle_split_zoom
+# # #
+# # # # Font size
+# # # keybind = cmd+plus=increase_font_size:1
+# # # keybind = cmd+minus=decrease_font_size:1
+# # # keybind = cmd+zero=reset_font_size
+# # #
+# # # # Quick terminal global hotkey
+# # # keybind = global:ctrl+grave_accent=toggle_quick_terminal
+# # #
+# # # # Split management
+# # # keybind = cmd+shift+e=equalize_splits
+# # # keybind = cmd+shift+f=toggle_split_zoom
+# # #
+# # # # Reload config
+# # # keybind = cmd+shift+comma=reload_config
+# #
+# # # --- Performance ---
+# # # Generous scrollback (25MB)
+# # scrollback-limit = 25000000
+# #
+# # # --- App Behavior ---
+# # auto-update = check
+# # auto-update-channel = stable
+# # desktop-notifications = true
+# # link-url = true
+# # window-inherit-working-directory = false
+# # app-notifications = no-clipboard-copy
+# # confirm-close-surface = false

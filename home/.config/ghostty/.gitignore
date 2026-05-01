@@ -1,0 +1,28 @@
+
+---
+
+## `.gitignore`
+
+# @description  Git ignore rules for Ghostty config repository.
+# @see          conf.d/99-local.conf — machine-local overrides, never committed.
+
+# ── Local overrides (per-machine, never versioned) ──
+conf.d/99-local.conf
+
+# ── Editor swap / backup files ──
+*.bak
+*.swp
+*.swo
+*.tmp
+*~
+\#*\#
+
+# ── OS metadata ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── IDE / tooling ──
+.idea/
+.vscode/
+*.code-workspace

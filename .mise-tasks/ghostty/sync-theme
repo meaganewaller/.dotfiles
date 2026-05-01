@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+#MISE description="Generates conf.d/20-colors.conf from the active palette defined in theme/active.lua. Ensures Ghostty terminal colors are always in sync with the single source of truth"
+set -euo pipefail
+
+-- ── Path Resolution ─────────────────────────────────────────────────────────
+
+local script_source = debug.getinfo(1, "S").source:match("@(.+)") or arg[0] or "."
+local script_dir = script_source:match("(.+)/") or "."
+local root_dir = script_dir .. "/.."
+
+local theme = assert(loadfile(root_dir .. "/theme/init.lua"))()
+
+-- ── CLI Argument Parsing ────────────────────────────────────────────────────
+
+--- @description  Parse command-line arguments.
+--- @return       table  { palette_name: string|nil, list: bool, preview: bool }
+local function parse_args()
+  local opts = { palette_name = nil, list = false, preview = false }
+  for i = 1, #arg do
+    if arg[i] == "--list" or arg[i] == "-l" then
+      opts.list = true
+    elseif arg[i] == "--preview" or arg[i] == "-p" then
+      opts.preview = true
+    elseif arg[i] == "--help" or arg[i] == "-h" then
+      print("Usage: nvim -l scripts/sync-theme.lua [OPTIONS] [palette-name]")
+      print("")
+      print("Options:")
+      print("  --list, -l       List available palettes")
+      print("  --preview, -p    Print generated config to stdout (don't write file)")
+      print("  --help, -h       Show this help message")
+      print("")
+      print("Arguments:")
+      print("  palette-name     Palette slug (default: value from theme/active.lua)")
+      os.exit(0)
+    elseif not arg[i]:match("^%-") then
+      opts.palette_name = arg[i]
+    end
+  end
+  return opts
+end
+
+-- ── Palette Listing ─────────────────────────────────────────────────────────
+
+--- @description  Print all available palettes with active indicator.
+--- @param        active_name string  Currently active palette slug
+--- @param        palettes string[]   Available palette slugs
+local function print_palette_list(active_name, palettes)
+  print("Available palettes:")
+  print("")
+  for _, slug in ipairs(palettes) do
+    local marker = (slug == active_name) and " ◄ active" or ""
+    local p = theme.get_palette(slug)
+    local style_icon = (p.meta.style == "dark") and "🌙" or "☀️"
+    print(string.format("  %s %-28s %s%s", style_icon, slug, p.meta.name, marker))
+  end
+  print("")
+end
+
+-- ── Config Generation ───────────────────────────────────────────────────────
+
+--- @description  ANSI color name → palette index mapping.
+---               Order matters: indices 0–7 normal, 8–15 bright.
+--- @type         string[]
+local ANSI_ORDER = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white" }
+
+--- @description  Generate the complete content of conf.d/20-colors.conf
+---               from a palette table, with full documentation.
+--- @param        palette Palette  The palette to render
+--- @return       string           The generated config file content
+local function generate_config(palette)
+  local lines = {}
+
+  local function add(s)
+    lines[#lines + 1] = s or ""
+  end
+
+  -- Header
+  add("# ============================================================================")
+  add("# @module       20-colors")
+  add("# @description  ✦ SINGLE SOURCE OF TRUTH — Colors & Highlights.")
+  add("#")
+  add("# ⚡ THIS FILE IS AUTO-GENERATED — DO NOT EDIT BY HAND.")
+  add("#")
+  add("#   Source:    theme/palettes/" .. palette.meta.slug .. ".lua")
+  add("#   Generated: " .. os.date("%Y-%m-%d %H:%M:%S"))
+  add("#   Command:   nvim -l scripts/sync-theme.lua")
+  add("#")
+  add("#   To change colors:")
+  add("#     1. Edit theme/active.lua  → select a different palette")
+  add("#     2. Run: nvim -l scripts/sync-theme.lua")
+  add("#     3. Reload Ghostty: Ctrl+Shift+,")
+  add("#")
+  add("#   Active palette: " .. palette.meta.name)
+  add("#   Style:          " .. palette.meta.style)
+  add("#   Upstream:       " .. palette.meta.url)
+  add("#")
+  add("# @since        1.0.0")
+  add("# @see          theme/palettes/" .. palette.meta.slug .. ".lua")
+  add("# @see          scripts/sync-theme.lua")
+  add("# ============================================================================")
+  add("")
+  add("")
+
+  -- Base colors
+  add(
+    "# ── Base Colors ──────────────────────────────────────────────────────────────"
+  )
+  add("")
+  add("# @description  Default foreground (text) color.")
+  add("# @type         hex color")
+  add("foreground = " .. palette.foreground)
+  add("")
+  add("# @description  Default background color.")
+  add("# @type         hex color")
+  add("background = " .. palette.background)
+  add("")
+  add("")
+
+  -- ANSI palette
+  add(
+    "# ── ANSI Palette (16 Colors) ────────────────────────────────────────────────"
+  )
+  add("")
+  for i, name in ipairs(ANSI_ORDER) do
+    local color = palette.ansi[name]
+    local idx_normal = i - 1
+    local idx_bright = i + 7
+    add("# @field  palette." .. idx_normal .. "  — " .. name .. " (normal)")
+    add("palette = " .. idx_normal .. "=" .. color.normal)
+    add("# @field  palette." .. idx_bright .. " — " .. name .. " (bright)")
+    add("palette = " .. idx_bright .. "=" .. color.bright)
+    add("")
+  end
+  add("")
+
+  -- Cursor
+  add(
+    "# ── Cursor Color ─────────────────────────────────────────────────────────────"
+  )
+  add("")
+  add("# @description  Cursor color (shape defined in 50-cursor.conf).")
+  add("# @type         hex color")
+  add("cursor-color = " .. palette.cursor)
+  add("")
+  add("")
+
+  -- Selection
+  add(
+    "# ── Selection Highlight ──────────────────────────────────────────────────────"
+  )
+  add("")
+  add("# @description  Text color within a selection region.")
+  add("# @type         hex color")
+  add("selection-foreground = " .. palette.selection_fg)
+  add("")
+  add("# @description  Background color of a selection region.")
+  add("# @type         hex color")
+  add("selection-background = " .. palette.selection_bg)
+
+  return table.concat(lines, "\n") .. "\n"
+end
+
+-- ── Main ────────────────────────────────────────────────────────────────────
+
+local function main()
+  local opts = parse_args()
+
+  -- List mode
+  if opts.list then
+    local active_name = theme.get_active_name()
+    local palettes = theme.list_palettes()
+    print_palette_list(active_name, palettes)
+    return
+  end
+
+  -- Load palette
+  local palette_name = opts.palette_name or theme.get_active_name()
+  local palette = theme.get_palette(palette_name)
+
+  -- Validate
+  local valid, err = theme.validate(palette)
+  if not valid then
+    io.stderr:write("[ERROR] Invalid palette '" .. palette_name .. "': " .. err .. "\n")
+    os.exit(1)
+  end
+
+  -- Generate
+  local content = generate_config(palette)
+
+  -- Preview mode
+  if opts.preview then
+    print(content)
+    print("# ── Preview mode — file NOT written ──")
+    return
+  end
+
+  -- Write file
+  local output_path = root_dir .. "/conf.d/20-colors.conf"
+  local file, write_err = io.open(output_path, "w")
+  if not file then
+    io.stderr:write("[ERROR] Cannot write to " .. output_path .. ": " .. tostring(write_err) .. "\n")
+    os.exit(1)
+  end
+  file:write(content)
+  file:close()
+
+  -- Success output
+  print("✓ Generated: conf.d/20-colors.conf")
+  print("  Palette:   " .. palette.meta.name .. " (" .. palette.meta.slug .. ")")
+  print("  Style:     " .. palette.meta.style)
+  print("")
+  print("  Next steps:")
+  print("    • Ghostty: Ctrl+Shift+, (or wait for auto-reload)")
+  print("    • Neovim:  restart or :lua require('theme-bridge').reload()")
+end
+
+main()
