@@ -1,0 +1,78 @@
+-- ============================================================================
+-- @module       theme.schema
+-- @description  LuaCATS type definitions for the palette schema.
+--               These annotations enable autocompletion, type checking, and
+--               inline documentation in Neovim (lua_ls) and any LuaCATS-aware
+--               editor. No runtime code — types only.
+--
+-- @since        1.0.0
+-- @see          theme/palettes/*.lua — concrete implementations
+-- ============================================================================
+
+--- @class PaletteMeta
+--- @field name           string    Human-readable theme name (e.g. "Catppuccin Mocha")
+--- @field slug           string    Machine identifier / filename without .lua
+--- @field style          "dark"|"light"  Background style — drives vim.o.background
+--- @field variant        string    Plugin-specific variant (e.g. "mocha", "night", "storm")
+--- @field neovim_plugin  string|nil  Recommended Neovim colorscheme plugin name
+--- @field url            string    Upstream project URL
+
+--- @class AnsiColor
+--- @field normal  string  Hex color (#RRGGBB) for normal intensity (indices 0–7)
+--- @field bright  string  Hex color (#RRGGBB) for bright intensity (indices 8–15)
+
+--- @class AnsiPalette
+--- @field black    AnsiColor
+--- @field red      AnsiColor
+--- @field green    AnsiColor
+--- @field yellow   AnsiColor
+--- @field blue     AnsiColor
+--- @field magenta  AnsiColor
+--- @field cyan     AnsiColor
+--- @field white    AnsiColor
+
+--- @class SemanticColors
+--- @field bg_dark      string  Darker background (sidebars, floats, popups)
+--- @field bg           string  Default background (mirrors Palette.background)
+--- @field bg_light     string  Lighter background (cursor line, hover)
+--- @field bg_visual    string  Visual selection background
+--- @field bg_search    string  Search match background
+--- @field fg           string  Primary foreground (mirrors Palette.foreground)
+--- @field fg_dim       string  Dimmed foreground (comments, line numbers)
+--- @field fg_dark      string  Darkest foreground (disabled, gutter)
+--- @field red          string  Semantic red (errors, deletions)
+--- @field orange       string  Semantic orange (warnings alt, constants)
+--- @field yellow       string  Semantic yellow (warnings, types)
+--- @field green        string  Semantic green (strings, additions)
+--- @field teal         string  Semantic teal (hints, regex)
+--- @field cyan         string  Semantic cyan (info, operators)
+--- @field blue         string  Semantic blue (functions, links)
+--- @field purple       string  Semantic purple (keywords, statements)
+--- @field pink         string  Semantic pink (special, tags)
+--- @field error        string  Diagnostic: error
+--- @field warning      string  Diagnostic: warning
+--- @field info         string  Diagnostic: info
+--- @field hint         string  Diagnostic: hint
+--- @field diff_add     string  Diff background: added
+--- @field diff_change  string  Diff background: changed
+--- @field diff_delete  string  Diff background: deleted
+--- @field git_add      string  Git sign: added
+--- @field git_change   string  Git sign: changed
+--- @field git_delete   string  Git sign: deleted
+
+--- @class PaletteExtra
+--- Extra theme-specific named colors not covered by SemanticColors.
+--- Available for custom user highlights but NOT used by the bridge generically.
+--- Keys and values are theme-dependent.
+--- @field [string] string
+
+--- @class Palette
+--- @field meta          PaletteMeta      Theme metadata and plugin hints
+--- @field foreground    string           Default text color (#RRGGBB)
+--- @field background    string           Default background color (#RRGGBB)
+--- @field cursor        string           Cursor color (#RRGGBB)
+--- @field selection_fg  string           Selection foreground (#RRGGBB)
+--- @field selection_bg  string           Selection background (#RRGGBB)
+--- @field ansi          AnsiPalette      16-color ANSI palette
+--- @field semantic      SemanticColors   Normalized semantic colors for highlights
+--- @field extra         PaletteExtra|nil Optional theme-specific named colors
