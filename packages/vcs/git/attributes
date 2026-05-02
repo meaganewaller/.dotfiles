@@ -1,0 +1,28 @@
+# Treat these as text and normalize line endings
+*.md       text eol=lf
+*.txt      text eol=lf
+*.sh       text eol=lf
+*.bash     text eol=lf
+*.zsh      text eol=lf
+*.lua      text eol=lf
+*.py       text eol=lf
+*.rb       text eol=lf
+*.js       text eol=lf
+*.ts       text eol=lf
+
+# Binary
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.pdf      binary
+*.zip      binary
+*.tar.gz   binary
+
+# Lock files: include in diffs but mark as generated for review tools
+package-lock.json   linguist-generated=true
+yarn.lock           linguist-generated=true
+Gemfile.lock        linguist-generated=true
+Cargo.lock          linguist-generated=true
+poetry.lock         linguist-generated=true

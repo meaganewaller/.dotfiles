@@ -1,0 +1,4 @@
+[tool]
+name = "gh"
+target = "~/.config/gh"
+profiles = ["work", "personal"]   # not on server/container

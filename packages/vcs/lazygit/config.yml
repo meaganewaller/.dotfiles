@@ -1,0 +1,23 @@
+gui:
+  theme:
+    activeBorderColor: [cyan, bold]
+    inactiveBorderColor: [white]
+    selectedLineBgColor: [reverse, blue]
+  showFileTree: true
+  showCommandLog: false
+  showRandomTip: false
+  nerdFontsVersion: "3"
+  showBottomLine: false
+git:
+  autoFetch: true
+  fetchAll: true
+update:
+  method: never
+disableStartupPopups: true
+notARepository: skip
+promptToReturnFromSubprocess: false
+keybinding:
+  universal:
+    quit: q
+    return: <esc>
+    confirm: <enter>

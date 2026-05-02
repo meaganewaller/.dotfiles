@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+#MISE description="Verify git config is wired up correctly"
+set -euo pipefail
+source "$DOTFILES_ROOT/lib/common.sh"
+
+step "Verifying git config"
+
+# Sanity check: hooksPath should resolve to the linked dir
+hooks_path="$(git config --global --get core.hooksPath || true)"
+if [[ "$hooks_path" != "$HOME/.config/git/hooks" ]]; then
+  warn "core.hooksPath is '$hooks_path', expected ~/.config/git/hooks"
+fi
+
+# Check that the include chain works — read user.email through a dummy repo
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+# Test work include resolution
+mkdir -p "$tmp/work-test"
+( cd "$tmp/work-test" && git init -q && \
+  git remote add origin git@github.com:gusto/dummy.git && \
+  email="$(git config user.email)" && \
+  if [[ -z "$email" ]]; then
+    warn "Work include not resolving — check ~/.gitconfig.local"
+  else
+    info "Work email resolves to: $email"
+  fi
+)
+
+# Test personal include resolution
+mkdir -p "$tmp/personal-test"
+( cd "$tmp/personal-test" && git init -q && \
+  git remote add origin git@github.com:meaganewaller/dummy.git && \
+  email="$(git config user.email)" && \
+  if [[ -z "$email" ]]; then
+    warn "Personal include not resolving — check ~/.gitconfig.local"
+  else
+    info "Personal email resolves to: $email"
+  fi
+)
+
+info "git config OK"

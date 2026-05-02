@@ -1,0 +1,133 @@
+# Generated from packages/vcs/git/config.tmpl
+# Profile: {{ profile }} | OS: {{ os }}
+
+[user]
+  name = {{ user.name }}
+  # email + signingkey come from the includeIf-resolved file
+  useConfigOnly = true
+
+[init]
+  defaultBranch = main
+
+[core]
+  excludesfile = ~/.config/git/ignore
+  attributesfile = ~/.config/git/attributes
+  hooksPath = ~/.config/git/hooks
+  pager = {% if features.delta %}delta{% else %}less -FRX{% endif %}
+  editor = {{ editor.default }}
+  autocrlf = input
+  fsmonitor = true
+  untrackedCache = true
+
+[commit]
+  gpgsign = {{ git.sign_commits | lower }}
+  verbose = true
+
+[tag]
+  gpgsign = {{ git.sign_commits | lower }}
+
+[gpg]
+  format = ssh
+
+[gpg "ssh"]
+  allowedSignersFile = ~/.config/git/allowed_signers
+{%- if os == "macos" %}
+  program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+{%- elif os == "debian" or os == "redhat" or os == "linux" %}
+  program = /opt/1Password/op-ssh-sign
+{%- endif %}
+
+[pull]
+  rebase = true
+  ff = only
+
+[push]
+  default = current
+  autoSetupRemote = true
+  followTags = true
+
+[fetch]
+  prune = true
+  pruneTags = true
+
+[rebase]
+  autoStash = true
+  autoSquash = true
+  updateRefs = true
+
+[merge]
+  conflictStyle = zdiff3
+  ff = false
+
+[diff]
+  algorithm = histogram
+  colorMoved = default
+  mnemonicPrefix = true
+  renames = true
+
+[rerere]
+  enabled = true
+  autoupdate = true
+
+[branch]
+  sort = -committerdate
+
+[column]
+  ui = auto
+
+[help]
+  autocorrect = prompt
+
+[advice]
+  detachedHead = false
+  pushNonFastForward = false
+
+[transfer]
+  fsckObjects = true
+
+[fetch]
+  fsckObjects = true
+
+[receive]
+  fsckObjects = true
+
+{%- if features.delta %}
+[interactive]
+  diffFilter = delta --color-only
+
+[delta]
+  navigate = true
+  light = false
+  side-by-side = true
+  line-numbers = true
+  syntax-theme = {{ terminal.theme | default(value="Catppuccin-mocha") }}
+{%- endif %}
+
+[alias]
+  # short status
+  s = status -sb
+  # log oneline graph
+  lg = log --graph --pretty=format:'%C(auto)%h %C(blue)%an %C(green)%ar %C(reset)%s %C(auto)%d'
+  # last commit
+  last = log -1 HEAD --stat
+  # amend without editor
+  amend = commit --amend --no-edit
+  # diff staged
+  ds = diff --staged
+  # undo last commit, keep changes
+  undo = reset --soft HEAD^
+  # branches sorted by recent activity
+  recent = "!git for-each-ref --sort=-committerdate refs/heads/ --format='%(committerdate:short) %(refname:short)' | head -20"
+  # delete merged branches
+  cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master\\|develop' | xargs -n 1 git branch -d 2>/dev/null || true"
+  # who's working on what
+  wip = "!git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short) <%(authorname)>' | head"
+
+[url "git@github-personal:"]
+  insteadOf = "gh-personal:"
+[url "git@github-work:"]
+  insteadOf = "gh-work:"
+
+# This must come last — locally-generated includeIf rules
+[include]
+  path = ~/.gitconfig.local

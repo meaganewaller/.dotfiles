@@ -1,0 +1,8 @@
+[package]
+name = "vcs"
+description = "Version control: git, gh, lazygit"
+profiles = ["work", "personal", "server", "container"]
+tools = ["git", "gh", "lazygit"]
+# git makes sense everywhere; gh/lazygit are gated at the tool level
+
+post_link = "git:init"

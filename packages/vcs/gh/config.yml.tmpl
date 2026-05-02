@@ -1,0 +1,15 @@
+# Generated from packages/vcs/gh/config.yml.tmpl
+git_protocol: ssh
+editor: {{ editor.default }}
+prompt: enabled
+pager: less -FRX
+aliases:
+  co: pr checkout
+  pv: pr view --web
+  prs: pr list --author=@me
+{% if features.copilot %}
+  cop: copilot suggest
+  copx: copilot explain
+{% endif %}
+http_unix_socket: ""
+browser: ""

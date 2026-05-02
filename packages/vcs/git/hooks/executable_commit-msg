@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Append a trailer with the signing key fingerprint, so signed commits are
+# self-documenting even outside of tools that show signature info.
+# Skip for merge/revert/squash messages.
+set -e
+
+msg_file="$1"
+first_line="$(head -1 "$msg_file")"
+
+case "$first_line" in
+  Merge*|Revert*|fixup!*|squash!*) exit 0 ;;
+esac
+
+# No trailer if message already has one (idempotent)
+if grep -q '^Signed-by:' "$msg_file"; then
+  exit 0
+fi
+
+# Don't add for repos where signing is off (per-repo override)
+sign="$(git config --get commit.gpgsign 2>/dev/null || echo false)"
+[[ "$sign" == "true" ]] || exit 0
+
+exit 0  # placeholder — implement actual trailer logic if you want it

@@ -1,0 +1,10 @@
+# Generated — do not edit
+[user]
+  email = {{ secrets.git.work.email }}
+  signingkey = {{ secrets.git.work.signingkey }}
+
+[commit]
+  gpgsign = true
+
+[github]
+  user = {{ user.work_github | default(value=user.github) }}

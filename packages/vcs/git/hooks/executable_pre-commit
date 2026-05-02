@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Global pre-commit hook
+# Disable per-repo with: git config --local core.hooksPath .git/hooks
+set -e
+
+# Block accidental commits to main/master
+branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
+if [[ "$branch" == "main" || "$branch" == "master" ]]; then
+  if [[ -z "${ALLOW_COMMIT_TO_MAIN:-}" ]]; then
+    echo "✗ Direct commit to $branch blocked."
+    echo "  If you really mean it: ALLOW_COMMIT_TO_MAIN=1 git commit ..."
+    exit 1
+  fi
+fi
+
+# Block committing common secrets-shaped strings
+if git diff --cached --diff-filter=ACM | grep -E '(api[_-]?key|secret|password|token).*=.*["\x27][a-zA-Z0-9_\-]{16,}' >/dev/null; then
+  echo "✗ Possible secret in staged changes."
+  echo "  Review with: git diff --cached"
+  echo "  Bypass: git commit --no-verify"
+  exit 1
+fi
+
+# Reject files larger than 5MB
+while IFS= read -r file; do
+  if [[ -f "$file" ]]; then
+    size=$(wc -c < "$file")
+    if (( size > 5_000_000 )); then
+      echo "✗ $file is $((size / 1024 / 1024))MB — too big to commit."
+      echo "  Use git-lfs, or add to .gitignore, or --no-verify if intentional."
+      exit 1
+    fi
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACM)
+
+exit 0

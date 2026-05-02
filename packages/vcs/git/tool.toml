@@ -1,0 +1,16 @@
+[tool]
+name = "git"
+target = "~/.config/git"
+
+# The three include files go to $HOME, not ~/.config/git
+[[link]]
+src = "includes/work.tmpl"
+dest = "~/.gitconfig.work"
+
+[[link]]
+src = "includes/personal.tmpl"
+dest = "~/.gitconfig.personal"
+
+[[link]]
+src = "includes/local.tmpl"
+dest = "~/.gitconfig.local"
