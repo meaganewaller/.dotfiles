@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+#MISE description="Build merged template context (internal)"
+#MISE hide=true
+#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--no-secrets" help="Skip 1Password lookups"
+#USAGE flag "--out <path>" help="Output path" default="/tmp/dotfiles-context.json"
+set -euo pipefail
+source "$DOTFILES_ROOT/lib/common.sh"
+
+PROFILE="${usage_profile:-work}"
+NO_SECRETS="${usage_no_secrets:-false}"
+OUT="${usage_out:-/tmp/dotfiles-context.json}"
+
+VARS_DIR="$DOTFILES_ROOT/vars"
+HOSTNAME_SHORT="$(hostname -s | tr '[:upper:]' '[:lower:]')"
+
+# We need a TOML→JSON tool. Pick what's available, in order of preference.
+toml_to_json() {
+  if has dasel; then
+    dasel -r toml -w json < "$1"
+  elif has yq; then
+    yq -p toml -o json < "$1"
+  elif has python3; then
+    python3 -c "
+import sys, json, tomllib
+print(json.dumps(tomllib.loads(sys.stdin.read())))
+" < "$1"
+  else
+    die "Need one of: dasel, yq, or python3.11+ for TOML parsing"
+  fi
+}
+
+# Deep-merge two JSON objects, second wins
+json_merge() {
+  jq -s '.[0] * .[1]' <(echo "$1") <(echo "$2")
+}
+
+# Start with empty context
+ctx='{}'
+
+# Layer 1: common
+if [[ -f "$VARS_DIR/common.toml" ]]; then
+  ctx="$(json_merge "$ctx" "$(toml_to_json "$VARS_DIR/common.toml")")"
+fi
+
+# Layer 2: OS
+if [[ -f "$VARS_DIR/os/$DOTFILES_OS.toml" ]]; then
+  ctx="$(json_merge "$ctx" "$(toml_to_json "$VARS_DIR/os/$DOTFILES_OS.toml")")"
+fi
+
+# Layer 3: profile
+if [[ -f "$VARS_DIR/$PROFILE.toml" ]]; then
+  ctx="$(json_merge "$ctx" "$(toml_to_json "$VARS_DIR/$PROFILE.toml")")"
+fi
+
+# Layer 4: host (optional)
+if [[ -f "$VARS_DIR/host/$HOSTNAME_SHORT.toml" ]]; then
+  ctx="$(json_merge "$ctx" "$(toml_to_json "$VARS_DIR/host/$HOSTNAME_SHORT.toml")")"
+fi
+
+# Layer 5: secrets from 1Password
+if [[ "$NO_SECRETS" != "true" && -f "$VARS_DIR/secrets.toml" ]]; then
+  if op whoami >/dev/null 2>&1; then
+    secrets='{}'
+    # Walk the secrets.toml and fetch each declared item
+    secrets_json="$(toml_to_json "$VARS_DIR/secrets.toml")"
+    # paths in secrets are like .secrets.git.work — flatten and fetch
+    while IFS= read -r path; do
+      item="$(echo "$secrets_json" | jq -r ".$path.item")"
+      profiles="$(echo "$secrets_json" | jq -r ".$path.profiles // [] | join(\",\")")"
+      # Skip if this secret is profile-restricted and we're not in it
+      if [[ -n "$profiles" ]] && ! grep -qw "$PROFILE" <<<"${profiles//,/ }"; then
+        continue
+      fi
+      fields="$(echo "$secrets_json" | jq -r ".$path.fields[]")"
+      while IFS= read -r field; do
+        value="$(op item get "$item" --fields "$field" 2>/dev/null || echo '')"
+        secrets="$(echo "$secrets" | jq --arg p "$path" --arg f "$field" --arg v "$value" '
+          setpath(($p / "."); .) |
+          setpath(($p + "." + $f) / "."; $v)
+        ')"
+      done <<<"$fields"
+    done < <(echo "$secrets_json" | jq -r '.secrets | paths(objects) | map(tostring) | "secrets." + join(".")' | grep -v '\.' | sort -u)
+
+    ctx="$(json_merge "$ctx" "$secrets")"
+  else
+    warn "Not signed into op — skipping secrets"
+  fi
+fi
+
+# Layer 6: shell env overrides (DOTFILES_VAR_foo_bar=baz → ctx.foo.bar=baz)
+while IFS='=' read -r name value; do
+  [[ "$name" =~ ^DOTFILES_VAR_ ]] || continue
+  path="${name#DOTFILES_VAR_}"
+  path="${path//_/.}"
+  ctx="$(echo "$ctx" | jq --arg p "$path" --arg v "$value" 'setpath($p / "."; $v)')"
+done < <(env)
+
+# Add useful built-ins
+ctx="$(echo "$ctx" | jq \
+  --arg profile "$PROFILE" \
+  --arg os "$DOTFILES_OS" \
+  --arg arch "$DOTFILES_ARCH" \
+  --arg hostname "$HOSTNAME_SHORT" \
+  --arg home "$HOME" \
+  '. + {profile: $profile, os: $os, arch: $arch, hostname: $hostname, home: $home}')"
+
+echo "$ctx" > "$OUT"
+log "Context written to $OUT"

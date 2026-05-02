@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#MISE description="Install Homebrew packages for the profile's layers"
+#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--cleanup" help="brew bundle cleanup (uninstall extras)"
+set -euo pipefail
+
+source "$DOTFILES_ROOT/lib/common.sh"
+
+PROFILE="${usage_profile:-work}"
+CLEANUP="${usage_cleanup:-false}"
+
+[[ "$DOTFILES_OS" == "macos" ]] || { warn "Skipping brew on $DOTFILES_OS"; exit 0; }
+
+ensure_brew
+
+# Profile → layers map. Could pull from `mise vars` instead, but a case
+# statement keeps it readable and one less mise dependency at runtime.
+case "$PROFILE" in
+  work)      LAYERS="base gui dev infra work" ;;
+  personal)  LAYERS="base gui creative dev infra" ;;
+  server)    LAYERS="base dev" ;;
+  container) LAYERS="base" ;;
+  *)         die "No brew layers defined for profile: $PROFILE" ;;
+esac
+
+step "Installing brew layers: $LAYERS"
+
+for layer in $LAYERS; do
+  bf="$DOTFILES_ROOT/brew/Brewfile.$layer"
+  if [[ ! -f "$bf" ]]; then
+    warn "Missing $bf — skipping"
+    continue
+  fi
+
+  info "Layer: $layer"
+  if [[ "$CLEANUP" == "true" ]]; then
+    brew bundle --file="$bf" --cleanup
+  else
+    brew bundle --file="$bf"
+  fi
+done
+
+info "Brew layers installed"

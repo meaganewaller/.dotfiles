@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-#MISE description="Show tree of dotfiles"
-set -euo pipefail
-tree -a -L 3 -I '.git|node_modules|__pycache__|*.jpg|*.png' --dirsfirst

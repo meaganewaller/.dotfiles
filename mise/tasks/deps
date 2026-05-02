@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+#MISE description="Install OS-level deps that mise can't manage"
+#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--dry-run" help="Show what would be installed"
+set -euo pipefail
+
+source "$DOTFILES_ROOT/lib/common.sh"
+
+PROFILE="${usage_profile:-work}"
+DRY="${usage_dry_run:-false}"
+
+step "Ensuring OS deps for $PROFILE"
+
+case "$DOTFILES_OS" in
+	macos)
+		ensure_brew
+		for pkg in git gh 1password-cli stow coreutils gnu-sed; do
+			if ! brew list --formula "$pkg" >/dev/null 2>&1 \
+				&& ! brew list --cask "$pkg" >/dev/null 2>&1; then
+				if [[ "$DRY" == "true" ]]; then
+					echo "Would install $pkg"
+				else
+					info "Installing $pkg"
+					brew install "$pkg"
+				fi
+			fi
+		done
+		;;
+  debian)
+    ensure_apt
+    sudo apt-get install -y \
+      curl git gh \
+      build-essential \
+      ca-certificates \
+      gnupg \
+      unzip
+    if ! has op; then
+      warn "1Password CLI not in apt — install manually:"
+      log "  https://developer.1password.com/docs/cli/get-started/"
+    fi
+    ;;
+  redhat)
+    sudo dnf install -y curl git gh @development-tools
+    has op || warn "Install 1Password CLI manually"
+    ;;
+  *)
+    die "Unsupported OS: $DOTFILES_OS"
+    ;;
+esac
+
+info "Deps ok"

@@ -1,0 +1,13 @@
+[user]
+email = "meagan.waller@gusto.com"
+
+[git]
+default_branch = "main"
+sign_commits = true
+
+[paths]
+work = "~/workspace"
+
+[features]
+copilot = true
+work_proxy = true

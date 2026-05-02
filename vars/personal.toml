@@ -1,0 +1,10 @@
+[user]
+email = "meagan@meaganwaller.com"
+
+[git]
+default_branch = "main"
+sign_commits = true
+
+[features]
+copilot = false
+gaming = true

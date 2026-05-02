@@ -1,0 +1,21 @@
+[user]
+name = "Meagan Waller"
+github = "meaganewaller"
+
+[shell]
+default = "zsh"
+prompt = "starship"
+
+[terminal]
+font = "Maple Mono NF CN"
+font_size = 14
+opacity = 0.95
+theme = "catppuccin-mocha"
+
+[editor]
+default = "nvim"
+gui = "nvim"
+
+[paths]
+projects = "~/projects"
+github = "~/github"

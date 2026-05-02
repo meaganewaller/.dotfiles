@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-#MISE description="Run full install (link + brew bundle)"
-#USAGE flag "-p --profile <profile>" help="Select profile to install (default: work)" default="work"
-set -euo pipefail
-profile="${usage_profile:-work}"
-export DOTFILES_PROFILE="$profile"
-./install.sh --profile "$profile"

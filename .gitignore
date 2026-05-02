@@ -38,3 +38,4 @@ node_modules
 home/.config/exports/secrets
 
 home/.config/wezterm/projects/work
+*.bak.*

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#MISE description="Sign into GitHub CLI and 1Password in needed"
+set -euo pipefail
+
+source "$DOTFILES_ROOT/lib/common.sh"
+
+step "Authenticating CLI tools"
+
+# GitHub CLI
+if gh auth status >/dev/null 2>&1; then
+	info "gh: already authenticated"
+else
+	info "gh: signing in"
+	gh auth login
+fi
+
+# 1Password
+if op whoami >/dev/null 2>&1; then
+  info "op: already signed in ($(op whoami | head -1))"
+else
+  info "op: signing in"
+  if ! op signin; then
+    die "1Password signin failed. Make sure you've added an account: op account add"
+  fi
+fi

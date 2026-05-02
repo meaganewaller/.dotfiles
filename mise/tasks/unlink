@@ -1,0 +1,334 @@
+#!/usr/bin/env bash
+#MISE description="Remove dotfile symlinks from $HOME"
+#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--only <packages>" help="Comma-separated package or package:tool list"
+#USAGE flag "--except <packages>"
+#USAGE flag "--dry-run"
+#USAGE flag "--all-profiles" help="Unlink everything from any profile, not just current"
+#USAGE flag "--clean-rendered" help="Also remove .rendered/ output for this profile"
+set -euo pipefail
+source "$DOTFILES_ROOT/lib/common.sh"
+
+PROFILE="${usage_profile:-work}"
+ONLY="${usage_only:-}"
+EXCEPT="${usage_except:-}"
+DRY="${usage_dry_run:-false}"
+ALL_PROFILES="${usage_all_profiles:-false}"
+CLEAN_RENDERED="${usage_clean_rendered:-false}"
+
+[[ "$DRY" == "true" ]] && export DOTFILES_DRY_RUN=1
+
+PACKAGES_DIR="$DOTFILES_ROOT/packages"
+RENDERED_ROOT="$DOTFILES_ROOT/.rendered"
+RENDERED_DIR="$RENDERED_ROOT/$PROFILE"
+
+# ---------------------------------------------------------------------------
+# Helpers (shared shape with link, but we don't filter by profile/os when
+# --all-profiles is set — we want to clean up *any* leftover symlinks)
+# ---------------------------------------------------------------------------
+
+expand_path() {
+  local p="$1"
+  p="${p/#\~/$HOME}"
+  echo "$p"
+}
+
+toml_to_json() {
+  if has dasel; then
+    dasel -r toml -w json < "$1"
+  elif has yq; then
+    yq -p toml -o json < "$1"
+  else
+    python3 -c "import sys, json, tomllib; print(json.dumps(tomllib.loads(sys.stdin.read())))" < "$1"
+  fi
+}
+
+is_applicable() {
+  # When --all-profiles, ignore filters entirely so we can clean up symlinks
+  # left behind from any prior profile/os combination.
+  [[ "$ALL_PROFILES" == "true" ]] && return 0
+
+  local manifest_json="$1" kind="$2"
+  local profiles os
+
+  profiles="$(echo "$manifest_json" | jq -r ".$kind.profiles // [] | join(\" \")")"
+  os="$(echo "$manifest_json" | jq -r ".$kind.os // [] | join(\" \")")"
+
+  if [[ -n "$profiles" ]] && ! grep -qw "$PROFILE" <<<"$profiles"; then
+    return 1
+  fi
+  if [[ -n "$os" ]] && ! grep -qw "$DOTFILES_OS" <<<"$os"; then
+    return 1
+  fi
+  return 0
+}
+
+enabled_tools() {
+  local pkg_dir="$1" pkg_json="$2"
+
+  # When unlinking with --all-profiles, ignore tools= overrides — we want
+  # to find every tool that exists in the package and clean any links.
+  if [[ "$ALL_PROFILES" != "true" ]]; then
+    local profile_tools
+    profile_tools="$(echo "$pkg_json" | jq -r ".profile.\"$PROFILE\".tools // empty | join(\" \")")"
+    if [[ -n "$profile_tools" ]]; then
+      echo "$profile_tools"
+      return
+    fi
+
+    local pkg_tools
+    pkg_tools="$(echo "$pkg_json" | jq -r '.package.tools // empty | join(" ")')"
+    if [[ -n "$pkg_tools" ]]; then
+      echo "$pkg_tools"
+      return
+    fi
+  fi
+
+  if [[ -f "$pkg_dir/tool.toml" ]]; then
+    echo "."
+    return
+  fi
+
+  for sub in "$pkg_dir"/*/; do
+    [[ -f "$sub/tool.toml" ]] && basename "$sub"
+  done
+}
+
+# ---------------------------------------------------------------------------
+# Per-tool unlinking
+# ---------------------------------------------------------------------------
+#
+# A symlink is "ours" if it points into either:
+#   - $DOTFILES_ROOT/packages/...   (plain files)
+#   - $DOTFILES_ROOT/.rendered/...  (templated files)
+#
+# We never delete a symlink that points elsewhere, even if the path matches.
+# Real (non-symlink) files at the destination are also left alone.
+
+link_points_into_repo() {
+  local link="$1"
+  local target
+  target="$(readlink "$link")"
+  [[ "$target" == "$DOTFILES_ROOT"/* ]]
+}
+
+unlink_tool() {
+  local pkg="$1" tool="$2" tool_dir="$3"
+  local tool_json target
+
+  tool_json="$(toml_to_json "$tool_dir/tool.toml")"
+  is_applicable "$tool_json" "tool" || { warn "  $tool: skipped (os/profile)"; return; }
+
+  target="$(echo "$tool_json" | jq -r '.tool.target // empty')"
+  [[ -n "$target" ]] || { warn "  $tool: no target — skipping"; return; }
+  target="$(expand_path "$target")"
+
+  step "  $pkg:$tool ← $target"
+
+  # Build ignore list (so we skip the same files we'd skip during link)
+  local ignores
+  ignores="$(echo "$tool_json" | jq -r '.tool.ignore // [] | .[]')"
+
+  # Build override map: source path → destination path
+	local overrides
+	overrides="$(overrides_build "$tool_json")"
+
+  local removed=0 missing=0 foreign=0
+  while IFS= read -r -d '' file; do
+    local rel="${file#"$tool_dir"/}"
+
+    [[ "$rel" == "tool.toml" ]] && continue
+    [[ "$rel" == "package.toml" ]] && continue
+
+    # Skip ignores
+    local skip=false
+    while IFS= read -r pattern; do
+      [[ -n "$pattern" ]] || continue
+      # shellcheck disable=SC2053
+      [[ "$rel" == $pattern ]] && skip=true && break
+    done <<<"$ignores"
+    [[ "$skip" == "true" ]] && continue
+
+    # Translate the same way link did
+    local translated _mode
+    IFS=$'\t' read -r translated _mode < <(translate_filename "$rel")
+
+    # Determine where link would have placed it
+    local dest
+		local override
+		override="$(overrides_get "$overrides" "$rel")"
+		if [[ -n "$override" ]]; then
+		  dest="$override"
+		else
+		  dest="$target/$translated"
+		fi
+
+    # Decide what to do based on what's actually at dest
+    if [[ ! -e "$dest" && ! -L "$dest" ]]; then
+      ((missing++))
+      continue
+    fi
+
+    if [[ ! -L "$dest" ]]; then
+      # Real file — never touch
+      warn "    $dest is a real file (not a symlink) — leaving alone"
+      ((foreign++))
+      continue
+    fi
+
+    if ! link_points_into_repo "$dest"; then
+      warn "    $dest points outside repo — leaving alone"
+      ((foreign++))
+      continue
+    fi
+
+    if [[ "$DRY" == "true" ]]; then
+      dry "$(printf '%-40s ← %s' "$rel" "$dest")"
+      continue
+    fi
+
+    rm "$dest"
+    ((removed++))
+
+    # Try to remove now-empty parent dirs, but only inside $HOME and only
+    # while they're empty. rmdir will fail silently on non-empty dirs, which
+    # is what we want.
+    local parent
+    parent="$(dirname "$dest")"
+    while [[ "$parent" != "$HOME" && "$parent" != "/" ]]; do
+      rmdir "$parent" 2>/dev/null || break
+      parent="$(dirname "$parent")"
+    done
+  done < <(find "$tool_dir" -type f -not -name '.DS_Store' -print0)
+
+  if [[ "$DRY" != "true" ]]; then
+    info "    $removed removed, $missing already gone, $foreign left alone"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Per-package unlinking
+# ---------------------------------------------------------------------------
+
+unlink_package() {
+  local pkg="$1"
+  local pkg_dir="$PACKAGES_DIR/$pkg"
+  local pkg_json
+  pkg_json="$(toml_to_json "$pkg_dir/package.toml")"
+
+  is_applicable "$pkg_json" "package" || return
+
+  step "Package: $pkg"
+
+  local tools
+  tools="$(enabled_tools "$pkg_dir" "$pkg_json")"
+
+  for tool in $tools; do
+    if [[ "$tool" == "." ]]; then
+      unlink_tool "$pkg" "$pkg" "$pkg_dir"
+    else
+      unlink_tool "$pkg" "$tool" "$pkg_dir/$tool"
+    fi
+  done
+}
+
+# ---------------------------------------------------------------------------
+# Orphan sweep — find symlinks in $HOME pointing into $DOTFILES_ROOT that
+# don't correspond to any current package file. These are leftovers from
+# packages or files that were renamed/deleted from the repo.
+# ---------------------------------------------------------------------------
+
+sweep_orphans() {
+  step "Sweeping orphaned symlinks"
+
+  local found=0 removed=0
+  while IFS= read -r -d '' link; do
+    local target
+    target="$(readlink "$link")"
+
+    # Only ours
+    [[ "$target" == "$DOTFILES_ROOT"/* ]] || continue
+
+    # If the target file still exists in the repo, it's not an orphan
+    if [[ -e "$target" ]]; then
+      continue
+    fi
+
+    ((found++))
+    if [[ "$DRY" == "true" ]]; then
+      dry "$(printf 'orphan: %s → %s' "$link" "$target")"
+    else
+      rm "$link"
+      ((removed++))
+    fi
+  done < <(find "$HOME" -maxdepth 5 -type l -print0 2>/dev/null)
+
+  if [[ "$DRY" != "true" ]]; then
+    info "  $removed orphan(s) removed (of $found found)"
+  else
+    info "  $found orphan(s) would be removed"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+main() {
+  validate_profile "$PROFILE"
+  dry_run_banner "$DRY"
+
+  if [[ "$ALL_PROFILES" == "true" ]]; then
+    step "Unlinking ALL profiles on $DOTFILES_OS"
+  else
+    step "Unlinking profile: $PROFILE on $DOTFILES_OS"
+  fi
+
+  # Walk packages
+  for pkg_dir in "$PACKAGES_DIR"/*/; do
+    local pkg
+    pkg="$(basename "$pkg_dir")"
+    [[ -f "$pkg_dir/package.toml" ]] || continue
+
+    # --only / --except (matches link's syntax)
+    if [[ -n "$ONLY" ]]; then
+      grep -qE "(^|,)$pkg(:|,|$)" <<<",$ONLY," || continue
+    fi
+    if [[ -n "$EXCEPT" ]]; then
+      grep -qE "(^|,)$pkg(:|,|$)" <<<",$EXCEPT," && continue
+    fi
+
+    unlink_package "$pkg"
+  done
+
+  # Always sweep orphans unless filtering — orphan sweep is a global op
+  if [[ -z "$ONLY" && -z "$EXCEPT" ]]; then
+    sweep_orphans
+  fi
+
+  # Optionally nuke the rendered output dir for this profile
+  if [[ "$CLEAN_RENDERED" == "true" ]]; then
+    if [[ "$ALL_PROFILES" == "true" ]]; then
+      step "Removing all rendered output"
+      if [[ "$DRY" == "true" ]]; then
+        dry "rm -rf $RENDERED_ROOT"
+      else
+        rm -rf "$RENDERED_ROOT"
+        info "  removed $RENDERED_ROOT"
+      fi
+    else
+      step "Removing rendered output for $PROFILE"
+      if [[ "$DRY" == "true" ]]; then
+        dry "rm -rf $RENDERED_DIR"
+      else
+        rm -rf "$RENDERED_DIR"
+        info "  removed $RENDERED_DIR"
+      fi
+    fi
+  fi
+
+  info "Done"
+  dry_run_banner "$DRY"
+}
+
+main

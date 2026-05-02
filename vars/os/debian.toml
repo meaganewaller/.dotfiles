@@ -1,0 +1,11 @@
+[paths]
+homebrew_prefix = "/home/linuxbrew/.linuxbrew"
+
+[fonts]
+install_via = "nerd-fonts-release"
+
+[features]
+sketchybar = false
+karabiner = false
+hammerspoon = false
+loop = false

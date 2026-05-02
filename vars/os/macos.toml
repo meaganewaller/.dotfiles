@@ -1,0 +1,11 @@
+[paths]
+homebrew_prefix = "/opt/homebrew"
+
+[fonts]
+install-via = "brew-cask"
+
+[features]
+sketchybar = true
+karabiner = true
+hammerspoon = true
+loop = true

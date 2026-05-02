@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#MISE description="Full setup for a profile"
+#MISE alias="s"
+#USAGE flag "--profile <profile>" help="Profile to apply" default="work"
+#USAGE flag "--dry-run" help="Don't write anything"
+#USAGE flag "--skip-auth" help="Skip gh/op signin"
+#USAGE flag "--skip-brew" help="Skip homebrew bundle"
+set -euo pipefail
+
+source "$DOTFILES_ROOT/lib/common.sh"
+
+PROFILE="${usage_profile:-work}"
+DRY_RUN="${usage_dry_run:-false}"
+SKIP_AUTH="${usage_skip_auth:-false}"
+SKIP_BREW="${usage_skip_brew:-false}"
+
+validate_profile "$PROFILE"
+export DOTFILES_PROFILE="$PROFILE"
+export MISE_ENV="$PROFILE"
+export DOTFILES_DRY_RUN=$([[ "$DRY_RUN" == "true" ]] && echo 1 || echo 0)
+
+step "Setting up profile: $PROFILE"
+
+# Order matters:
+# 1. deps    → curl, git, gh, op (the things mise won't manage)
+# 2. auth    → needs gh + op binaries
+# 3. link    → symlinks dotfiles BEFORE mise install so MISE_ENV layers resolve
+# 4. install → mise picks up profile tools
+# 5. secrets → needs auth + tools to pull secrets from 1Password
+# 6. brew    → uses profile's brew_layers
+# 7. fonts   → purely cosmetic, so run last
+
+mise run deps
+mise run auth
+mise run link --profile "$PROFILE"
+mise install
+mise run secrets --refresh --profile "$PROFILE"
+mise run brew --profile "$PROFILE"
+mise run fonts

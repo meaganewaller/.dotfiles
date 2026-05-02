@@ -1,45 +1,26 @@
-# -----------------------------------------------------------------------------
-# Dotfiles repo–local mise config. Global tools: home/.config/mise/config.toml (+ config.<profile>.toml).
-# Lockfiles: mise.lock (repo tools) + home/.config/mise/mise*.lock (global + profile layers).
-# Regenerate with `mise run mise:lock` after changing [tools] or versions.
-# -----------------------------------------------------------------------------
-[tools]
-node = "latest"
-python = "latest"
-ruby = "3.4.6"
-uv = "latest"
-bun = "latest"
+min_version = "2024.9.0"
+experimental_monorepo_root = true
+
+[settings]
+experimental = true
 
 [env]
-DOTFILES = "{{config_root}}"
+DOTFILES_ROOT = "{{ config_root }}"
+DOTFILES_PROFILE = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
+MISE_ENV = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
+DOTFILES_OS = "macos" # used for OS-specific config files and tasks - separate from MISE_ENV which is for profile-specific config
+MISE_EXPERIMENTAL = "1"
 
-# Project-scoped aliases (active when cwd is under this repo; requires mise shell integration).
-# [shell_alias]
-# dots = "cd {{config_root}}"
-# mtasks = "mise tasks"
+# Layered profile config - mise picks up mise/config.<MISE_ENV>.toml automatically
+# via MISE_ENV, so per-profile tools live in those files.
+[tools]
+# Tools every machine needs
+"gh" = "latest"
+"1password-cli" = "latest"
 
-[tasks.default]
-description = "Show available commands"
-run = "mise tasks"
+[vars]
+# Default brew layers per profile - overridden by profile-specific config files
+brew_layers = "base dev infra"
 
-[tasks."mise:lock"]
-description = "Regenerate mise.lock files (repo + global profile layers)"
-run = "./.mise-tasks/mise/lock"
-
-[tasks.claude]
-description = "Merge Claude Code settings (common + profile) and link skills into ~/.claude"
-sources = ["home/.claude/install.sh", "home/.claude/settings/**/*.jsonc"]
-outputs = { auto = true }
-run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE"
-
-[tasks."claude:refresh"]
-description = "Re-run Claude Code install after editing settings/skills"
-sources = ["home/.claude/install.sh", "home/.claude/settings/**/*.jsonc"]
-outputs = { auto = true }
-run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE"
-
-[tasks."claude:dry-run"]
-description = "Preview Claude Code install (dry run)"
-sources = ["home/.claude/install.sh", "home/.claude/settings/**/*.jsonc"]
-outputs = { auto = true }
-run = "./home/.claude/install.sh --profile $DOTFILES_PROFILE --dry-run"
+[monorepo]
+config_roots = ["packages/*"]

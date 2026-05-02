@@ -1,0 +1,381 @@
+#!/usr/bin/env bash
+#MISE description="Link packages into $HOME"
+#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--only <packages>" help="Comma-separated package or package:tool list"
+#USAGE flag "--except <packages>"
+#USAGE flag "--dry-run"
+#USAGE flag "--no-hooks"
+#USAGE flag "--no-secrets" help="Skip 1Password during render"
+set -euo pipefail
+source "$DOTFILES_ROOT/lib/common.sh"
+
+PROFILE="${usage_profile:-work}"
+ONLY="${usage_only:-}"
+EXCEPT="${usage_except:-}"
+DRY="${usage_dry_run:-false}"
+NO_HOOKS="${usage_no_hooks:-false}"
+NO_SECRETS="${usage_no_secrets:-false}"
+
+[[ "$DRY" == "true" ]] && export DOTFILES_DRY_RUN=1
+
+PACKAGES_DIR="$DOTFILES_ROOT/packages"
+RENDERED_DIR="$DOTFILES_ROOT/.rendered/$PROFILE"
+CTX_FILE="/tmp/dotfiles-context-$PROFILE.json"
+
+# Counters used across helpers within a single tool. Bash 3.2-friendly:
+# global state instead of returning multiple values.
+TOOL_LINKED=0
+TOOL_RENDERED=0
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+toml_to_json() {
+  if has dasel; then
+    dasel -r toml -w json < "$1"
+  elif has yq; then
+    yq -p toml -o json < "$1"
+  else
+    python3 -c "import sys, json, tomllib; print(json.dumps(tomllib.loads(sys.stdin.read())))" < "$1"
+  fi
+}
+
+is_applicable() {
+  local manifest_json="$1" kind="$2"   # kind: "package" or "tool"
+  local profiles os
+
+  profiles="$(echo "$manifest_json" | jq -r ".$kind.profiles // [] | join(\" \")")"
+  os="$(echo "$manifest_json" | jq -r ".$kind.os // [] | join(\" \")")"
+
+  if [[ -n "$profiles" ]] && ! grep -qw "$PROFILE" <<<"$profiles"; then
+    return 1
+  fi
+  if [[ -n "$os" ]] && ! grep -qw "$DOTFILES_OS" <<<"$os"; then
+    return 1
+  fi
+  return 0
+}
+
+enabled_tools() {
+  local pkg_dir="$1" pkg_json="$2"
+
+  local profile_tools
+  profile_tools="$(echo "$pkg_json" | jq -r ".profile.\"$PROFILE\".tools // empty | join(\" \")")"
+  if [[ -n "$profile_tools" ]]; then
+    echo "$profile_tools"
+    return
+  fi
+
+  local pkg_tools
+  pkg_tools="$(echo "$pkg_json" | jq -r '.package.tools // empty | join(" ")')"
+  if [[ -n "$pkg_tools" ]]; then
+    echo "$pkg_tools"
+    return
+  fi
+
+  if [[ -f "$pkg_dir/tool.toml" ]]; then
+    echo "."
+    return
+  fi
+
+  for sub in "$pkg_dir"/*/; do
+    [[ -f "$sub/tool.toml" ]] && basename "$sub"
+  done
+}
+
+# ---------------------------------------------------------------------------
+# Single-file linking — the leaf operation. Renders templates, applies modes,
+# creates the symlink. Used by both [[link]] entries and target-mode walks.
+# ---------------------------------------------------------------------------
+#
+# Args:
+#   $1 pkg
+#   $2 tool
+#   $3 source file (absolute path in repo)
+#   $4 dest path (absolute, ~ already expanded)
+#   $5 source rel (path relative to tool dir, for display + render output)
+#   $6 default_mode (whole-tool mode, applied if filename has no prefix)
+
+link_one_file() {
+  local pkg="$1" tool="$2" src_file="$3" dest="$4" src_rel="$5" default_mode="$6"
+
+  # Translate filename: strip attribute prefix and .tmpl suffix.
+  # The dest path was provided by the caller and is treated as authoritative
+  # for placement, but the filename itself still gets translated so:
+  #   - executable_foo at dest=~/.local/bin/foo  → links foo, chmod +x
+  #   - private_dot_zshrc at dest=~/.zshrc       → links .zshrc, chmod 600
+  local src_basename translated mode
+  src_basename="$(basename "$src_file")"
+  IFS=$'\t' read -r translated mode < <(translate_filename "$src_basename")
+
+  # If the dest still ends in the un-translated basename (i.e. caller passed
+  # a directory destination or didn't manually translate), fix it up.
+  if [[ "$(basename "$dest")" == "$src_basename" && "$translated" != "$src_basename" ]]; then
+    dest="$(dirname "$dest")/$translated"
+  fi
+
+  # Strip .tmpl from dest if present (defensive — caller usually shouldn't
+  # include it, but tolerating it makes manifests more forgiving)
+  [[ "$dest" == *.tmpl ]] && dest="${dest%.tmpl}"
+
+  # Whole-tool mode applies if no per-file prefix
+  [[ -z "$mode" && -n "$default_mode" ]] && mode="$default_mode"
+
+  local source_file="$src_file"
+
+  # Render templates into .rendered/<profile>/<pkg>/<tool>/<src_rel-no-tmpl>
+  if [[ "$src_file" == *.tmpl ]]; then
+    local rel_for_render="${src_rel%.tmpl}"
+    local rendered_path="$RENDERED_DIR/$pkg/$tool/$rel_for_render"
+
+    # Also strip attribute prefixes from the rendered path's basename so
+    # the rendered file on disk matches what gets linked (cleaner debugging)
+    local rendered_dir rendered_base
+    rendered_dir="$(dirname "$rendered_path")"
+    rendered_base="$(basename "$rendered_path")"
+    local rb_translated _rb_mode
+    IFS=$'\t' read -r rb_translated _rb_mode < <(translate_filename "$rendered_base")
+    rendered_path="$rendered_dir/$rb_translated"
+
+    if [[ "$DRY" != "true" ]]; then
+      mkdir -p "$rendered_dir"
+      mise run _render "$src_file" "$rendered_path" --context "$CTX_FILE"
+      TOOL_RENDERED=$((TOOL_RENDERED + 1))
+    fi
+    source_file="$rendered_path"
+  fi
+
+  if [[ "$DRY" == "true" ]]; then
+    local marker=""
+    [[ "$src_file" == *.tmpl ]] && marker=" ${BLUE}(rendered)${NC}"
+    [[ -n "$mode" ]] && marker="${marker} ${YELLOW}[$mode]${NC}"
+    dry "$(printf '%-40s → %s%s' "$src_rel" "$dest" "$marker")"
+    return
+  fi
+
+  mkdir -p "$(dirname "$dest")"
+
+  # Already correctly linked → just refresh perms in case they drifted
+  if [[ -L "$dest" && "$(readlink "$dest")" == "$source_file" ]]; then
+    [[ -n "$mode" ]] && apply_mode "$source_file" "$mode"
+    return
+  fi
+
+  if [[ -e "$dest" && ! -L "$dest" ]]; then
+    mv "$dest" "$dest.bak.$(date +%s)"
+    warn "    backed up $dest"
+  fi
+
+  ln -sfn "$source_file" "$dest"
+  [[ -n "$mode" ]] && apply_mode "$source_file" "$mode"
+  TOOL_LINKED=$((TOOL_LINKED + 1))
+}
+
+# ---------------------------------------------------------------------------
+# [[link]] entry processing — handles both file and directory sources
+# ---------------------------------------------------------------------------
+
+# Recursively link a directory's contents to a destination directory,
+# preserving relative paths.
+link_directory_contents() {
+  local pkg="$1" tool="$2" tool_dir="$3" src_dir="$4" dest_dir="$5" default_mode="$6"
+
+  while IFS= read -r -d '' file; do
+    local src_rel="${file#"$tool_dir"/}"           # for display
+    local rel_within_dir="${file#"$src_dir"/}"     # for placement under dest_dir
+    local dest="$dest_dir/$rel_within_dir"
+    link_one_file "$pkg" "$tool" "$file" "$dest" "$src_rel" "$default_mode"
+  done < <(find "$src_dir" -type f -not -name '.DS_Store' -print0)
+}
+
+# Process the [[link]] array. Returns the list of source paths it covered
+# (one per line) so target-mode can skip them. Output goes to stdout.
+process_link_entries() {
+  local pkg="$1" tool="$2" tool_dir="$3" tool_json="$4" default_mode="$5"
+
+  while IFS= read -r entry; do
+    [[ -z "$entry" ]] && continue
+    local src dest
+    src="$(echo "$entry" | jq -r '.src')"
+    dest="$(echo "$entry" | jq -r '.dest')"
+    dest="${dest/#\~/$HOME}"
+
+    local src_path="$tool_dir/$src"
+    if [[ ! -e "$src_path" ]]; then
+      warn "    [[link]] missing source: $src" >&2
+      continue
+    fi
+
+    if [[ -d "$src_path" ]]; then
+      link_directory_contents "$pkg" "$tool" "$tool_dir" "$src_path" "$dest" "$default_mode" >&2
+    else
+      local src_rel="$src"
+      link_one_file "$pkg" "$tool" "$src_path" "$dest" "$src_rel" "$default_mode" >&2
+    fi
+
+    # Emit covered path (relative to tool dir) so target-mode can skip it
+    echo "$src"
+  done < <(echo "$tool_json" | jq -c '.link // [] | .[]')
+}
+
+# ---------------------------------------------------------------------------
+# Mirror mode — when target is set, walk everything not already covered by
+# a [[link]] entry and place it at $target/<rel>.
+# ---------------------------------------------------------------------------
+
+mirror_into_target() {
+  local pkg="$1" tool="$2" tool_dir="$3" target="$4" covered="$5" default_mode="$6" ignores="$7"
+
+  while IFS= read -r -d '' file; do
+    local rel="${file#"$tool_dir"/}"
+
+    [[ "$rel" == "tool.toml" ]] && continue
+    [[ "$rel" == "package.toml" ]] && continue
+
+    # Skip anything already handled by [[link]] entries.
+    # A path is covered if it equals a covered entry, or sits inside a
+    # covered directory (covered_entry/...).
+    local skip=false
+    while IFS= read -r covered_path; do
+      [[ -z "$covered_path" ]] && continue
+      if [[ "$rel" == "$covered_path" || "$rel" == "$covered_path"/* ]]; then
+        skip=true
+        break
+      fi
+    done <<<"$covered"
+    [[ "$skip" == "true" ]] && continue
+
+    # Apply ignore patterns
+    while IFS= read -r pattern; do
+      [[ -n "$pattern" ]] || continue
+      # shellcheck disable=SC2053
+      if [[ "$rel" == $pattern ]]; then
+        skip=true
+        break
+      fi
+    done <<<"$ignores"
+    [[ "$skip" == "true" ]] && continue
+
+    local dest="$target/$rel"
+    link_one_file "$pkg" "$tool" "$file" "$dest" "$rel" "$default_mode"
+  done < <(find "$tool_dir" -type f -not -name '.DS_Store' -print0)
+}
+
+# ---------------------------------------------------------------------------
+# Per-tool linking — dispatcher between [[link]] entries and mirror mode
+# ---------------------------------------------------------------------------
+
+link_tool() {
+  local pkg="$1" tool="$2" tool_dir="$3"
+  local tool_json
+  tool_json="$(toml_to_json "$tool_dir/tool.toml")"
+
+  is_applicable "$tool_json" "tool" || { warn "  $tool: skipped (os/profile)"; return; }
+
+  local target default_mode has_links
+  target="$(echo "$tool_json" | jq -r '.tool.target // empty')"
+  default_mode="$(echo "$tool_json" | jq -r '.tool.mode // empty')"
+  has_links="$(echo "$tool_json" | jq -r '.link // [] | length')"
+
+  if [[ -z "$target" && "$has_links" -eq 0 ]]; then
+    warn "  $tool: no target and no [[link]] entries — nothing to do"
+    return
+  fi
+
+  if [[ -n "$target" ]]; then
+    target="${target/#\~/$HOME}"
+    step "  $pkg:$tool → $target"
+  else
+    step "  $pkg:$tool"
+  fi
+
+  TOOL_LINKED=0
+  TOOL_RENDERED=0
+
+  # 1. Process explicit [[link]] entries first; collect what they covered
+  local covered=""
+  if [[ "$has_links" -gt 0 ]]; then
+    covered="$(process_link_entries "$pkg" "$tool" "$tool_dir" "$tool_json" "$default_mode")"
+  fi
+
+  # 2. If a target is set, mirror anything not already covered
+  if [[ -n "$target" ]]; then
+    local ignores
+    ignores="$(echo "$tool_json" | jq -r '.tool.ignore // [] | .[]')"
+    mirror_into_target "$pkg" "$tool" "$tool_dir" "$target" "$covered" "$default_mode" "$ignores"
+  fi
+
+  if [[ "$DRY" != "true" ]]; then
+    info "    $TOOL_LINKED linked, $TOOL_RENDERED rendered"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Per-package linking
+# ---------------------------------------------------------------------------
+
+link_package() {
+  local pkg="$1"
+  local pkg_dir="$PACKAGES_DIR/$pkg"
+  local pkg_json
+  pkg_json="$(toml_to_json "$pkg_dir/package.toml")"
+
+  is_applicable "$pkg_json" "package" || return
+
+  step "Package: $pkg"
+
+  local tools
+  tools="$(enabled_tools "$pkg_dir" "$pkg_json")"
+
+  for tool in $tools; do
+    if [[ "$tool" == "." ]]; then
+      link_tool "$pkg" "$pkg" "$pkg_dir"
+    else
+      link_tool "$pkg" "$tool" "$pkg_dir/$tool"
+    fi
+  done
+
+  if [[ "$NO_HOOKS" != "true" && "$DRY" != "true" ]]; then
+    local hook
+    hook="$(echo "$pkg_json" | jq -r '.package.post_link // empty')"
+    if [[ -n "$hook" ]]; then
+      info "  → running hook: $pkg:$hook"
+      mise run "$pkg:$hook" || warn "  hook failed (continuing)"
+    fi
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+main() {
+  validate_profile "$PROFILE"
+  dry_run_banner "$DRY"
+  step "Linking profile: $PROFILE on $DOTFILES_OS"
+
+  local ctx_args=(--profile "$PROFILE" --out "$CTX_FILE")
+  [[ "$NO_SECRETS" == "true" ]] && ctx_args+=(--no-secrets)
+  mise run _render-context "${ctx_args[@]}"
+
+  for pkg_dir in "$PACKAGES_DIR"/*/; do
+    local pkg
+    pkg="$(basename "$pkg_dir")"
+    [[ -f "$pkg_dir/package.toml" ]] || continue
+
+    if [[ -n "$ONLY" ]]; then
+      grep -qE "(^|,)$pkg(:|,|$)" <<<",$ONLY," || continue
+    fi
+    if [[ -n "$EXCEPT" ]]; then
+      grep -qE "(^|,)$pkg(:|,|$)" <<<",$EXCEPT," && continue
+    fi
+
+    link_package "$pkg"
+  done
+
+  info "Done"
+  dry_run_banner "$DRY"
+}
+
+main
