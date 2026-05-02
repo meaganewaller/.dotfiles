@@ -1,0 +1,6 @@
+[tool]
+name = "fish"
+
+[[link]]
+src = "config.fish.tmpl"
+dest = "~/.config/fish/config.fish"

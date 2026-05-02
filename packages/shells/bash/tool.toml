@@ -1,0 +1,10 @@
+[tool]
+name = "bash"
+
+[[link]]
+src = "bashrc"
+dest = "~/.bashrc"
+
+[[link]]
+src = "bash_profile"
+dest = "~/.bash_profile"
