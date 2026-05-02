@@ -1,0 +1,7 @@
+[tool]
+name = "sketchybar"
+target = "~/.config/sketchybar"
+
+[[link]]
+src = "sketchybarrc.tmpl"
+dest = "~/.config/sketchybar/sketchybarrc"

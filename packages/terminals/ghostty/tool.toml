@@ -1,0 +1,9 @@
+[tool]
+name = "ghostty"
+target = "~/.config/ghostty"
+
+# Optional: skip files at the root of this tool dir
+ignore = ["README.md", "*.local"]
+
+# OS gating at the tool level (overrides package-level)
+os = ["macos", "linux"]

@@ -1,0 +1,5 @@
+[package]
+name = "wm"
+profiles = ["work", "personal"]
+os = ["macos"]
+# Both aerospace and sketchybar enabled by default

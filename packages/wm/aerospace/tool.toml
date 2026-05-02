@@ -1,0 +1,4 @@
+[tool]
+name = "aerospace"
+target = "~/.config/aerospace"
+os = ["macos"]
