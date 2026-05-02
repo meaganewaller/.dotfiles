@@ -7,7 +7,6 @@
 #USAGE flag "--all-profiles" help="Unlink everything from any profile, not just current"
 #USAGE flag "--clean-rendered" help="Also remove .rendered/ output for this profile"
 set -euo pipefail
-source "$DOTFILES_ROOT/lib/common.sh"
 
 PROFILE="${usage_profile:-work}"
 ONLY="${usage_only:-}"
@@ -16,7 +15,11 @@ DRY="${usage_dry_run:-false}"
 ALL_PROFILES="${usage_all_profiles:-false}"
 CLEAN_RENDERED="${usage_clean_rendered:-false}"
 
-[[ "$DRY" == "true" ]] && export DOTFILES_DRY_RUN=1
+DRY="${usage_dry_run:-${DOTFILES_DRY_RUN:-false}}"
+# Normalize "1" / "true" / "yes" → "true"
+case "$DRY" in 1|true|yes) DRY="true" ;; *) DRY="false" ;; esac
+
+source "$DOTFILES_ROOT/lib/common.sh"
 
 PACKAGES_DIR="$DOTFILES_ROOT/packages"
 RENDERED_ROOT="$DOTFILES_ROOT/.rendered"

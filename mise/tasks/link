@@ -7,7 +7,6 @@
 #USAGE flag "--no-hooks"
 #USAGE flag "--no-secrets" help="Skip 1Password during render"
 set -euo pipefail
-source "$DOTFILES_ROOT/lib/common.sh"
 
 PROFILE="${usage_profile:-work}"
 ONLY="${usage_only:-}"
@@ -16,8 +15,11 @@ DRY="${usage_dry_run:-false}"
 NO_HOOKS="${usage_no_hooks:-false}"
 NO_SECRETS="${usage_no_secrets:-false}"
 
-[[ "$DRY" == "true" ]] && export DOTFILES_DRY_RUN=1
+DRY="${usage_dry_run:-${DOTFILES_DRY_RUN:-false}}"
+# Normalize "1" / "true" / "yes" → "true"
+case "$DRY" in 1|true|yes) DRY="true" ;; *) DRY="false" ;; esac
 
+source "$DOTFILES_ROOT/lib/common.sh"
 PACKAGES_DIR="$DOTFILES_ROOT/packages"
 RENDERED_DIR="$DOTFILES_ROOT/.rendered/$PROFILE"
 CTX_FILE="/tmp/dotfiles-context-$PROFILE.json"

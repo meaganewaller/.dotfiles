@@ -2,14 +2,15 @@
 #MISE description="Full setup for a profile"
 #MISE alias="s"
 #USAGE flag "--profile <profile>" help="Profile to apply" default="work"
+#USAGE flag "--only <packages>"
 #USAGE flag "--dry-run" help="Don't write anything"
 #USAGE flag "--skip-auth" help="Skip gh/op signin"
 #USAGE flag "--skip-brew" help="Skip homebrew bundle"
 set -euo pipefail
-
 source "$DOTFILES_ROOT/lib/common.sh"
 
 PROFILE="${usage_profile:-work}"
+ONLY="${usage_only:-}"
 DRY_RUN="${usage_dry_run:-false}"
 SKIP_AUTH="${usage_skip_auth:-false}"
 SKIP_BREW="${usage_skip_brew:-false}"
@@ -30,10 +31,51 @@ step "Setting up profile: $PROFILE"
 # 6. brew    → uses profile's brew_layers
 # 7. fonts   → purely cosmetic, so run last
 
+# Propagate dry-run to all child tasks via env. Each task picks this up
+# as a fallback when --dry-run isn't passed explicitly.
+if [[ "$DRY_RUN" == "true" ]]; then
+  export DOTFILES_DRY_RUN=1
+else
+  unset DOTFILES_DRY_RUN
+fi
+
+dry_run_banner "$DRY_RUN"
+step "Setting up profile: $PROFILE"
+
 mise run deps
-mise run auth
-mise run link --profile "$PROFILE"
-mise install
-mise run secrets --refresh --profile "$PROFILE"
-mise run brew --profile "$PROFILE"
-mise run fonts
+
+# Build link args — only forward flags that aren't dry-run (env handles that)
+link_args=(--profile "$PROFILE")
+[[ -n "$ONLY" ]] && link_args+=(--only "$ONLY")
+mise run link "${link_args[@]}"
+
+# mise install doesn't really have a meaningful dry-run mode,
+# but skip it if we're previewing
+if [[ "$DRY_RUN" != "true" ]]; then
+  mise install
+else
+  dry "Would run: mise install"
+fi
+
+if [[ "$SKIP_AUTH" != "true" ]]; then
+  if [[ "$DRY_RUN" == "true" ]]; then
+    dry "Would run: mise run auth"
+    dry "Would run: mise run secrets --refresh"
+  else
+    mise run auth
+    mise run secrets --refresh --profile "$PROFILE"
+  fi
+fi
+
+if [[ "$SKIP_BREW" != "true" ]]; then
+	if [[ "$DRY_RUN" == "true" ]]; then
+		dry "Would run: mise run brew --profile $PROFILE"
+		dry "Would run: mise run fonts"
+	else
+		mise run brew --profile "$PROFILE"
+		mise run fonts
+	fi
+fi
+
+info "Setup complete"
+dry_run_banner "$DRY_RUN"

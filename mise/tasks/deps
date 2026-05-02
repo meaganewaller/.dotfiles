@@ -5,10 +5,12 @@
 #USAGE flag "--dry-run" help="Show what would be installed"
 set -euo pipefail
 
-source "$DOTFILES_ROOT/lib/common.sh"
-
 PROFILE="${usage_profile:-work}"
-DRY="${usage_dry_run:-false}"
+DRY="${usage_dry_run:-${DOTFILES_DRY_RUN:-false}}"
+# Normalize "1" / "true" / "yes" → "true"
+case "$DRY" in 1|true|yes) DRY="true" ;; *) DRY="false" ;; esac
+
+source "$DOTFILES_ROOT/lib/common.sh"
 
 step "Ensuring OS deps for $PROFILE"
 

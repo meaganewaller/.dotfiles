@@ -1,0 +1,5 @@
+[tool]
+name = "ssh"
+target = "~/.ssh"
+mode = "private"        # everything in this tool gets chmod 600 by default
+ignore = ["README.md"]

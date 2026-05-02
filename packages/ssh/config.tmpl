@@ -1,0 +1,34 @@
+# Generated from packages/ssh/config.tmpl
+# Profile: {{ profile }} | OS: {{ os }} | Host: {{ hostname }}
+
+# ---------------------------------------------------------------------------
+# Global defaults
+# ---------------------------------------------------------------------------
+
+Host *
+    AddKeysToAgent yes
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    HashKnownHosts no
+    UserKnownHostsFile ~/.ssh/known_hosts ~/.ssh/known_hosts_static
+    {%- if os == "macos" %}
+    UseKeychain yes
+    IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    {%- elif os == "debian" or os == "redhat" or os == "linux" %}
+    IdentityAgent ~/.1password/agent.sock
+    {%- endif %}
+
+# ---------------------------------------------------------------------------
+# Includes — profile-specific host blocks live in conf.d/
+# ---------------------------------------------------------------------------
+
+Include ~/.ssh/conf.d/*.conf
+
+# ---------------------------------------------------------------------------
+# GitHub (always present — used in both profiles)
+# ---------------------------------------------------------------------------
+
+Host github.com
+    HostName github.com
+    User git
+    PreferredAuthentications publickey

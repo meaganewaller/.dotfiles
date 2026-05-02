@@ -1,0 +1,4 @@
+[package]
+name = "ssh"
+description = "SSH client config + signed-commit allowed_signers"
+profiles = ["work", "personal", "server"]
