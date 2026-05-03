@@ -1,7 +1,7 @@
 [package]
 name = "shells"
 profiles = ["work", "personal", "server", "container"]
-tools = ["bash"]
+tools = ["bash", "atuin"]
 
 [profile.container]
-tools = ["bash"]                 # containers don't need zsh/starship
+tools = ["bash"]

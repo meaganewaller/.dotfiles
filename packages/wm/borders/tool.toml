@@ -1,0 +1,7 @@
+[tool]
+name = "borders"
+target = "~/.config/borders"
+
+[[link]]
+src = "bordersrc"
+dest = "~/.config/borders/bordersrc"

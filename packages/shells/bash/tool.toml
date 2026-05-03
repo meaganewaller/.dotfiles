@@ -1,5 +1,6 @@
 [tool]
 name = "bash"
+target = "~"  # so .bashrc and .bash_profile end up in ~/
 
 [[link]]
 src = "bashrc.tmpl"
