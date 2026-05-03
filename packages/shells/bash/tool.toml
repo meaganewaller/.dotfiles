@@ -2,9 +2,21 @@
 name = "bash"
 
 [[link]]
-src = "bashrc"
+src = "bashrc.tmpl"
 dest = "~/.bashrc"
 
 [[link]]
-src = "bash_profile"
+src = "bash_profile.tmpl"
 dest = "~/.bash_profile"
+
+[[link]]
+src = "bash_exports.tmpl"
+dest = "~/.bash_exports"
+
+[[link]]
+src = "bash_aliases"
+dest = "~/.bash_aliases"
+
+[[link]]
+src = "aliases"
+dest = "~/.bash_aliases.d"

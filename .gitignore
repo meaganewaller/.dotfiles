@@ -1,5 +1,5 @@
 packages/vcs/git/includes/local.tmpl
-# Results of running `mise link`, should be removed after run, but if run fails it might be left behind. This file is ignored to prevent it from being accidentally committed.
+# Results of running `mise link`, will probably move this out of this directory, but MVP for now
 .rendered/
 
 # ----------------------------- #

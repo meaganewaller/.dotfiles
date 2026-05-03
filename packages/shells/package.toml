@@ -1,9 +1,7 @@
 [package]
 name = "shells"
 profiles = ["work", "personal", "server", "container"]
-
-# All tools enabled by default (zsh, bash, starship)
-post_link = "reload"
+tools = ["bash"]
 
 [profile.container]
 tools = ["bash"]                 # containers don't need zsh/starship

@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+# Runtime secrets are auto-injected by mise-env-fnox; see ADR 0005.
+
 # ~/.bashrc
 # shellcheck shell=bash
 # Non-login interactive shell config
@@ -18,16 +22,21 @@ shopt -s histappend checkwinsize 2>/dev/null || true
 # mise (runtime authority)
 # MUST be first on PATH
 #######################################
-# Work (Gusto): shims on PATH — skip activate (same signal as zsh: ~/.gusto/init.sh).
-# Override: MISE_USE_SHIMS_ONLY=1
-
+{%- if profile == "work" %}
 if command -v mise >/dev/null 2>&1; then
-  if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
-    :
-  else
-    eval "$(mise activate bash)"
-  fi
+	# Work (Gusto): shims on PATH — skip activate (same signal as zsh: ~/.gusto/init.sh).
+	# Override: MISE_USE_SHIMS_ONLY=1
+
+	if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
+		source "$HOME/.gusto/init.sh"
+	fi
 fi
+{%- elif profile == "personal" %}
+if command -v mise >/dev/null 2>&1; then
+	eval "$(mise activate bash)"
+fi
+{%- endif %}
+
 
 #######################################
 # Base PATH (after mise)
@@ -69,20 +78,12 @@ alias la='ls -A'
 alias l='ls -CF'
 
 #######################################
-# Load exports FIRST (sets DOTFILES_ROOT)
+# Load exports FIRST
 #######################################
 
 if [ -f ~/.bash_exports ]; then
   # shellcheck disable=SC1090,SC1091
   . ~/.bash_exports
-fi
-
-#######################################
-# Dotfiles bin (depends on DOTFILES_ROOT)
-#######################################
-
-if [ -n "${DOTFILES_ROOT:-}" ]; then
-  export PATH="$DOTFILES_ROOT/bin:$PATH"
 fi
 
 #######################################

@@ -10,7 +10,7 @@ prompt = "starship"
 font = "Maple Mono NF CN"
 font_size = 14
 opacity = 0.95
-theme = "catppuccin-mocha"
+theme = "jubi"
 
 [editor]
 default = "nvim"
