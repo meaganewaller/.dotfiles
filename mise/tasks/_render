@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+#MISE description="Render a Tera template against the merged context (internal)"
+#MISE hide=true
+#USAGE arg "<src>" help="Template file (.tmpl)"
+#USAGE arg "<dst>" help="Output path"
+#USAGE flag "--context <path>" help="Path to JSON context" default="/tmp/dotfiles-context.json"
+set -euo pipefail
+source "$DOTFILES_ROOT/lib/common.sh"
+
+SRC="${usage_src}"
+DST="${usage_dst}"
+CTX="${usage_context:-/tmp/dotfiles-context.json}"
+
+[[ -f "$SRC" ]] || die "Template not found: $SRC"
+[[ -f "$CTX" ]] || die "Context not found: $CTX (run _render-context first)"
+has tera || die "tera not found. Run: mise install"
+
+mkdir -p "$(dirname "$DST")"
+tera --file "$SRC" --json "$CTX" > "$DST"

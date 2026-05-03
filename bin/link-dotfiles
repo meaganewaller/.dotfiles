@@ -114,12 +114,6 @@ run ".bash_secrets"
 run ".bashrc"
 run ".bash_aliases.d"
 
-run ".gitconfig"
-run ".gitconfig.work"
-run ".gitconfig.personal"
-run ".gitconfig.local" || true
-run ".gitignore_global"
-
 run ".ssh/config"
 run ".ssh/config.work"
 run ".ssh/config.personal"
@@ -141,8 +135,6 @@ run ".aerospace.toml"
 # run_dir_contents ".config/ghostty"
 run_dir_contents ".config/wezterm"
 
-run ".config/git/hooks"
-
 run ".config/mise"
 link_mise_miserc
 
@@ -152,7 +144,6 @@ run ".config/yazi/yazi.toml"
 run ".config/borders/bordersrc"
 
 run_dir_contents ".config/tmux"
-run_dir_contents ".config/lazygit"
 
 if [[ "$PROFILE" == "work" ]]; then
   log "Linking work dotfiles"

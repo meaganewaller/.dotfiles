@@ -1,0 +1,499 @@
+#!/usr/bin/env bash
+# Performance optimizations
+# Cache expensive operations
+_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
+mkdir -p "$_CACHE_DIR"
+
+# Cache git operations for 5 seconds
+_GIT_CACHE_FILE="$_CACHE_DIR/git_cache"
+_GIT_CACHE_TIMEOUT=5
+
+# Check if cache is valid
+_is_cache_valid() {
+    local cache_file="$1"
+    local timeout="$2"
+    [ -f "$cache_file" ] && [ $(($(date +%s) - $(stat -f %m "$cache_file" 2>/dev/null || echo 0))) -lt "$timeout" ]
+}
+
+# Cache git operations
+_cache_git_operation() {
+    local operation="$1"
+    local cache_file="$_GIT_CACHE_FILE.$operation"
+
+    if _is_cache_valid "$cache_file" "$_GIT_CACHE_TIMEOUT"; then
+        cat "$cache_file"
+    else
+        local result
+        case "$operation" in
+            "current_branch")
+                result=$(git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null)
+                ;;
+            "default_branch")
+                result=$(git config --get init.defaultBranch 2>/dev/null || git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+                ;;
+            "is_repo")
+                result=$(git rev-parse --git-dir >/dev/null 2>&1 && echo "true" || echo "false")
+                ;;
+        esac
+        echo "$result" > "$cache_file"
+        echo "$result"
+    fi
+}
+
+# Color definitions (optimized)
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+# Check if terminal supports colors
+if [ -t 1 ]; then
+    ncolors=$(tput colors)
+    if [ -n "$ncolors" ] && [ $ncolors -ge 8 ]; then
+        # Colors are supported
+        :
+    else
+        # Colors are not supported, disable them
+        RED=''
+        GREEN=''
+        YELLOW=''
+        BLUE=''
+        CYAN=''
+        NC=''
+    fi
+else
+    # Not a terminal, disable colors
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    CYAN=''
+    NC=''
+fi
+
+# Error handling
+error_exit() {
+    echo -e "${RED}[ERROR]${NC} $*" >&2
+    exit 1
+}
+
+# Print functions
+print_info() {
+    echo -e "${BLUE}[INFO]${NC} $*"
+}
+
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $*"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $*"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $*"
+}
+
+print_header() {
+    echo -e "\n${CYAN}=== $* ===${NC}"
+}
+
+print_section() {
+		echo -e "\n${BOLD}$*${NC}"
+}
+
+# Check if command exists (cached)
+_command_cache_file="$_CACHE_DIR/command_cache"
+_command_cache_timeout=300  # 5 minutes
+
+command_exists() {
+    local cmd="$1"
+    local cache_key="cmd_${cmd//[^a-zA-Z0-9]/_}"
+    local cache_file="$_command_cache_file.$cache_key"
+
+    if _is_cache_valid "$cache_file" "$_command_cache_timeout"; then
+        [ "$(cat "$cache_file")" = "true" ]
+    else
+        if command -v "$cmd" >/dev/null 2>&1; then
+            echo "true" > "$cache_file"
+            return 0
+        else
+            echo "false" > "$cache_file"
+            return 1
+        fi
+    fi
+}
+
+# File and directory operations
+file_exists() {
+    [ -f "$1" ]
+}
+
+dir_exists() {
+    [ -d "$1" ]
+}
+
+ensure_dirs() {
+	for dir in "$@"; do
+		if dir_exists "$dir"; then
+			print_info "Directory exists: $dir"
+		else
+			print_info "Creating directory: $dir"
+			mkdir -p "$dir"
+		fi
+	done
+}
+
+# Get absolute path (optimized)
+get_abs_path() {
+    local path="$1"
+    if [ -d "$path" ]; then
+        (cd "$path" && pwd)
+    else
+        echo "$(cd "$(dirname "$path")" && pwd)/$(basename "$path")"
+    fi
+}
+
+# Check if a symlink points to an existing file
+check_symlink() {
+		local symlink="$1"
+		if [ -L "$symlink" ]; then
+				local target="$(readlink "$symlink")"
+				if [ -e "$target" ]; then
+						return 0
+				else
+						print_warning "Symlink '$symlink' points to missing target '$target'"
+						return 1
+				fi
+		else
+				print_warning "'$symlink' is not a symlink"
+				return 1
+		fi
+}
+
+# Check if we're in a git repository (cached)
+is_git_repo() {
+    [ "$(_cache_git_operation "is_repo")" = "true" ]
+}
+
+# Get current git branch (cached)
+get_current_branch() {
+    if is_git_repo; then
+        _cache_git_operation "current_branch"
+    else
+        echo ""
+    fi
+}
+
+# Get default branch (cached)
+get_default_branch() {
+    if ! is_git_repo; then
+        echo ""
+        return
+    fi
+
+    local default_branch=$(_cache_git_operation "default_branch")
+
+    # If still not found, check if main or master exists
+    if [ -z "$default_branch" ]; then
+        if git show-ref --verify --quiet refs/heads/main; then
+            default_branch="main"
+        elif git show-ref --verify --quiet refs/heads/master; then
+            default_branch="master"
+        else
+            # Fallback to current branch if no default found
+            default_branch=$(get_current_branch)
+        fi
+    fi
+
+    echo "$default_branch"
+}
+
+# Check if branch exists
+branch_exists() {
+    local branch="$1"
+    git show-ref --verify --quiet refs/heads/$branch || git show-ref --verify --quiet refs/remotes/origin/$branch
+}
+
+# Get git status
+get_git_status() {
+    if is_git_repo; then
+        git status --porcelain
+    else
+        echo ""
+    fi
+}
+
+# Check if git has uncommitted changes
+has_uncommitted_changes() {
+    if is_git_repo; then
+        git status --porcelain | grep -q .
+    else
+        false
+    fi
+}
+
+# Check if git has unpushed commits
+has_unpushed_commits() {
+    if is_git_repo; then
+        local current_branch=$(get_current_branch)
+        local default_branch=$(get_default_branch)
+        if [ -n "$default_branch" ] && [ "$current_branch" = "$default_branch" ]; then
+            git rev-list HEAD...origin/$default_branch --count 2>/dev/null | grep -q -v "^0$"
+        else
+            false
+        fi
+    else
+        false
+    fi
+}
+
+# Get file size in human readable format
+get_file_size() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        du -h "$file" | cut -f1
+    else
+        echo "0B"
+    fi
+}
+
+# Get directory size in human readable format
+get_dir_size() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+        du -sh "$dir" | cut -f1
+    else
+        echo "0B"
+    fi
+}
+
+# Count files in directory
+count_files() {
+    local dir="${1:-.}"
+    find "$dir" -maxdepth 1 -type f | wc -l
+}
+
+# Count directories
+count_dirs() {
+    local dir="${1:-.}"
+    find "$dir" -maxdepth 1 -type d | wc -l
+}
+
+# Get file extension
+get_file_extension() {
+    local file="$1"
+    echo "${file##*.}"
+}
+
+# Get filename without extension
+get_filename_without_extension() {
+    local file="$1"
+    echo "${file%.*}"
+}
+
+# Get basename
+get_basename() {
+    local path="$1"
+    basename "$path"
+}
+
+# Get dirname
+get_dirname() {
+    local path="$1"
+    dirname "$path"
+}
+
+# String manipulation
+is_empty() {
+    [ -z "$1" ]
+}
+
+is_not_empty() {
+    [ -n "$1" ]
+}
+
+contains() {
+    [[ "$1" == *"$2"* ]]
+}
+
+starts_with() {
+    [[ "$1" == "$2"* ]]
+}
+
+ends_with() {
+    [[ "$1" == *"$2" ]]
+}
+
+to_lowercase() {
+    echo "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+to_uppercase() {
+    echo "$1" | tr '[:lower:]' '[:upper:]'
+}
+
+trim() {
+    echo "$1" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+}
+
+# Time and generation functions
+generate_random_string() {
+    local length="${1:-8}"
+    openssl rand -base64 "$length" | tr -d "=+/" | cut -c1-"$length"
+}
+
+generate_timestamp() {
+    date +%Y%m%d_%H%M%S
+}
+
+generate_date() {
+    date +%Y-%m-%d
+}
+
+generate_time() {
+    date +%H:%M:%S
+}
+
+# System detection
+is_macos() {
+    [[ "$OSTYPE" == "darwin"* ]]
+}
+
+is_linux() {
+    [[ "$OSTYPE" == "linux-gnu"* ]]
+}
+
+is_windows() {
+    [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]
+}
+
+get_os_name() {
+    uname -s
+}
+
+is_root() {
+    [ "$(id -u)" -eq 0 ]
+}
+
+has_sudo() {
+    command_exists sudo && sudo -n true 2>/dev/null
+}
+
+get_home_dir() {
+    echo "$HOME"
+}
+
+get_cwd() {
+    pwd
+}
+
+get_script_dir() {
+    dirname "$(readlink -f "$0")"
+}
+
+get_script_name() {
+    basename "$0"
+}
+
+# User interaction
+confirm_action() {
+    local prompt="$1"
+    local default="${2:-n}"
+
+    if [ "$default" = "y" ]; then
+        read -p "$prompt (Y/n): " -n 1 -r
+        echo
+        [[ $REPLY =~ ^[Nn]$ ]] && return 1
+    else
+        read -p "$prompt (y/N): " -n 1 -r
+        echo
+        [[ $REPLY =~ ^[Yy]$ ]]
+    fi
+}
+
+show_progress() {
+    local message="$1"
+    echo -n "$message"
+}
+
+# Logging functions
+debug() {
+    if [ -n "${debug:-}" ]; then
+        echo -e "${CYAN}[DEBUG]${NC} $0: $*" >&2
+    fi
+}
+
+info() {
+    if [ -n "${info:-}" ]; then
+        echo -e "${BLUE}[INFO]${NC} $0: $*" >&2
+    fi
+}
+
+warn() {
+    if [ -n "${warn:-}" ]; then
+        echo -e "${YELLOW}[WARN]${NC} $0: $*" >&2
+    fi
+}
+
+error() {
+    if [ -n "${error:-}" ]; then
+        echo -e "${RED}[ERROR]${NC} $0: $*" >&2
+    fi
+}
+
+# Handle function for setting log levels
+handle() {
+    case $1 in
+        --debug)
+            debug=echo
+            info=echo
+            warn=echo
+            error=echo
+            ;;
+        --info)
+            info=echo
+            warn=echo
+            error=echo
+            ;;
+        --warn)
+            warn=echo
+            error=echo
+            ;;
+        --error)
+            error=echo
+            ;;
+        --quiet)
+            # Disable all logging
+            debug=
+            info=
+            warn=
+            error=
+            ;;
+        *)
+            echo "$0: unknown option '$1' -- aborting" >&2
+            exit 127
+            ;;
+    esac
+}
+
+# Parse command line arguments for logging levels
+# Usage: parse_log_args "$@"
+parse_log_args() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --debug|--info|--warn|--error|--quiet)
+                handle "$1"
+                shift
+                ;;
+            *)
+                # Return remaining arguments
+                echo "$*"
+                break
+                ;;
+        esac
+    done
+}

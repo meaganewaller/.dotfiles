@@ -1,0 +1,5 @@
+[package]
+name = "scripts"
+description = "A collection of scripts for various tasks"
+profiles = ["work", "personal"]
+os = ["macos", "linux"]

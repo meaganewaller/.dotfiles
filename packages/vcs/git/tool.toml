@@ -2,6 +2,10 @@
 name = "git"
 target = "~/.config/git"
 
+[[link]]
+src = "config.tmpl"
+dest = "~/.gitconfig"
+
 # The three include files go to $HOME, not ~/.config/git
 [[link]]
 src = "includes/work.tmpl"

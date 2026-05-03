@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+#
+# Update all git repositories in the current directory
+. _utils
+
+#####################################################
+# Update all git repositories in current directory
+# Arguments:
+#  None
+# Outputs:
+#	Prints the status of each repository to stdout
+# Usage:
+#	pull-everything
+# Notes:
+# This gets symlinked to ~/.local/bin/pull-everything by the "scripts" package,
+# which is meant for small scripts that don't warrant their own package.
+# This is a good example of a script that is useful enough to be easily runnable from anywhere,
+# but not complex enough to need its own package.
+#####################################################
+
+# Check if directory is a git repository
+is_git_repo() {
+	[ -d "$1/.git" ]
+}
+
+# Get current branch of repository
+get_current_branch() {
+  local repo_path="$1"
+  if is_git_repo "$repo_path"; then
+      (cd "$repo_path" && git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  else
+      echo ""
+  fi
+}
+
+# Get default branch of repository
+get_default_branch() {
+    local repo_path="$1"
+    if is_git_repo "$repo_path"; then
+        # Try to get the default branch from remote HEAD (most reliable)
+        local default_branch=$(cd "$repo_path" && git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+
+        # If that fails, try git config
+        if [ -z "$default_branch" ]; then
+            default_branch=$(cd "$repo_path" && git config --get init.defaultBranch 2>/dev/null)
+        fi
+
+        # If still not found, check if main or master exists
+        if [ -z "$default_branch" ]; then
+            if (cd "$repo_path" && git show-ref --verify --quiet refs/heads/main); then
+                default_branch="main"
+            elif (cd "$repo_path" && git show-ref --verify --quiet refs/heads/master); then
+                default_branch="master"
+            elif (cd "$repo_path" && git show-ref --verify --quiet refs/heads/develop); then
+                default_branch="develop"
+            else
+                # Fallback to current branch if no default found
+                default_branch=$(get_current_branch "$repo_path")
+            fi
+        fi
+
+        echo "$default_branch"
+    else
+        echo ""
+    fi
+}
+
+# Check if repository has uncommitted changes
+has_uncommitted_changes() {
+    local repo_path="$1"
+    if is_git_repo "$repo_path"; then
+        (cd "$repo_path" && git status --porcelain 2>/dev/null | grep -q .)
+    else
+        false
+    fi
+}
+
+# Check if repository has unpushed commits
+has_unpushed_commits() {
+    local repo_path="$1"
+    if is_git_repo "$repo_path"; then
+        local current_branch=$(get_current_branch "$repo_path")
+        local default_branch=$(get_default_branch "$repo_path")
+        if [ -n "$default_branch" ] && [ "$current_branch" = "$default_branch" ]; then
+            (cd "$repo_path" && git rev-list HEAD...origin/$default_branch --count 2>/dev/null | grep -q -v "^0$")
+        else
+            false
+        fi
+    else
+        false
+    fi
+}
+
+# Update a single repository
+update_repo() {
+    local repo_path="$1"
+    local repo_name=$(basename "$repo_path")
+    local current_branch=$(get_current_branch "$repo_path")
+    local default_branch=$(get_default_branch "$repo_path")
+
+    echo -n "Checking $repo_name... "
+
+    # Check if it's a git repository
+    if ! is_git_repo "$repo_path"; then
+        echo -e "${YELLOW}SKIP (not a git repo)${NC}"
+        return 0
+    fi
+
+    # Check if we have a valid default branch
+    if [ -z "$default_branch" ]; then
+        echo -e "${YELLOW}SKIP (no default branch found)${NC}"
+        return 0
+    fi
+
+    # Check if on default branch
+    if [ "$current_branch" = "$default_branch" ]; then
+        # Check for uncommitted changes
+        if has_uncommitted_changes "$repo_path"; then
+            echo -e "${YELLOW}SKIP (has uncommitted changes)${NC}"
+            return 0
+        fi
+
+        # Check for unpushed commits
+        if has_unpushed_commits "$repo_path"; then
+            echo -e "${YELLOW}SKIP (has unpushed commits)${NC}"
+            return 0
+        fi
+
+        echo -n "Updating $repo_name... "
+
+        # Fetch latest changes first
+        if ! (cd "$repo_path" && git fetch origin >/dev/null 2>&1); then
+            echo -e "${RED}FAILED (fetch failed)${NC}"
+            return 1
+        fi
+
+        # Pull latest changes
+        if (cd "$repo_path" && git pull origin "$default_branch" >/dev/null 2>&1); then
+            echo -e "${GREEN}DONE${NC}"
+            return 0
+        else
+            echo -e "${RED}FAILED (pull failed)${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}SKIP (on branch $current_branch, not $default_branch)${NC}"
+        return 0
+    fi
+}
+
+# Main function to update all repositories
+main() {
+    local updated_count=0
+    local failed_count=0
+    local skipped_count=0
+    local total_repos=0
+
+    echo -e "${BBLUE}Updating all repositories in: $(pwd)${NC}"
+    echo "=========================================="
+
+    # Find all subdirectories
+    for repo in */; do
+        # Skip if not a directory
+        if [ ! -d "$repo" ]; then
+            continue
+        fi
+
+        # Remove trailing slash
+        repo=${repo%/}
+        ((total_repos++))
+
+        if update_repo "$repo"; then
+            local current_branch=$(get_current_branch "$repo")
+            local default_branch=$(get_default_branch "$repo")
+
+            if [ "$current_branch" = "$default_branch" ] && [ -n "$current_branch" ] && [ -n "$default_branch" ]; then
+                ((updated_count++))
+            else
+                ((skipped_count++))
+            fi
+        else
+            ((failed_count++))
+        fi
+    done
+
+    # Summary
+    echo ""
+    echo -e "${BBLUE}Summary:${NC}"
+    echo -e "${GREEN}Updated: $updated_count${NC}"
+    echo -e "${YELLOW}Skipped: $skipped_count${NC}"
+    if [ $failed_count -gt 0 ]; then
+        echo -e "${RED}Failed: $failed_count${NC}"
+    fi
+    echo -e "${CYAN}Total repositories found: $total_repos${NC}"
+}
+
+# Execute main function
+main
