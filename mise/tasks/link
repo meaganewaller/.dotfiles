@@ -5,7 +5,7 @@
 #USAGE flag "--except <packages>"
 #USAGE flag "--dry-run"
 #USAGE flag "--no-hooks"
-#USAGE flag "--no-secrets" help="Skip 1Password during render"
+#USAGE flag "--no-secrets" help="Skip fnox lookups during render"
 set -euo pipefail
 
 PROFILE="${usage_profile:-work}"
@@ -158,10 +158,12 @@ link_one_file() {
 
   mkdir -p "$(dirname "$dest")"
 
-  # Already correctly linked → just refresh perms in case they drifted
+  # Already correctly linked → just refresh perms in case they drifted.
+  # Explicit `return 0` because `[[ -n "$mode" ]] && ...` exits 1 when mode
+  # is empty, and a bare `return` would propagate that under `set -e`.
   if [[ -L "$dest" && "$(readlink "$dest")" == "$source_file" ]]; then
     [[ -n "$mode" ]] && apply_mode "$source_file" "$mode"
-    return
+    return 0
   fi
 
   if [[ -e "$dest" && ! -L "$dest" ]]; then
@@ -342,8 +344,11 @@ link_package() {
     local hook
     hook="$(echo "$pkg_json" | jq -r '.package.post_link // empty')"
     if [[ -n "$hook" ]]; then
-      info "  → running hook: $pkg:$hook"
-      mise run "$pkg:$hook" || warn "  hook failed (continuing)"
+      # Packages live under monorepo config_root `packages/*` (see mise.toml),
+      # so their tasks are addressed as `//packages/<pkg>:<task>` not `<pkg>:<task>`.
+      local hook_path="//packages/$pkg:$hook"
+      info "  → running hook: $hook_path"
+      mise run "$hook_path" || warn "  hook failed (continuing)"
     fi
   fi
 }
