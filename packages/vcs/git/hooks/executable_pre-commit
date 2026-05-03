@@ -25,7 +25,7 @@ fi
 while IFS= read -r file; do
   if [[ -f "$file" ]]; then
     size=$(wc -c < "$file")
-    if (( size > 5_000_000 )); then
+    if (( size > 5000000 )); then
       echo "✗ $file is $((size / 1024 / 1024))MB — too big to commit."
       echo "  Use git-lfs, or add to .gitignore, or --no-verify if intentional."
       exit 1
