@@ -4,12 +4,22 @@ experimental_monorepo_root = true
 [settings]
 experimental = true
 
+[plugins]
+# Auto-injects fnox secrets as env vars on directory entry. See ADR 0005.
+fnox-env = "https://github.com/jdx/mise-env-fnox"
+
 [env]
 DOTFILES_ROOT = "{{ config_root }}"
 DOTFILES_PROFILE = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
 MISE_ENV = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
+# FNOX_PROFILE drives fnox's profile selection — the plugin's `profile = ...`
+# field is not Tera-interpolated, so we expose this env var instead.
+FNOX_PROFILE = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
 DOTFILES_OS = "macos" # used for OS-specific config files and tasks - separate from MISE_ENV which is for profile-specific config
 MISE_EXPERIMENTAL = "1"
+# fnox-env injects secrets from fnox.toml as env vars. tools=true so the plugin
+# resolves the mise-managed fnox binary; profile is taken from FNOX_PROFILE.
+_.fnox-env = { tools = true }
 
 # Layered profile config - mise picks up mise/config.<MISE_ENV>.toml automatically
 # via MISE_ENV, so per-profile tools live in those files.
@@ -17,6 +27,9 @@ MISE_EXPERIMENTAL = "1"
 # Tools every machine needs
 "gh" = "latest"
 "1password-cli" = "latest"
+"cargo:tera-cli" = "latest"
+"shfmt" = "latest"
+"fnox" = "latest"
 
 [vars]
 # Default brew layers per profile - overridden by profile-specific config files

@@ -1,0 +1,41 @@
+default_provider = "onepass"
+
+# See docs/architecture/0005-fnox-for-secrets-management.md.
+# This file is committed; values reference providers (no plaintext lives here).
+# After editing, run `fnox sync --provider age --config fnox.local.toml`
+# (with op signed in, OR with OP_SERVICE_ACCOUNT_TOKEN exported) to refresh
+# the gitignored offline cache.
+
+[providers.onepass]
+type = "1password"
+account = "my.1password.com"
+vault = "Development"
+
+[providers.age]
+type = "age"
+recipients = ["age1huasz423xp6ar3qlf207wnsakfd66j5v6up8vxd7hzase9mp859q2hzajy"]
+
+[secrets]
+# Bootstrap: 1Password service-account token, decrypted with age. After
+# `fnox get OP_SERVICE_ACCOUNT_TOKEN` is exported, every other op-backed
+# secret resolves without an interactive `op signin`.
+OP_SERVICE_ACCOUNT_TOKEN = { provider = "age", value = "YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA4ZDQ0dTV2ek9qd25FOU5sZ0hSU3lVQ1RPMjhIYmF1TlRTc0JUclVtaFY0CitLSTJNMWROSnRnWGlpcms1N1RNSjVoYzF4Ti92bUNKTHFJQXJZSUFzNUUKLT4gUXpcLWdyZWFzZSBmSzFCMiggOSQ8ClYxb043WmVlVzkzMkNndTUvNEtJeE1oYWZHd2JjWFNGS015RElzUlN3V0d4TW5pYm1IdjVQNXZublE3VTRhZWcKdCtuQjh3Ci0tLSBsZm5VZEFWakkyd2xDd3lZcm9uQ1dLMnh6TlR0VDVDNzNDK2ZUNTArL1Y0Cr0xUApQbAt4IN9YsVUomFXmZIBsewqqwzNizvKj+qOHvrgnq9sJYI8SI+r4zXDtMbPw2AdtJnPrn/Uh9Q4zEHv+J7dGOWE1QI3Ur7CukFSSDcUBJY7yp6jbhnh/97DBwQ+1jAFrbYYSNgV3psQ4aWU2ADZISsaWgbu5WivWar7OTrI/puz33R/M3OCUnFz38LYSJRzqN0Ln4lYt6CNB4RJV0uN+di+yHsxUosVGxIG/YIpIsegAhH3QTnB9jW5VaFV1qbFk1yRhfhfU0VYA/bx5AJPEyM6+AoRUfh100N+VJx8Ly3N91rcCP/kudGDrrpf1pTCjrbuWwhGisPg1VnwGcHV+UqwGKxLgMcnx2lahdSNWLoV9k+aRnKE9zI3gYOayFxCLXjefeixdjYpAKfTQvvFat+WgX/mQd/fSfbGQYW0Zdx+Y7n1laT4RtjyA8mlKa0kaW5mn5K4njQ5w1uWcZ0DDIwLCgr99zpozeofe3J+Af1r64/xIHRItIZQSFpluWn6VHPU55Vac04bU0fYyYIthVT8YiAoyZcQWHJXBwBmvZcYvneec5H735DojacVh92e5iNVGEjBrD9zVgy28+9JwhD4et2c4CjzJFhu8j3OSVF/r/Ro+Xm3ogvUhu7olLIqgu7peZwdj8vpRTWSJRW8H1VBnp94Tqo/3rzambGBnp7q1QnvOzrgHxMXZPQ9sGQh6/EGnUWrtB4r44jV+1Pwv3MvlpDpfxn2KFRq/c2t6f8lq2nliKWAh0SiWZFIXWaJscNkmFytx5avJwDMFhsZNyMjmYIeP8dNxvrsvEt3wLqlGygxSyFtii22Bxrw8gQzxdsPpCHqXRZWF67Z4jbsjvROyI7tbZZSi/vg+kKv3a2hjM97Gdv9uGCSiNBXXbGsTL6SaavlHftIpEUp9Zp1qAMr3pM1yK/GjgaKgFT6vrf4p4Cni7PTpoRbx0qbElODBJLfXZEBw+eTZUHXFUZS4Y//de9t3Z/TTtl8cviGpv0saTpqJVW/Jglut74W84E9JV5nHgODq+k4y/ZAW52JbLq+O57/W1jtlSL8bRsGWE+bjlhM812MGuqPmxh4zjCkvJRH8Wm4D3EbPXeYU2b7m+loNZzUdrsuErPYNj0XEI/nCRxI/d+1OQYLa7mzyNYnswDE4zieu6lKetmaU+1ra" }
+
+# Runtime env vars (formerly vars/runtime-secrets.toml).
+# Auto-injected by mise-env-fnox on directory entry.
+MISE_GITHUB_TOKEN = { provider = "onepass", value = "Mise GitHub Personal Access Token/token" }
+WAKATIME_API_KEY = { provider = "onepass", value = "WakaTime Key/credential" }
+HOMEBREW_GITHUB_API_TOKEN = { provider = "onepass", value = "Homebrew GitHub API Token/credential" }
+
+# Template values (formerly vars/secrets.toml). The previous 1P items were
+# named `git/work` / `git/personal` — fnox treats `/` as the item/field
+# separator, so those items must be renamed in 1Password to "Git Work" and
+# "Git Personal" before `fnox sync` can resolve them.
+GIT_WORK_EMAIL = { provider = "onepass", value = "mvemgeikseidk5cyg73uppdey4/email" }
+GIT_WORK_SIGNINGKEY = { provider = "onepass", value = "mvemgeikseidk5cyg73uppdey4/signingkey" }
+GIT_PERSONAL_EMAIL = { provider = "onepass", value = "rw3wjabc6umfumqh3topnnh7fe/email" }
+GIT_PERSONAL_SIGNINGKEY = { provider = "onepass", value = "rw3wjabc6umfumqh3topnnh7fe/signingkey" }
+
+# Profile-scoped: only resolved when MISE_ENV / FNOX_PROFILE = personal.
+[profiles.personal.secrets]
+NPM_TOKEN = { provider = "onepass", value = "Npm Access Token/credential" }

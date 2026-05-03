@@ -54,9 +54,6 @@ SAVEHIST=$HISTSIZE
 HISTFILE="$HOME/.zsh_history"
 
 
-# API tokens for mise/Homebrew/etc. (generate: DOTFILES_ROOT/bin/generate-api-keys --refresh)
-[[ -f ${HOME}/.config/dotfiles/secrets.env ]] && source ${HOME}/.config/dotfiles/secrets.env
-
 ########################################
 # Exports & Environment Variables
 ########################################

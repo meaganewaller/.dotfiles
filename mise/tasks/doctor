@@ -54,8 +54,16 @@ done < <(find "$HOME" -maxdepth 4 -type l -print0 2>/dev/null)
 info "  $linked working symlinks"
 [[ $broken -gt 0 ]] && error "  $broken broken symlinks"
 
-step "Runtime secrets"
-mise run secrets --check || true # don't fail doctor on stale secrets
+step "Secrets (fnox)"
+if has fnox; then
+  if fnox export --format json >/dev/null 2>&1; then
+    info "  fnox resolves secrets"
+  else
+    warn "  fnox export failed — run \`fnox sync --provider age --config fnox.local.toml\`"
+  fi
+else
+  warn "  fnox not installed — run \`mise install\`"
+fi
 
 step "Summary"
 if [[ $errors -eq 0 ]]; then

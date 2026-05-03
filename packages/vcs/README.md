@@ -32,12 +32,13 @@ Bypass for one commit: `git commit --no-verify`
 
 ## Adding a new identity
 
-1. Add the secret to 1Password under `git/<name>` with `email` and `signingkey` fields.
-2. Add it to `vars/secrets.toml`.
-3. Create `git/includes/<name>.tmpl`.
+1. Add the secret to 1Password as `Git <Name>` with `email` and `signingkey` fields.
+2. Add `GIT_<NAME>_EMAIL` and `GIT_<NAME>_SIGNINGKEY` entries to `fnox.toml`.
+3. Create `git/includes/<name>.tmpl` referencing `{{ secrets.GIT_<NAME>_EMAIL }}` etc.
 4. Add a `[[link]]` entry in `git/tool.toml`.
 5. Add `includeIf` rules in `git/includes/local.tmpl`.
-6. `mise run link --only vcs`.
+6. `fnox sync --provider age --config fnox.local.toml` (refresh local cache).
+7. `mise run link --only vcs`.
 
 ## What's NOT here
 

@@ -60,10 +60,15 @@ fi
 if [[ "$SKIP_AUTH" != "true" ]]; then
   if [[ "$DRY_RUN" == "true" ]]; then
     dry "Would run: mise run auth"
-    dry "Would run: mise run secrets --refresh"
+    dry "Would run: fnox sync --provider age --config fnox.local.toml"
   else
     mise run auth
-    mise run secrets --refresh --profile "$PROFILE"
+    if has fnox; then
+      fnox sync --provider age --config fnox.local.toml --force \
+        || warn "fnox sync failed — see ADR 0005 for first-time setup"
+    else
+      warn "fnox not on PATH — secrets will not resolve until \`mise install\` runs"
+    fi
   fi
 fi
 

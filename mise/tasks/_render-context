@@ -2,7 +2,7 @@
 #MISE description="Build merged template context (internal)"
 #MISE hide=true
 #USAGE flag "--profile <profile>" default="work"
-#USAGE flag "--no-secrets" help="Skip 1Password lookups"
+#USAGE flag "--no-secrets" help="Skip fnox lookups (render with empty secrets)"
 #USAGE flag "--out <path>" help="Output path" default="/tmp/dotfiles-context.json"
 set -euo pipefail
 source "$DOTFILES_ROOT/lib/common.sh"
@@ -58,33 +58,17 @@ if [[ -f "$VARS_DIR/host/$HOSTNAME_SHORT.toml" ]]; then
   ctx="$(json_merge "$ctx" "$(toml_to_json "$VARS_DIR/host/$HOSTNAME_SHORT.toml")")"
 fi
 
-# Layer 5: secrets from 1Password
-if [[ "$NO_SECRETS" != "true" && -f "$VARS_DIR/secrets.toml" ]]; then
-  if op whoami >/dev/null 2>&1; then
-    secrets='{}'
-    # Walk the secrets.toml and fetch each declared item
-    secrets_json="$(toml_to_json "$VARS_DIR/secrets.toml")"
-    # paths in secrets are like .secrets.git.work — flatten and fetch
-    while IFS= read -r path; do
-      item="$(echo "$secrets_json" | jq -r ".$path.item")"
-      profiles="$(echo "$secrets_json" | jq -r ".$path.profiles // [] | join(\",\")")"
-      # Skip if this secret is profile-restricted and we're not in it
-      if [[ -n "$profiles" ]] && ! grep -qw "$PROFILE" <<<"${profiles//,/ }"; then
-        continue
-      fi
-      fields="$(echo "$secrets_json" | jq -r ".$path.fields[]")"
-      while IFS= read -r field; do
-        value="$(op item get "$item" --fields "$field" 2>/dev/null || echo '')"
-        secrets="$(echo "$secrets" | jq --arg p "$path" --arg f "$field" --arg v "$value" '
-          setpath(($p / "."); .) |
-          setpath(($p + "." + $f) / "."; $v)
-        ')"
-      done <<<"$fields"
-    done < <(echo "$secrets_json" | jq -r '.secrets | paths(objects) | map(tostring) | "secrets." + join(".")' | grep -v '\.' | sort -u)
-
-    ctx="$(json_merge "$ctx" "$secrets")"
+# Layer 5: secrets from fnox. `fnox export --format json` resolves every
+# secret applicable to the active profile (offline once `fnox sync` has
+# populated fnox.local.toml). Templates reference these as `{{ secrets.NAME }}`.
+# fnox wraps the values as `{secrets: {...}, metadata: {...}}`, so we project
+# `.secrets` rather than merging the full envelope. See ADR 0005.
+if [[ "$NO_SECRETS" != "true" ]] && has fnox; then
+  if secrets_json="$(FNOX_PROFILE="$PROFILE" fnox export --format json 2>/dev/null)" \
+      && [[ -n "$secrets_json" ]]; then
+    ctx="$(jq --argjson s "$secrets_json" '. + {secrets: $s.secrets}' <<<"$ctx")"
   else
-    warn "Not signed into op — skipping secrets"
+    warn "fnox export failed or returned empty; rendering without secrets"
   fi
 fi
 
