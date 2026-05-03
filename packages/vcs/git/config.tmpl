@@ -20,11 +20,11 @@
   untrackedCache = true
 
 [commit]
-  gpgsign = {{ git.sign_commits | lower }}
+  gpgsign = {{ git.sign_commits }}
   verbose = true
 
 [tag]
-  gpgsign = {{ git.sign_commits | lower }}
+  gpgsign = {{ git.sign_commits }}
 
 [gpg]
   format = ssh
