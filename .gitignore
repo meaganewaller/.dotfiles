@@ -1,3 +1,6 @@
+packages/vcs/git/includes/local.tmpl
+
+# ----------------------------- #
 # OS generated
 .DS_Store
 **/.DS_Store
@@ -39,3 +42,4 @@ home/.config/exports/secrets
 
 home/.config/wezterm/projects/work
 *.bak.*
+packages/vcs/git/config.local

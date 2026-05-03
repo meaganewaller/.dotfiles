@@ -447,6 +447,10 @@
       "rev": "88575b98bb9937fb9983ddec5e532b67e75ce677",
       "src": "https://github.com/mrcjkb/rustaceanvim"
     },
+    "schemastore.nvim": {
+      "rev": "4f5b624100600751eddfafb5d64bc81a1c2b6f70",
+      "src": "https://github.com/b0o/schemastore.nvim"
+    },
     "shado": {
       "rev": "3ef4726d9b03fa878c528de569233ffc09917968",
       "src": "https://github.com/shadorain/shadotheme"
