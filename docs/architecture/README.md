@@ -22,6 +22,7 @@ This directory records **repository-wide** decisions: shell layout, bootstrap, m
 | [0002](0002-profile-system.md) | Environment-variable-based profile system | Accepted | 2026-04-19 |
 | [0003](0003-symlink-strategy.md) | Symlink strategy for dotfiles deployment | Accepted | 2026-04-19 |
 | [0004](0004-claude-settings-merge.md) | JSONC merge strategy for Claude Code settings | Accepted | 2026-04-19 |
+| [0005](0005-fnox-for-secrets-management.md) | fnox for secrets management | Accepted | 2026-05-03 |
 
 ## Status definitions
 
