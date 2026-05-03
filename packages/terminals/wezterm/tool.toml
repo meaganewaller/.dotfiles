@@ -1,0 +1,7 @@
+[tool]
+name = "wezterm"
+target = "~/.config/wezterm"
+
+ignore = ["README.md", "*.local"]
+
+os = ["macos"]
