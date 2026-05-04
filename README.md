@@ -6,44 +6,74 @@ Profile-aware dotfiles and development environment for macOS. Features deep Clau
 
 ## Features
 
-- **Profile System** - `work`, `personal`, `server`, `container` profiles control which tools, configs, and git identities are active
+- **Profile System** - `work`, `personal`, `server`, `container` profiles (driven by `MISE_ENV`) control which tools, configs, and git identities are active
+- **mise-driven setup** - All install/link/unlink/doctor flows are mise tasks under `mise/tasks/`; no bespoke install script to maintain
+- **Modular packages** - Configs live in `packages/<category>/<tool>/` with per-tool `tool.toml` manifests declaring link targets, profile gating, and Tera templates
 - **Claude Code Integration** - Hooks for telemetry, cues for contextual guidance, skills for reusable workflows, governance for policy traceability
 - **Theme System** - Unified dark/light mode across terminal, editor, and shell with `theme set <name>`
-- **mise-first tooling** - Runtimes and CLIs prefer mise (`~/.config/mise/`); Homebrew/apt only for casks, OS integration, and tools mise cannot install
-- **Idempotent Setup** - Run install multiple times safely; symlinks and configs converge to desired state
-- **Decision Capture** - Tradeoff gates prompt for engineering reasoning on large changes
+- **mise-first tooling** - Runtimes and CLIs prefer mise (`mise/config.<profile>.toml`); Homebrew/apt only for casks, OS integration, and tools mise cannot install
+- **Secrets via fnox** - `fnox.toml` + age/1Password backends inject secrets as env vars on directory entry (see [ADR 0005](./docs/architecture/0005-fnox-for-secrets-management.md))
+- **Idempotent Setup** - Run setup multiple times safely; symlinks and rendered configs converge to desired state
 
 ## Quick Start
 
-### Fresh Machine (curl install)
+### Fresh Machine (curl bootstrap)
 
 ```bash
 export DOTFILES_PROFILE=work   # or personal, server, container
-curl -fsSL https://raw.githubusercontent.com/meaganewaller/.dotfiles/main/bootstrap/remote-bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/meaganewaller/.dotfiles/main/bootstrap.sh | bash
 ```
+
+`bootstrap.sh` installs minimum-viable deps (brew/git on macOS, curl/git on Linux), installs `mise`, clones the repo, and hands off to `mise run setup --profile <PROFILE>`.
 
 ### Existing Clone
 
 ```bash
-./install.sh --profile work
+mise trust
+mise run setup --profile work
 ```
 
 ### Dry Run (preview changes)
 
 ```bash
-./install.sh --profile work --dry-run
-./bin/link-dotfiles --profile work --dry-run
+mise run setup --profile work --dry-run
+mise run link  --profile work --dry-run
+```
+
+### Targeted Re-link
+
+```bash
+mise run link --profile work --only vcs              # one package
+mise run link --profile work --only vcs:git,shells:fish
+mise run link --profile work --except wm
 ```
 
 ## Commands
 
-### dotfiles CLI
+### Top-level mise tasks
+
+All setup/maintenance flows live in `mise/tasks/`:
 
 ```bash
-dotfiles doctor              # Health check - verify symlinks, tools, configs
-dotfiles link                # Re-create symlinks (--profile, --dry-run)
-dotfiles update              # Git pull + re-link
-dotfiles help                # Show all commands
+mise run setup    --profile work        # Full setup: deps → link → install → auth → brew → fonts
+mise run link     --profile work        # Render templates + symlink packages into $HOME
+mise run unlink   --profile work        # Remove symlinks created by link
+mise run doctor                         # Health check: binaries, auth, symlinks, signing keys
+mise run deps                           # OS-level deps mise can't manage (curl, git, gh, op)
+mise run auth                           # Sign into GitHub CLI and 1Password
+mise run brew     --profile work        # Run profile's brew_layers
+mise run fonts                          # Install Nerd Fonts and custom fonts
+```
+
+Common flags on `setup`: `--only <packages>`, `--skip-auth`, `--skip-brew`, `--dry-run`.
+
+### Package-level tasks
+
+Tasks scoped to a package live under `packages/<category>/mise/tasks/` and are invoked with the monorepo prefix:
+
+```bash
+mise run //packages/vcs:git:init                           # Install global git hooks
+mise run //packages/vcs:git:sync-signing-keys -- --profile work
 ```
 
 ### Theme Management
@@ -51,56 +81,42 @@ dotfiles help                # Show all commands
 ```bash
 theme list                   # Show available themes
 theme set <name>             # Apply theme across all apps
-theme dark                   # Switch to dark mode
-theme light                  # Switch to light mode
+theme dark | light           # Quick mode switch
 theme current                # Show active theme
 ```
-
-### Tradeoff Capture
-
-```bash
-tradeoff "chose X over Y because Z"    # Quick one-liner
-tradeoff                               # Opens editor for detailed entry
-tradeoff --list                        # View recent decisions
-```
-
-### mise Tasks
-
-```bash
-mise tasks                   # List all available tasks
-mise run brew:bootstrap      # Brew/apt fallback layer (casks, OS tools); see ARCHITECTURE.md
-mise run core:install        # Full install (brew + link)
-mise run df:doctor           # Global: dotfiles doctor from any directory
-mise run mise:sync           # Global: sync global mise tools (MISE_ENV aware)
-```
-
-Global `df:*` and `mise:*` tasks live in `home/.config/mise/config.toml`; repo tasks (`claude`, `core:install`, …) are in root `mise.toml` and `.mise-tasks/`. See [.mise-tasks/README.md](./.mise-tasks/README.md).
 
 ## Repository Structure
 
 ```
 .dotfiles/
-├── bootstrap/               # Stage 0: curl-able remote bootstrap
+├── bootstrap.sh             # Stage 0: curl-able bootstrap → mise run setup
+├── mise.toml                # Repo-level mise config (monorepo root)
+├── mise/
+│   ├── tasks/               # Top-level tasks: setup, link, unlink, doctor, deps, auth, brew, fonts
+│   └── config.<profile>.toml # Profile-layered tool/var configs
+├── packages/                # Modular config packages (link source of truth)
+│   ├── editors/             # nvim, …
+│   ├── shells/              # bash, fish, zsh, atuin, starship
+│   ├── terminals/           # ghostty, wezterm, tmux
+│   ├── vcs/                 # git, gh, lazygit (+ package-level mise tasks)
+│   ├── ssh/                 # ssh client config + known_hosts
+│   ├── wm/                  # aerospace, sketchybar, borders
+│   └── scripts/             # personal CLIs (theme, pull-everything, …)
+│       └── <pkg>/
+│           ├── package.toml # profile/os gating, post_link hooks
+│           ├── tool.toml    # link/template manifest per tool
+│           └── *.tmpl       # Tera templates (rendered into .rendered/)
+├── vars/                    # Tera context: common, per-profile, per-OS
+├── fnox.toml                # Secrets manifest (age/1Password backends)
 ├── brewfiles/               # Homebrew bundles by category
-│   ├── base.Brewfile        # Core CLI tools
-│   ├── gui.Brewfile         # GUI apps (work/personal only)
-│   ├── dev.Brewfile         # Development tools
-│   └── ...
-├── home/                    # Symlinked to $HOME
-│   ├── .claude/             # Claude Code configuration
-│   │   ├── hooks/           # Event-driven scripts (telemetry, guards)
-│   │   ├── cues/            # Pattern-triggered contextual guidance
-│   │   ├── skills/          # Reusable skill definitions
-│   │   ├── settings/        # Profile-merged settings
-│   │   └── governance/      # Policy traceability
-│   ├── .config/             # XDG configs (fish, nvim, wezterm, etc.)
-│   ├── .local/bin/          # CLI tools (dotfiles, theme, tradeoff)
-│   └── .*                   # Shell, git, ssh configs
-├── bin/                     # Repo scripts (link-dotfiles, make-symlink)
-├── lib/                     # Shared shell functions
-├── .mise-tasks/             # mise task definitions
+├── home/                    # Legacy: configs still being migrated into packages/
+│   └── .claude/             # Claude Code hooks, cues, skills, governance
+├── lib/common.sh            # Shared shell helpers used by mise tasks
+├── docs/architecture/       # Dotfiles ADRs
 └── test/                    # BATS test suite
 ```
+
+> Migration in progress: configs under `home/` are being moved into `packages/<category>/<tool>/` with proper `tool.toml` manifests. Until that's done, the link task handles both sources.
 
 ## Profiles
 
@@ -111,13 +127,14 @@ Global `df:*` and `mise:*` tasks live in `home/.config/mise/config.toml`; repo t
 | `server` | Remote servers | base | No |
 | `container` | Devcontainers | minimal | No |
 
-Set via `DOTFILES_PROFILE` environment variable or `--profile` flag. The same value is exported as **`MISE_ENV`** during `install.sh` so global mise layers stay aligned.
+Set via `MISE_ENV` (canonical), `DOTFILES_PROFILE`, or `--profile` on any task. `mise run setup` exports both so layered configs and child task invocations stay aligned.
 
 Profiles also control:
-- Git identity (`includeIf` in `.gitconfig`)
+- Git identity (`includeIf` in the rendered `.gitconfig`)
 - SSH config includes
-- Which dotfiles are linked
-- Global mise: `~/.config/mise/miserc.toml` → `miserc.<profile>.toml`, plus `config.<profile>.toml` on top of `config.toml` (see [ARCHITECTURE.md](./ARCHITECTURE.md))
+- Which packages/tools get linked (`profiles = [...]` in `package.toml` / `tool.toml`)
+- Repo mise layers: `mise/config.<profile>.toml` overlays `mise.toml` for tools, env, and `brew_layers` (see [ARCHITECTURE.md](./ARCHITECTURE.md))
+- Tera template context: `vars/<profile>.toml` merged with `vars/common.toml` and `vars/os/<os>.toml`
 
 ## Claude Code Integration
 
@@ -150,34 +167,35 @@ See [home/.claude/README.md](./home/.claude/README.md) for full documentation.
 
 ## Global Git Hooks
 
-Pre-commit hooks run for all repositories:
+`packages/vcs/git/hooks/` is wired in as the global hooks path on link. The pre-commit hook:
 
-```bash
-# Tradeoff gate prompts for reasoning on large changes (>50 lines)
-git commit -m "large change"   # Prompted for tradeoff note
+- Blocks direct commits to `main`/`master` (override with `ALLOW_COMMIT_TO_MAIN=1`)
+- Flags staged lines that look like secrets (`api_key`, `password`, `token`, …)
+- Rejects any staged file >5MB
 
-# Bypass options
-SKIP_TRADEOFF=1 git commit -m "..."      # Skip tradeoff prompt
-TRADEOFF_THRESHOLD=100 git commit        # Raise line threshold
-git commit --no-verify                    # Skip all hooks
-```
+Bypass with `git commit --no-verify` when intentional.
 
 ## Making Changes
 
-1. **Edit dotfiles** - Modify files under `home/`
-2. **Add CLIs/runtimes** - Prefer `home/.config/mise/config.toml` and profile layers; use `brewfiles/*.Brewfile` only when mise cannot cover the tool (casks, OS packages, etc.); see [ARCHITECTURE.md](./ARCHITECTURE.md#tool-management-policy)
-3. **Re-link** - Run `dotfiles link` or `./bin/link-dotfiles` (updates `miserc.toml` for profile)
-4. **Repo-local mise** - Edit root `mise.toml` for tasks/tools when working inside this repo
+1. **Add or edit a package** - Drop files under `packages/<category>/<tool>/` and declare them in `tool.toml`:
+   ```toml
+   [tool]
+   name = "fish"
+   target = "~/.config/fish"
+   profiles = ["work", "personal"]   # optional gating
 
-Changes to `home/.claude/` require running the Claude install:
-```bash
-./home/.claude/install.sh --profile work
-```
+   [[link]]
+   src  = "config.fish.tmpl"
+   dest = "~/.config/fish/config.fish"
+   ```
+   `*.tmpl` files are rendered with Tera against the profile/OS context before linking.
+2. **Re-link** - `mise run link --profile <p>` (or `--only <pkg>` to scope)
+3. **Add CLIs/runtimes** - Prefer `mise/config.<profile>.toml`; use `brewfiles/*.Brewfile` only for casks, OS packages, and tools mise can't cover. See [ARCHITECTURE.md](./ARCHITECTURE.md#tool-management-policy).
+4. **Add a task** - New top-level tasks go in `mise/tasks/<name>`; package-scoped tasks go in `packages/<category>/mise/tasks/<tool>/<name>` and are invoked with the `//packages/<category>:<tool>:<name>` prefix.
+5. **Secrets** - Edit `fnox.toml`, then `fnox sync` (or rerun `mise run setup`). See [ADR 0005](./docs/architecture/0005-fnox-for-secrets-management.md).
+6. **Verify** - `mise run doctor` checks binaries, auth, symlinks, and signing keys.
 
-Or re-run the full install which includes it:
-```bash
-./install.sh --profile work
-```
+Changes to `home/.claude/` are picked up by `mise run link` along with everything else; no separate Claude installer.
 
 ## Documentation
 
@@ -189,7 +207,8 @@ Or re-run the full install which includes it:
 | [home/.claude/docs/architecture/](./home/.claude/docs/architecture/) | **Claude Code** ADRs (hooks, cues, Dev OS) |
 | [governance/README.md](./governance/README.md) | Dotfiles vs Claude governance layout |
 | [governance/policies/tool-management.md](./governance/policies/tool-management.md) | mise-first tool policy |
-| [.mise-tasks/README.md](./.mise-tasks/README.md) | mise task reference |
+| [docs/architecture/0005-fnox-for-secrets-management.md](./docs/architecture/0005-fnox-for-secrets-management.md) | Secrets pipeline (fnox + age/1Password) |
+| `mise tasks` | Live task reference (descriptions are in each task's `#MISE` header) |
 
 ## Testing
 
