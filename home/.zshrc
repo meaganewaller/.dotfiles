@@ -383,6 +383,5 @@ export SAVEHIST=100000
 
 _comp_options+=(globdots) # With hidden files
 
-source "$HOME/.config/zsh/bindings.zsh"
 source "$HOME/.config/zsh/completion.zsh"
 source "$HOME/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
