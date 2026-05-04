@@ -26,7 +26,6 @@
 #     └─► conf.d/70-security.conf      Permissions, clipboard, updates
 #     └─► conf.d/80-performance.conf   Scrollback, shaders, GPU
 #     └─► conf.d/85-platform.conf      macOS / Linux / WSL specifics
-#     └─► conf.d/99-local.conf         Machine-local overrides (GITIGNORED)
 #
 # @note         NEVER write configuration keys directly in this file.
 #               Every parameter belongs in exactly ONE conf.d/ module.
@@ -46,5 +45,4 @@ config-file = conf.d/60-mouse.conf
 config-file = conf.d/70-security.conf
 config-file = conf.d/80-performance.conf
 config-file = conf.d/85-platform.conf
-config-file = conf.d/99-local.conf
 
