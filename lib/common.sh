@@ -2,6 +2,8 @@
 # Logging, colors, and common functions for dotfiles
 # Sourced by every task in mise/tasks/.
 
+PROFILE="${PROFILE:-${DOTFILES_PROFILE:-work}}"
+
 # ---------------------------------------------------------------------------
 # Colors
 # ---------------------------------------------------------------------------
@@ -252,6 +254,67 @@ ensure_mise() {
     Then add to your shell: eval \"\$(mise activate bash)\"
     Docs: https://mise.jdx.dev/getting-started.html"
   fi
+}
+
+# ---------------------------------------------------------------------------
+#  dotfiles helpers
+# ---------------------------------------------------------------------------
+
+toml_to_json() {
+	if has dasel; then
+		dasel -r toml -w json < "$1"
+	elif has yq; then
+		yq -p toml -o json < "$1"
+	else
+		if ! has python3; then
+			die "Need one of: dasel, yq, or python3.11+ for TOML parsing"
+		fi
+
+		python3 -c "import sys, json, tomllib; print(json.dumps(tomllib.loads(sys.stdin.read())))" < "$1"
+	fi
+}
+
+is_applicable() {
+	local manifest_json="$1" kind="$2"   # kind: "package" or "tool"
+	local profiles os
+
+	profiles="$(echo "$manifest_json" | jq -r ".$kind.profiles // [] | join(\" \")")"
+	os="$(echo "$manifest_json" | jq -r ".$kind.os // [] | join(\" \")")"
+
+	if [[ -n "$profiles" ]] && ! grep -qw "$PROFILE" <<<"$profiles"; then
+		return 1
+	fi
+	if [[ -n "$os" ]] && ! grep -qw "$DOTFILES_OS" <<<"$os"; then
+		return 1
+	fi
+	return 0
+}
+
+enabled_tools() {
+	local pkg_dir="$1" pkg_json="$2"
+
+	local profile_tools
+	profile_tools="$(echo "$pkg_json" | jq -r ".profile.\"$PROFILE\".tools // empty | join(\" \")")"
+	if [[ -n "$profile_tools" ]]; then
+		echo "$profile_tools"
+		return
+	fi
+
+	local pkg_tools
+	pkg_tools="$(echo "$pkg_json" | jq -r '.package.tools // empty | join(" ")')"
+	if [[ -n "$pkg_tools" ]]; then
+		echo "$pkg_tools"
+		return
+	fi
+
+	if [[ -f "$pkg_dir/tool.toml" ]]; then
+		echo "."
+		return
+	fi
+
+	for sub in "$pkg_dir"/*/; do
+		[[ -f "$sub/tool.toml" ]] && basename "$sub"
+	done
 }
 
 # ---------------------------------------------------------------------------

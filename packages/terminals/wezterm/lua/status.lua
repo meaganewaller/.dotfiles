@@ -1,10 +1,13 @@
-local is_windows = package.config:sub(0, 1) == "\\"
+local path_utils = require("lua.utils.path")
 local wezterm = require("wezterm")
 local agent_deck = require("lua.agent")
 local theme = require("lua.theme")
 local time_utils = require("lua.utils.time")
 
 local DIV_R = (theme.tab_bar.powerline and theme.tab_bar.powerline.rounded_right) or utf8.char(0xe0b4)
+local PL = theme.tab_bar.powerline or {}
+local TAB_ROUND_L = PL.rounded_left or " "
+local TAB_ROUND_R = PL.rounded_right or ""
 
 local KEY_TABLE_LABELS = {
   resize_mode = "RESIZE",
@@ -68,7 +71,8 @@ local function get_workhours_display(window)
   return icon, hours_text, color
 end
 
-local function left_status_bar_plugin(window, palette)
+local function left_status_bar_plugin(window, conf)
+  local palette = conf.resolved_palette
   local tab_colors = palette.tab_bar
   local leader_icon = window:leader_is_active() and wezterm.nerdfonts.cod_circle_large_filled
     or wezterm.nerdfonts.cod_circle_large_outline
@@ -103,11 +107,20 @@ local function left_status_bar_plugin(window, palette)
     { Text = DIV_R },
   })
 
-  local workspace = wezterm.format({
-    { Foreground = { Color = theme.tab_bar.active_fg } },
-    { Background = { Color = theme.base.bg } },
-    { Text = "  " .. window:active_workspace() .. " " },
-  })
+  local p = theme.palette_from_config(conf)
+  local workspace = wezterm.format(
+    theme.compact(
+      theme.segment(
+        p.edge_bg,
+        theme.base.bg,
+        theme.tab_bar.active_fg,
+        TAB_ROUND_L,
+        "  " .. window:active_workspace() .. " ",
+        TAB_ROUND_R,
+        nil
+      )
+    )
+  )
 
   return leader .. mode .. divider .. workspace
 end
@@ -169,7 +182,7 @@ end
 local function update_status(window)
   local ok, conf = pcall(window.effective_config, window)
   if ok and conf then
-    window:set_left_status(left_status_bar_plugin(window, conf.resolved_palette))
+    window:set_left_status(left_status_bar_plugin(window, conf))
   else
     window:set_left_status(" " .. window:active_workspace() .. " ")
   end
@@ -178,7 +191,7 @@ local function update_status(window)
 end
 
 return function()
-  if not is_windows then
+  if not path_utils.is_windows then
     wezterm.on("update-status", update_status)
   end
 end

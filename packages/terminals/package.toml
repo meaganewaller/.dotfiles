@@ -6,11 +6,4 @@ os = ["macos", "linux"]
 
 # Which tools in this package to enable. Default: all subdirs with a tool.toml.
 # Use this to gate tools per-profile.
-tools = ["ghostty"]              # or omit to enable everything
-
-# Per-profile tool overrides
-[profile.personal]
-tools = ["ghostty", "wezterm"]     # personal also wants wezterm
-
-[profile.work]
-tools = ["ghostty"]              # work just gets ghostty
+tools = ["ghostty", "wezterm"]              # or omit to enable everything

@@ -1,0 +1,50 @@
+# ============================================
+#      _, |)    _   , _|__|_
+#     / | |/\  / \_/ \_|  |  |  |
+#     \/|/|  |/\_/  \/ |_/|_/ \/|/
+#      (|                      (|
+# @module         config
+# @description    Root entrypoint for Ghostty terminal configuration
+#                 This file acts as an orchestrator: it loads numbered modules
+#                 from conf.d/ in deterministic order. Last writer wins when the
+#                 same key appears in multiple files.
+#
+# @author         Meagan Waller
+# @repository     https://github.com/meaganewaller/.dotfiles
+# @license        MIT
+# @since          1.0.0
+#
+# @architecture
+#   config (this file)
+#     └─► conf.d/00-core.conf          Shell integration, fundamentals
+#     └─► conf.d/10-font.conf          ✦ Source of truth: typography & icons
+#     └─► conf.d/20-colors.conf        ✦ Source of truth: colors & highlights
+#     └─► conf.d/30-keybindings.conf   Keyboard shortcuts
+#     └─► conf.d/40-window.conf        Window chrome, padding, opacity
+#     └─► conf.d/50-cursor.conf        Cursor shape & behavior
+#     └─► conf.d/60-mouse.conf         Mouse behavior & selection
+#     └─► conf.d/70-security.conf      Permissions, clipboard, updates
+#     └─► conf.d/80-performance.conf   Scrollback, shaders, GPU
+#     └─► conf.d/85-platform.conf      macOS / Linux / WSL specifics
+#     └─► conf.d/99-local.conf         Machine-local overrides (GITIGNORED)
+#
+# @note         NEVER write configuration keys directly in this file.
+#               Every parameter belongs in exactly ONE conf.d/ module.
+# @note         99-local.conf is gitignored and created empty by install.sh.
+#               It is always loaded last so it can override anything.
+# ============================================
+# File: ~/.config/ghostty/config
+# View options: ghostty +show-config --default --docs
+
+config-file = conf.d/00-core.conf
+config-file = conf.d/10-font.conf
+config-file = conf.d/20-colors.conf
+config-file = conf.d/30-keybindings.conf
+config-file = conf.d/40-window.conf
+config-file = conf.d/50-cursor.conf
+config-file = conf.d/60-mouse.conf
+config-file = conf.d/70-security.conf
+config-file = conf.d/80-performance.conf
+config-file = conf.d/85-platform.conf
+config-file = conf.d/99-local.conf
+

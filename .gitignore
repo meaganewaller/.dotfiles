@@ -43,3 +43,5 @@ home/.config/exports/secrets
 
 home/.config/wezterm/projects/work
 packages/vcs/git/config.local
+
+*.log

@@ -5,6 +5,9 @@ email = "meagan.waller@gusto.com"
 default_branch = "main"
 sign_commits = true
 
+[shells]
+default = "zsh"
+
 [paths]
 work = "~/workspace"
 

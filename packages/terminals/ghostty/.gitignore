@@ -1,0 +1,7 @@
+## gitignore
+
+# @description   Gitignore for Ghostty terminal configuration
+# @see           conf.d/99-local.conf - machine-local overrides, never committed.
+
+# -- Local overrides (GITIGNORED, never versioned) --
+terminals/ghostty/conf.d/99-local.conf

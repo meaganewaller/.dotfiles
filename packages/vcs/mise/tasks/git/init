@@ -1,25 +1,31 @@
 #!/usr/bin/env bash
 #MISE description="Verify git config is wired up correctly"
 set -euo pipefail
+# shellcheck source=/dev/null
 source "$DOTFILES_ROOT/lib/common.sh"
 
 step "Verifying git config"
 
-# Sanity check: hooksPath should resolve to the linked dir
-hooks_path="$(git config --global --get core.hooksPath || true)"
-if [[ "$hooks_path" != "$HOME/.config/git/hooks" ]]; then
-  warn "core.hooksPath is '$hooks_path', expected ~/.config/git/hooks"
+# Sanity check: hooksPath should resolve to the linked dir (--get keeps "~" literal;
+# --path expands it so we compare canonical paths)
+expected_hooks="${HOME}/.config/git/hooks"
+hooks_path="$(git config --global --path --get core.hooksPath 2>/dev/null || true)"
+if [[ "$hooks_path" != "$expected_hooks" ]]; then
+  warn "core.hooksPath is '${hooks_path:-<unset>}', expected $expected_hooks"
 fi
 
 # Check that the include chain works — read user.email through a dummy repo
 tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
+# Personal includeIf is gitdir-based (see git/includes/local.tmpl), not remote URL.
+personal_probe="${HOME}/github/meaganewaller/.vcs-init-probe-$$"
+mkdir -p "$personal_probe"
+trap 'rm -rf "$tmp" "$personal_probe"' EXIT
 
 # Test work include resolution
 mkdir -p "$tmp/work-test"
 ( cd "$tmp/work-test" && git init -q && \
   git remote add origin git@github.com:gusto/dummy.git && \
-  email="$(git config user.email)" && \
+  email="$(git config user.email 2>/dev/null || true)" && \
   if [[ -z "$email" ]]; then
     warn "Work include not resolving — check ~/.gitconfig.local"
   else
@@ -27,13 +33,11 @@ mkdir -p "$tmp/work-test"
   fi
 )
 
-# Test personal include resolution
-mkdir -p "$tmp/personal-test"
-( cd "$tmp/personal-test" && git init -q && \
-  git remote add origin git@github.com:meaganewaller/dummy.git && \
-  email="$(git config user.email)" && \
+# Test personal include resolution (repo path must match personal gitdir includeIf)
+( cd "$personal_probe" && git init -q && \
+  email="$(git config user.email 2>/dev/null || true)" && \
   if [[ -z "$email" ]]; then
-    warn "Personal include not resolving — check ~/.gitconfig.local"
+    warn "Personal include not resolving — check ~/.gitconfig.local and git/includes/local.tmpl"
   else
     info "Personal email resolves to: $email"
   fi

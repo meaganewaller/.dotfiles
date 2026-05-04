@@ -1,0 +1,73 @@
+# ============================================================================
+# @module       00-core
+# @description  Foundational terminal behavior: shell integration, working
+#               directory inheritance, and text rendering fundamentals.
+#               These settings affect every surface (tab, split, window).
+#
+#               Shell integration and fundamental settings.
+#               Sets the DEFAULT shell for all new Ghostty windows/tabs.
+#
+# @note         Override `command` in 99-local.conf for per-machine needs.
+# @note         To launch other shells ad-hoc, see keybindings in 30-keybindings.conf
+#               or use CLI: ghostty -e /bin/zsh
+#
+# @shells       Primary : Nushell (/opt/homebrew/bin/nu)
+#               Alt     : zsh (/bin/zsh), fish (/opt/homebrew/bin/fish)
+#
+# @since        1.0.0
+# @see          https://ghostty.org/docs/config
+# ============================================================================
+
+# --- Default Shell ------------------------------------------------------------
+command = opt/homebrew/bin/{{ shell.default }} --login
+
+
+# @description  Shell integration detection strategy.
+#               "detect" auto-injects integration scripts for bash, zsh, fish,
+#               and elvish without manual shell-rc edits.
+# @type         enum
+# @values       detect | none | bash | zsh | fish | elvish
+# @default      detect
+shell-integration = detect
+
+# @description  Feature flags for shell integration. Comma-separated list.
+# @type         csv<enum>
+# @values       cursor   — adapts cursor shape to shell mode (insert=bar, normal=block)
+#               sudo     — preserves integration inside sudo sessions
+#               title    — sets terminal title to current command / cwd
+#               no-cursor / no-sudo / no-title — disable individually
+# @default      cursor,sudo,title
+# @requires     shell-integration != none
+shell-integration-features = cursor,sudo,title
+
+# @description  New tabs and splits inherit the working directory of the
+#               parent surface via OSC 7 reporting.
+# @type         boolean
+# @default      true
+window-inherit-working-directory = true
+
+# @description  New splits inherit the font size of the parent surface,
+#               including any runtime zoom adjustments.
+# @type         boolean
+# @default      true
+window-inherit-font-size = true
+
+
+# @description  Whether bold text should be rendered with bright ANSI colors.
+#               Set to false to preserve theme color accuracy, which is
+#               critical for Neovim colorschemes that use bold attributes.
+# @type         boolean
+# @default      false
+# @see          conf.d/20-colors.conf — palette definition
+bold-is-bright = false
+
+
+# @description  Minimum contrast ratio between foreground and background.
+#               Ghostty will adjust foreground color to meet this ratio.
+#               1.0 disables adjustment. WCAG AA = 4.5, AAA = 7.0.
+# @type         float
+# @range        1.0..21.0
+# @default      1
+# @note         Set to 1 (disabled) to preserve exact theme colors.
+#               Increase only for accessibility requirements.
+minimum-contrast = 1

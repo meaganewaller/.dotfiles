@@ -8,7 +8,7 @@
 #USAGE flag "--clean-rendered" help="Also remove .rendered/ output for this profile"
 set -euo pipefail
 
-PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
+export PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
 ONLY="${usage_only:-}"
 EXCEPT="${usage_except:-}"
 DRY="${usage_dry_run:-false}"
@@ -19,10 +19,11 @@ DRY="${usage_dry_run:-${DOTFILES_DRY_RUN:-false}}"
 # Normalize "1" / "true" / "yes" → "true"
 case "$DRY" in 1|true|yes) DRY="true" ;; *) DRY="false" ;; esac
 
+# shellcheck source=/dev/null
 source "$DOTFILES_ROOT/lib/common.sh"
 
 PACKAGES_DIR="$DOTFILES_ROOT/packages"
-RENDERED_ROOT="$DOTFILES_ROOT/.rendered"
+RENDERED_ROOT="$HOME/.dotfiles-rendered"
 RENDERED_DIR="$RENDERED_ROOT/$PROFILE"
 
 # ---------------------------------------------------------------------------
@@ -34,67 +35,6 @@ expand_path() {
   local p="$1"
   p="${p/#\~/$HOME}"
   echo "$p"
-}
-
-toml_to_json() {
-  if has dasel; then
-    dasel -r toml -w json < "$1"
-  elif has yq; then
-    yq -p toml -o json < "$1"
-  else
-    python3 -c "import sys, json, tomllib; print(json.dumps(tomllib.loads(sys.stdin.read())))" < "$1"
-  fi
-}
-
-is_applicable() {
-  # When --all-profiles, ignore filters entirely so we can clean up symlinks
-  # left behind from any prior profile/os combination.
-  [[ "$ALL_PROFILES" == "true" ]] && return 0
-
-  local manifest_json="$1" kind="$2"
-  local profiles os
-
-  profiles="$(echo "$manifest_json" | jq -r ".$kind.profiles // [] | join(\" \")")"
-  os="$(echo "$manifest_json" | jq -r ".$kind.os // [] | join(\" \")")"
-
-  if [[ -n "$profiles" ]] && ! grep -qw "$PROFILE" <<<"$profiles"; then
-    return 1
-  fi
-  if [[ -n "$os" ]] && ! grep -qw "$DOTFILES_OS" <<<"$os"; then
-    return 1
-  fi
-  return 0
-}
-
-enabled_tools() {
-  local pkg_dir="$1" pkg_json="$2"
-
-  # When unlinking with --all-profiles, ignore tools= overrides — we want
-  # to find every tool that exists in the package and clean any links.
-  if [[ "$ALL_PROFILES" != "true" ]]; then
-    local profile_tools
-    profile_tools="$(echo "$pkg_json" | jq -r ".profile.\"$PROFILE\".tools // empty | join(\" \")")"
-    if [[ -n "$profile_tools" ]]; then
-      echo "$profile_tools"
-      return
-    fi
-
-    local pkg_tools
-    pkg_tools="$(echo "$pkg_json" | jq -r '.package.tools // empty | join(" ")')"
-    if [[ -n "$pkg_tools" ]]; then
-      echo "$pkg_tools"
-      return
-    fi
-  fi
-
-  if [[ -f "$pkg_dir/tool.toml" ]]; then
-    echo "."
-    return
-  fi
-
-  for sub in "$pkg_dir"/*/; do
-    [[ -f "$sub/tool.toml" ]] && basename "$sub"
-  done
 }
 
 # ---------------------------------------------------------------------------
