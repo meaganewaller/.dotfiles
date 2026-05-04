@@ -10,12 +10,18 @@ fnox-env = "https://github.com/jdx/mise-env-fnox"
 
 [env]
 DOTFILES_ROOT = "{{ config_root }}"
-DOTFILES_PROFILE = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
-MISE_ENV = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
+# MISE_ENV is the canonical profile input. It must NOT be declared in [env]:
+# mise strips its own [env]-managed vars from the Tera context before
+# evaluating, so a self-referential `MISE_ENV = "{{ env.MISE_ENV | ... }}"`
+# always resolves to the default and breaks `--profile` propagation to
+# child mise invocations. mise reads MISE_ENV from process env directly to
+# pick layered configs, so leaving it out lets `--profile` (and any user-set
+# MISE_ENV) flow through correctly.
+DOTFILES_PROFILE = "{{ env.MISE_ENV | default(value='work') }}"
 # FNOX_PROFILE drives fnox's profile selection — the plugin's `profile = ...`
 # field is not Tera-interpolated, so we expose this env var instead.
-FNOX_PROFILE = "{{ env.DOTFILES_PROFILE | default(value='work') }}"
-DOTFILES_OS = "macos" # used for OS-specific config files and tasks - separate from MISE_ENV which is for profile-specific config
+FNOX_PROFILE = "{{ env.MISE_ENV | default(value='work') }}"
+DOTFILES_OS = "macos" # OS-specific config files/tasks; orthogonal to MISE_ENV
 MISE_EXPERIMENTAL = "1"
 # fnox-env injects secrets from fnox.toml as env vars. tools=true so the plugin
 # resolves the mise-managed fnox binary; profile is taken from FNOX_PROFILE.

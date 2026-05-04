@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #MISE description="Build merged template context (internal)"
 #MISE hide=true
-#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--profile <profile>"
 #USAGE flag "--no-secrets" help="Skip fnox lookups (render with empty secrets)"
 #USAGE flag "--out <path>" help="Output path" default="/tmp/dotfiles-context.json"
 set -euo pipefail
 source "$DOTFILES_ROOT/lib/common.sh"
 
-PROFILE="${usage_profile:-work}"
+PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
 NO_SECRETS="${usage_no_secrets:-false}"
 OUT="${usage_out:-/tmp/dotfiles-context.json}"
 

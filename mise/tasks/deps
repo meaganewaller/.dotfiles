@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 #MISE description="Install OS-level deps that mise can't manage"
-#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--profile <profile>"
 #USAGE flag "--dry-run" help="Show what would be installed"
 set -euo pipefail
 
-PROFILE="${usage_profile:-work}"
+PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
 DRY="${usage_dry_run:-${DOTFILES_DRY_RUN:-false}}"
 # Normalize "1" / "true" / "yes" → "true"
 case "$DRY" in 1|true|yes) DRY="true" ;; *) DRY="false" ;; esac

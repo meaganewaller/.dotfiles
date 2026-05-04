@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #MISE description="Full setup for a profile"
 #MISE alias="s"
-#USAGE flag "--profile <profile>" help="Profile to apply" default="work"
+#USAGE flag "--profile <profile>" help="Profile to apply"
 #USAGE flag "--only <packages>"
 #USAGE flag "--dry-run" help="Don't write anything"
 #USAGE flag "--skip-auth" help="Skip gh/op signin"
@@ -9,7 +9,7 @@
 set -euo pipefail
 source "$DOTFILES_ROOT/lib/common.sh"
 
-PROFILE="${usage_profile:-work}"
+PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
 ONLY="${usage_only:-}"
 DRY_RUN="${usage_dry_run:-false}"
 SKIP_AUTH="${usage_skip_auth:-false}"
@@ -61,6 +61,7 @@ if [[ "$SKIP_AUTH" != "true" ]]; then
   if [[ "$DRY_RUN" == "true" ]]; then
     dry "Would run: mise run auth"
     dry "Would run: fnox sync --provider age --config fnox.local.toml"
+    dry "Would run: mise run //packages/vcs:git:sync-signing-keys"
   else
     mise run auth
     if has fnox; then
@@ -69,6 +70,10 @@ if [[ "$SKIP_AUTH" != "true" ]]; then
     else
       warn "fnox not on PATH — secrets will not resolve until \`mise install\` runs"
     fi
+    # Register this profile's SSH signing key with GitHub so commits show
+    # Verified. Runs after fnox sync so $GIT_*_SIGNINGKEY is populated.
+    mise run //packages/vcs:git:sync-signing-keys -- --profile "$PROFILE" \
+      || warn "git signing key registration failed — commits may show as Unverified on GitHub"
   fi
 fi
 

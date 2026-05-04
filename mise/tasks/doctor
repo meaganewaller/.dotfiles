@@ -54,6 +54,28 @@ done < <(find "$HOME" -maxdepth 4 -type l -print0 2>/dev/null)
 info "  $linked working symlinks"
 [[ $broken -gt 0 ]] && error "  $broken broken symlinks"
 
+step "GitHub signing key"
+profile_signingkey_var="GIT_$(echo "${DOTFILES_PROFILE:-work}" | tr 'a-z' 'A-Z')_SIGNINGKEY"
+profile_signingkey="${!profile_signingkey_var:-}"
+if [[ -z "$profile_signingkey" ]]; then
+  warn "  $profile_signingkey_var is empty — fnox not synced?"
+elif ! has gh; then
+  warn "  gh not installed"
+elif ! gh auth status >/dev/null 2>&1; then
+  warn "  gh not authenticated"
+elif ! gh auth status 2>&1 | grep -q admin:ssh_signing_key; then
+  warn "  gh missing admin:ssh_signing_key scope — run \`mise run //packages/vcs:git:sync-signing-keys\`"
+else
+  body="$(awk '{print $2}' <<<"$profile_signingkey")"
+  if gh api user/ssh_signing_keys --jq '.[].key' 2>/dev/null \
+       | awk '{print $2}' | grep -qxF "$body"; then
+    info "  signing key registered with GitHub ✓"
+  else
+    error "  ✗ signing key NOT registered — run \`mise run //packages/vcs:git:sync-signing-keys\`"
+    ((errors++))
+  fi
+fi
+
 step "Secrets (fnox)"
 if has fnox; then
   if fnox export --format json >/dev/null 2>&1; then

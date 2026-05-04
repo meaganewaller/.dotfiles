@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #MISE description="Install Homebrew packages for the profile's layers"
-#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--profile <profile>"
 #USAGE flag "--cleanup" help="brew bundle cleanup (uninstall extras)"
 set -euo pipefail
 
 source "$DOTFILES_ROOT/lib/common.sh"
 
-PROFILE="${usage_profile:-work}"
+PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
 CLEANUP="${usage_cleanup:-false}"
 
 [[ "$DOTFILES_OS" == "macos" ]] || { warn "Skipping brew on $DOTFILES_OS"; exit 0; }

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#MISE description="Register the SSH signing key for the active profile with GitHub"
+#MISE alias="git-signing"
+#USAGE flag "--profile <profile>"
+set -euo pipefail
+source "$DOTFILES_ROOT/lib/common.sh"
+
+PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
+validate_profile "$PROFILE"
+
+step "Syncing GitHub signing key for profile: $PROFILE"
+
+case "$PROFILE" in
+  work)     pubkey="${GIT_WORK_SIGNINGKEY:-}" ;;
+  personal) pubkey="${GIT_PERSONAL_SIGNINGKEY:-}" ;;
+  *)        info "Profile $PROFILE has no signing key configured — skipping"; exit 0 ;;
+esac
+
+if [[ -z "$pubkey" ]]; then
+  warn "GIT_${PROFILE^^}_SIGNINGKEY is empty — has \`fnox sync\` run?"
+  exit 0
+fi
+
+has gh         || die "gh not on PATH — run \`mise run deps\` first"
+gh auth status >/dev/null 2>&1 || die "gh is not authenticated — run \`mise run auth\`"
+
+# Listing/uploading signing keys requires admin:ssh_signing_key. The default
+# `gh auth login` flow does not request it, so refresh on demand.
+if ! gh auth status 2>&1 | grep -q admin:ssh_signing_key; then
+  info "Refreshing gh scopes (admin:ssh_signing_key)…"
+  gh auth refresh -h github.com -s admin:ssh_signing_key
+fi
+
+active_login="$(gh api user --jq .login)"
+info "Active GitHub account: $active_login"
+
+# Match on the key BODY (the base64 chunk after the algorithm), ignoring
+# titles and trailing comments — that is what GitHub uses for uniqueness.
+key_body="$(awk '{print $2}' <<<"$pubkey")"
+if gh api user/ssh_signing_keys --jq '.[].key' \
+     | awk '{print $2}' | grep -qxF "$key_body"; then
+  info "Signing key already registered on $active_login ✓"
+  exit 0
+fi
+
+title="git-signing/$PROFILE/$(hostname -s)"
+tmp="$(mktemp)"
+err="$(mktemp)"
+trap 'rm -f "$tmp" "$err"' EXIT
+printf '%s\n' "$pubkey" > "$tmp"
+
+if gh ssh-key add "$tmp" --title "$title" --type signing 2>"$err"; then
+  info "Uploaded signing key as \"$title\" ✓"
+elif grep -q "already in use" "$err"; then
+  warn "This key is already registered on a DIFFERENT GitHub account."
+  warn "  Either remove it from that account and re-run, or generate a new"
+  warn "  signing key for this machine and update the fnox secret."
+  exit 1
+else
+  error "Failed to upload signing key:"
+  cat "$err" >&2
+  exit 1
+fi

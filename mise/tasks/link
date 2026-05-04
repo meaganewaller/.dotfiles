@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Link packages into $HOME"
-#USAGE flag "--profile <profile>" default="work"
+#USAGE flag "--profile <profile>"
 #USAGE flag "--only <packages>" help="Comma-separated package or package:tool list"
 #USAGE flag "--except <packages>"
 #USAGE flag "--dry-run"
@@ -8,7 +8,7 @@
 #USAGE flag "--no-secrets" help="Skip fnox lookups during render"
 set -euo pipefail
 
-PROFILE="${usage_profile:-work}"
+PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
 ONLY="${usage_only:-}"
 EXCEPT="${usage_except:-}"
 DRY="${usage_dry_run:-false}"
