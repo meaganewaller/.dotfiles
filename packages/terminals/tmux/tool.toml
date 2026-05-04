@@ -1,0 +1,10 @@
+[tool]
+name = "tmux"
+
+[[link]]
+src = "tmux.conf"
+dest = "~/.tmux.conf"
+
+[[link]]
+src = "conf.d/"
+dest = "~/.config/tmux/conf.d"
