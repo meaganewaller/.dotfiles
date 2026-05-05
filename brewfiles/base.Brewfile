@@ -60,19 +60,3 @@ cask "visual-studio-code"
 # ----------------------------
 brew "vips"
 brew "tesseract"
-
-# ----------------------------
-# Fonts
-# ----------------------------
-cask "font-0xproto-nerd-font"
-cask "font-victor-mono-nerd-font"
-cask "font-bigblue-terminal-nerd-font"
-cask "font-ia-writer-mono"
-cask "font-ibm-plex-mono"
-cask "font-maple-mono-nf"
-cask "font-maple-mono-nf-cn"
-cask "font-psudofont-liga-mono"
-cask "font-sf-mono-for-powerline"
-cask "font-victor-mono"
-cask "sf-symbols"
-cask "font-symbols-only-nerd-font"

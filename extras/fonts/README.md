@@ -13,11 +13,11 @@ These are fonts used throughout my configuration, I include them here for easy i
 They will install as part of the standard dotfiles installation:
 
 ```bash
-mise run core:install --profile=<profile>
+mise run setup --profile=<profile>
 ```
 
 To install just the fonts, run:
 
 ```bash
-mise run fonts:install
+mise run fonts
 ```

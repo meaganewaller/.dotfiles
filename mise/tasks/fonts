@@ -1,53 +1,16 @@
 #!/usr/bin/env bash
-#MISE description="Install Nerd Fonts and any custom fonts"
+#MISE description="Install all fonts needed for config"
+
 set -euo pipefail
 
-source "$DOTFILES_ROOT/lib/common.sh"
+FONTS_DIR="$DOTFILES_ROOT/extras/fonts"
 
-# Edit this list to taste
-FONTS=(
-  font-jetbrains-mono-nerd-font
-  font-iosevka-nerd-font
-  font-symbols-only-nerd-font
-)
+echo "==> Installing fonts..."
 
-step "Installing fonts"
+while IFS= read -r -d '' font; do
+	echo "-> Installing $font"
+	cp -R "$font" "$HOME/Library/Fonts/"
+done < <(find "$FONTS_DIR" -type f -name "*.ttf" -print0)
 
-case "$DOTFILES_OS" in
-  macos)
-    ensure_brew
-    for font in "${FONTS[@]}"; do
-      if brew list --cask "$font" >/dev/null 2>&1; then
-        info "$font already installed"
-      else
-        brew install --cask "$font"
-      fi
-    done
-    ;;
-  debian|redhat)
-    local font_dir="$HOME/.local/share/fonts"
-    mkdir -p "$font_dir"
-
-    # Install Nerd Fonts via release archive — adjust versions as needed
-    local version="v3.2.1"
-    for font in JetBrainsMono Iosevka; do
-      if [[ -d "$font_dir/$font" ]]; then
-        info "$font already installed"
-        continue
-      fi
-      info "Downloading $font $version"
-      local tmp; tmp="$(mktemp -d)"
-      curl -fsSL -o "$tmp/$font.zip" \
-        "https://github.com/ryanoasis/nerd-fonts/releases/download/$version/$font.zip"
-      unzip -q "$tmp/$font.zip" -d "$font_dir/$font"
-      rm -rf "$tmp"
-    done
-
-    has fc-cache && fc-cache -f
-    ;;
-  *)
-    warn "Skipping fonts on $DOTFILES_OS"
-    ;;
-esac
-
-info "Fonts installed"
+echo "==> Installing fonts from brew..."
+brew bundle --file="$DOTFILES_ROOT/brewfiles/fonts.Brewfile"

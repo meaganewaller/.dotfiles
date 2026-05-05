@@ -4,6 +4,7 @@
 #USAGE flag "--cleanup" help="brew bundle cleanup (uninstall extras)"
 set -euo pipefail
 
+# shellcheck source=/dev/null
 source "$DOTFILES_ROOT/lib/common.sh"
 
 PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
