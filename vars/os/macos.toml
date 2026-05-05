@@ -1,6 +1,10 @@
 [paths]
 homebrew_prefix = "/opt/homebrew"
 
+[zsh]
+# GUI Cursor.app binary (used by `cursor` helper in .zshrc)
+cursor_gui_bin = "/Applications/Cursor.app/Contents/MacOS/Cursor"
+
 [fonts]
 install-via = "brew-cask"
 

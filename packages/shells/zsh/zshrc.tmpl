@@ -4,8 +4,8 @@
 #
 #  ╭─────────────────────────────╮
 #  │  Z-Shell interactive config │
-#  │  Meagan Waller              │
-#  │  github.com/meaganewaller   │
+#  │  {{ user.name }}            │
+#  │  github.com/{{ user.github }} │
 #  ╰─────────────────────────────╯
 #
 # Sourced for interactive shells. Login-shell env (PATH, XDG_*, EDITOR) lives
@@ -87,7 +87,7 @@ setopt SHARE_HISTORY          # Share history between all sessions
 # Exports & Environment Variables
 ########################################
 export GPG_TTY=$(tty)
-export EXPORTS_DIR="$HOME/.config/exports"
+export EXPORTS_DIR="$HOME/{{ zsh.exports_relative }}"
 
 # Create exports directory if it doesn't exist
 [ ! -d "$EXPORTS_DIR" ] && mkdir -p "$EXPORTS_DIR"
@@ -110,7 +110,7 @@ edit_exports() {
 	# Create the file if it doesn't exist
 	[ ! -f "$filepath" ] && touch "$filepath"
 
-	${EDITOR:-nvim} "$filepath"
+	${EDITOR:-{{ editor.default }}} "$filepath"
 }
 
 reload_exports() {
@@ -151,9 +151,11 @@ fi
 ########################################
 # Claude Bedrock prevention
 ########################################
+{% if zsh.disable_claude_bedrock_exports %}
 export CLAUDE_CODE_USE_BEDROCK=0
 export CLAUDE_USE_BEDROCK=0
 export DISABLE_BEDROCK=1
+{% endif %}
 
 ########################################
 # Prompt
@@ -316,18 +318,17 @@ precmd() {
    RPROMPT="${DISTROPROMPT_RIGHT_PROMPT_COLOR}${dir_right}$(distroprompt_git_info)%b%f"
 }
 
-# Git symbols
-DISTROPROMPT_GIT_DIRTY=" × "
-DISTROPROMPT_GIT_CLEAN="  "
-DISTROPROMPT_GIT_AHEAD="  "
-DISTROPROMPT_GIT_BEHIND="  "
+# Git symbols & colors (from vars/common.toml [zsh.distroprompt])
+DISTROPROMPT_GIT_DIRTY="{{ zsh.distroprompt.symbol_dirty }}"
+DISTROPROMPT_GIT_CLEAN="{{ zsh.distroprompt.symbol_clean }}"
+DISTROPROMPT_GIT_AHEAD="{{ zsh.distroprompt.symbol_ahead }}"
+DISTROPROMPT_GIT_BEHIND="{{ zsh.distroprompt.symbol_behind }}"
 
-# Colors
-DISTROPROMPT_LEFT_PROMPT_COLOR="%B%F{212}"
-DISTROPROMPT_RIGHT_PROMPT_COLOR="%B%F{84}"
-DISTROPROMPT_ERROR_COLOR="%B%F{203}"
-DISTROPROMPT_NOERROR_COLOR="%B%F{84}"
-DISTROPROMPT_SHOW_DIR="right" # left, right or off
+DISTROPROMPT_LEFT_PROMPT_COLOR="{{ zsh.distroprompt.left_color }}"
+DISTROPROMPT_RIGHT_PROMPT_COLOR="{{ zsh.distroprompt.right_color }}"
+DISTROPROMPT_ERROR_COLOR="{{ zsh.distroprompt.error_color }}"
+DISTROPROMPT_NOERROR_COLOR="{{ zsh.distroprompt.noerror_color }}"
+DISTROPROMPT_SHOW_DIR="{{ zsh.distroprompt.show_dir }}"
 
 ########################################
 # Utility Functions
@@ -347,7 +348,7 @@ img2pdf() {
 
 {% if os == "macos" %}
 function cursor {
-	(nohup /Applications/Cursor.app/Contents/MacOS/Cursor "$@" > /dev/null 2>&1 &)
+	(nohup "{{ zsh.cursor_gui_bin }}" "$@" > /dev/null 2>&1 &)
 }
 
 {% endif %}
@@ -412,11 +413,13 @@ bindkey '^[[B' down-line-or-beginning-search
 
 export HISTFILE="$XDG_DATA_HOME/zsh/history"
 mkdir -p "$(dirname "$HISTFILE")"
-export HISTSIZE=100000
-export SAVEHIST=100000
+export HISTSIZE={{ zsh.hist_size }}
+export SAVEHIST={{ zsh.hist_size }}
 
 _comp_options+=(globdots) # With hidden files
 
 source "$HOME/.config/zsh/bindings.zsh"
 source "$HOME/.config/zsh/completion.zsh"
-source "$HOME/.config/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+_ZSH_SYNTAX_HL="$HOME/.config/zsh/{{ zsh.syntax_highlighting_relative }}"
+[[ -f "$_ZSH_SYNTAX_HL" ]] && source "$_ZSH_SYNTAX_HL"
+unset _ZSH_SYNTAX_HL
