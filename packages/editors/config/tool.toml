@@ -1,0 +1,6 @@
+[tool]
+name = "config"
+
+[[link]]
+src = "editorconfig"
+dest = "~/.editorconfig"

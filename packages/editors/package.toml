@@ -4,4 +4,4 @@ description = "Text editor configurations"
 profiles = ["work", "personal"]
 os = ["macos", "linux"]
 
-tools = ["nvim"] # only nvim for now, but could add more later (e.g. emacs, vscode)
+tools = ["nvim", "config"]
