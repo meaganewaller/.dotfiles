@@ -1,0 +1,4 @@
+[package]
+name = "package-managers"
+
+tools = ["mise"]

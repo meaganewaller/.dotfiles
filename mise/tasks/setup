@@ -7,6 +7,7 @@
 #USAGE flag "--skip-auth" help="Skip gh/op signin"
 #USAGE flag "--skip-brew" help="Skip homebrew bundle"
 set -euo pipefail
+# shellcheck source=/dev/null
 source "$DOTFILES_ROOT/lib/common.sh"
 
 PROFILE="${usage_profile:-${DOTFILES_PROFILE:-work}}"
@@ -18,7 +19,9 @@ SKIP_BREW="${usage_skip_brew:-false}"
 validate_profile "$PROFILE"
 export DOTFILES_PROFILE="$PROFILE"
 export MISE_ENV="$PROFILE"
-export DOTFILES_DRY_RUN=$([[ "$DRY_RUN" == "true" ]] && echo 1 || echo 0)
+DOTFILES_DRY_RUN="${usage_dry_run:-false}"
+DOTFILES_DRY_RUN="$([[ "$DOTFILES_DRY_RUN" == "true" ]] && echo 1 || echo 0)"
+export DOTFILES_DRY_RUN
 
 step "Setting up profile: $PROFILE"
 

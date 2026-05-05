@@ -1,9 +1,6 @@
 min_version = "2024.9.0"
 experimental_monorepo_root = true
 
-[settings]
-experimental = true
-
 [plugins]
 # Auto-injects fnox secrets as env vars on directory entry. See ADR 0005.
 fnox-env = "https://github.com/jdx/mise-env-fnox"
@@ -31,10 +28,10 @@ _.fnox-env = { tools = true }
 # via MISE_ENV, so per-profile tools live in those files.
 [tools]
 # Tools every machine needs
+"age" = "latest"
 "gh" = "latest"
 "1password-cli" = "latest"
 "cargo:tera-cli" = "latest"
-"shfmt" = "latest"
 "fnox" = "latest"
 
 [vars]

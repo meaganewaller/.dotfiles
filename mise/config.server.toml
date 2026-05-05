@@ -1,5 +1,0 @@
-[tools]
-# headless - no GUI tools
-
-[vars]
-brew_layers = "base dev"

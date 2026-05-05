@@ -1,0 +1,5 @@
+[tools]
+go = "latest"
+
+[settings]
+go_set_gobin = false

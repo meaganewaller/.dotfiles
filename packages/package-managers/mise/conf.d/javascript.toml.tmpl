@@ -1,0 +1,17 @@
+[tools]
+node = "lts"
+{%- if profile == "personal" %}
+bun = "latest"
+biome = "latest"
+{%- elif profile =="work " %}
+yarn = "latest"
+{%- endif %}
+
+{%- if profile == "personal" %}
+[settings.npm]
+package_manager = "bun"
+{%- endif %}
+
+[tools.pnpm]
+minimum_release_age = "1d"
+version = "latest"

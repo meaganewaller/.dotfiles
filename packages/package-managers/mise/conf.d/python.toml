@@ -1,0 +1,11 @@
+[settings.python]
+uv_venv_auto = true
+compile = false
+
+[settings.pipx]
+# use uvx instead of pipx
+uvx = true
+
+[tools]
+python = "latest"
+uv = "latest"

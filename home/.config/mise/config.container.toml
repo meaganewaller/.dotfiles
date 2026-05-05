@@ -1,2 +1,0 @@
-# Container profile — layered when MISE_ENV=container (via miserc.toml at link time).
-# Minimal devcontainer setup. Add container-specific tools here as needed.

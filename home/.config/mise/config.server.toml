@@ -1,2 +1,0 @@
-# Server profile — layered when MISE_ENV=server (via miserc.toml at link time).
-# CLI-only machines: no GUI tools. Add server-specific CLIs here as needed.

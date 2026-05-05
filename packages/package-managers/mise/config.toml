@@ -1,0 +1,12 @@
+# ---------------------------
+# Mise Configuration
+#
+# Only the basic top-level settings and tools are configured here.
+# The rest are in conf.d/*.toml files.
+# ---------------------------
+[settings]
+experimental = true
+task_timings = true
+lockfile = true
+install_before = "7d"
+paranoid = true

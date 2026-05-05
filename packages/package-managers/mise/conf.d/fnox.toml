@@ -1,0 +1,10 @@
+[plugins]
+fnox-env = "https://github.com/jdx/mise-env-fnox"
+
+[tools]
+1password-cli = "latest"
+age = "latest"
+fnox = "latest"
+
+[env]
+_.fnox-env = { tools = true, profile = "{{env.MISE_ENV}}" }

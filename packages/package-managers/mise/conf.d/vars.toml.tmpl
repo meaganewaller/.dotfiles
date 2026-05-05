@@ -1,0 +1,10 @@
+[vars]
+{%- if profile == "container" %}
+brew_layers = "base"
+{%- elif profile == "personal" %}
+brew_layers = "base gui creative dev infra"
+{%- elif profile == "work" %}
+brew_layers = "base gui dev infra work"
+{%- elif profile == "server" %}
+brew_layers = "base dev"
+{%- endif %}

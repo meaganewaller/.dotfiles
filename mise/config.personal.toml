@@ -1,8 +1,0 @@
-[tools]
-node = "lts"
-python = "3.12"
-ruby = "latest"
-yq = "latest"
-
-[vars]
-brew_layers = "base gui creative dev infra"

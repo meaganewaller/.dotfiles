@@ -8,6 +8,10 @@ export CLAUDE_CODE_USE_BEDROCK=0
 export CLAUDE_USE_BEDROCK=0
 export DISABLE_BEDROCK=1
 
+FNOX_AGE_KEY_FILE="$HOME/.config/fnox/age.txt"
+FNOX_AGE_KEY=$(cat "$FNOX_AGE_KEY_FILE" | grep "AGE-SECRET-KEY")
+export FNOX_AGE_KEY
+
 ########################################
 # Runtime: mise (must be first)
 ########################################
@@ -15,6 +19,7 @@ export DISABLE_BEDROCK=1
 # Override: MISE_USE_SHIMS_ONLY=1
 if command -v mise >/dev/null 2>&1; then
   if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
+	  # shellcheck source=/dev/null
     . "$HOME/.gusto/init.sh"
   else
     eval "$(mise activate zsh)"

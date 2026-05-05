@@ -1,4 +1,0 @@
-# Work profile — layered when MISE_ENV=work (via miserc.toml at link time).
-[tools]
-java = "21"
-terraform = "latest"
