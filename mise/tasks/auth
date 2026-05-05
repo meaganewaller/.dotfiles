@@ -2,6 +2,7 @@
 #MISE description="Sign into GitHub CLI and 1Password in needed"
 set -euo pipefail
 
+# shellcheck source=/dev/null
 source "$DOTFILES_ROOT/lib/common.sh"
 
 step "Authenticating CLI tools"
@@ -23,3 +24,61 @@ else
     die "1Password signin failed. Make sure you've added an account: op account add"
   fi
 fi
+
+function get_public_key_from_age_txt() {
+	grep "public key:" ~/.config/fnox/age.txt | awk '{print $2}' | sed 's/^"//' | sed 's/"$//'
+}
+
+function add_public_key_to_fnox_toml() {
+	local PUBLIC_KEY=$1
+	sed -i '' 's/recipients = \[/recipients = \[\n  "'"$PUBLIC_KEY"'",/' fnox.toml
+}
+
+function set_private_fnox_age_key() {
+	FNOX_AGE_KEY=$(cat ~/.config/fnox/age.txt | grep "AGE-SECRET-KEY")
+	export FNOX_AGE_KEY
+	info "fnox: private age key set"
+}
+
+if has age; then
+	info "age: already on PATH"
+
+  if [[ -f ~/.config/fnox/age.txt ]]; then
+    info "fnox: age key already set"
+		PUBLIC_KEY=$(get_public_key_from_age_txt)
+		if grep -q "$PUBLIC_KEY" fnox.toml; then
+			info "fnox: age key already in fnox.toml"
+		else
+			info "fnox: adding age key to fnox.toml"
+			add_public_key_to_fnox_toml "$PUBLIC_KEY"
+			set_private_fnox_age_key
+		fi
+  else
+    info "fnox: setting up age key"
+		mkdir -p ~/.config/fnox
+		age-keygen -o ~/.config/fnox/age.txt
+		PUBLIC_KEY=$(get_public_key_from_age_txt)
+		add_public_key_to_fnox_toml "$PUBLIC_KEY"
+		if [ -n "$FNOX_AGE_KEY" ]; then
+			set_private_fnox_age_key
+		# else if there is a private key, make sure it matches what we have in the file
+		elif [ -n "$FNOX_AGE_KEY" ]; then
+			if [ "$FNOX_AGE_KEY" != "$(cat ~/.config/fnox/age.txt | grep "AGE-SECRET-KEY")" ]; then
+				info "fnox: private age key does not match what we have in the file"
+				rm ~/.config/fnox/age.txt
+				age-keygen -o ~/.config/fnox/age.txt
+				PUBLIC_KEY=$(get_public_key_from_age_txt)
+				add_public_key_to_fnox_toml "$PUBLIC_KEY"
+			fi
+		fi
+  fi
+else
+	info "age: installing with mise"
+	mise install age
+	mkdir -p ~/.config/fnox
+	age-keygen -o ~/.config/fnox/age.txt
+	PUBLIC_KEY=$(get_public_key_from_age_txt)
+	add_public_key_to_fnox_toml "$PUBLIC_KEY"
+	set_private_fnox_age_key
+fi
+
