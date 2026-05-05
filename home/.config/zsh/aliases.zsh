@@ -1,1 +1,0 @@
-/Users/meaganwaller/github/meaganewaller/.dotfiles/packages/shells/zsh/lib/aliases.zsh

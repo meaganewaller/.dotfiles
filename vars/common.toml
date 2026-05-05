@@ -19,3 +19,7 @@ gui = "nvim"
 [paths]
 projects = "~/projects"
 github = "~/github"
+
+[zsh]
+# Set true temporarily to profile startup: zprof at top of .zshrc, run `zprof` after shell loads.
+enable_zprof = false
