@@ -3,4 +3,4 @@ name = "wm"
 profiles = ["work", "personal"]
 os = ["macos"]
 
-tools = ["borders"] # only borders for now, but could add more later (e.g. yabai, skhd)
+tools = ["borders", "hammerspoon"] # only borders for now, but could add more later (e.g. yabai, skhd)
