@@ -1,4 +1,7 @@
 [tool]
 name = "aerospace"
-target = "~/.config/aerospace"
 os = ["macos"]
+
+[[link]]
+src = "aerospace.toml"
+dest = "~/.aerospace.toml"
