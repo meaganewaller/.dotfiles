@@ -14,3 +14,6 @@ work = "~/workspace"
 [features]
 copilot = true
 work_proxy = true
+
+[editor]
+gui = "cursor"

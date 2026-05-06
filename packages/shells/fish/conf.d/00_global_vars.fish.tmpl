@@ -1,0 +1,217 @@
+set -q XDG_CONFIG_HOME; or set -gx XDG_CONFIG_HOME "$HOME/.config"
+set -q XDG_DATA_HOME; or set -gx XDG_DATA_HOME "$HOME/.local/share"
+set -q XDG_CACHE_HOME; or set -gx XDG_CACHE_HOME "$HOME/.cache"
+set -q XDG_RUNTIME_DIR; or set -gx XDG_RUNTIME_DIR "/tmp/runtime-$USER"
+set -q XDG_STATE_HOME; or set -gx XDG_STATE_HOME "$HOME/.local/state"
+set -q XDG_BIN_HOME; or set -gx XDG_BIN_HOME "$HOME/.local/bin"
+set -q XDG_SCRIPT_HOME; or set -gx XDG_SCRIPT_HOME "$HOME/.local/scripts"
+
+fish_add_path $XDG_SCRIPT_HOME
+
+set -gx APPLICATIONS_HISTORY_PATH "$XDG_DATA_HOME/history"
+
+set -gx EDITOR {{ editor.default }}
+set -gx VISUAL {{ editor.gui }}
+set -gx SUDO_EDITOR {{ editor.default }}
+
+if test -d /opt/homebrew/bin/fish
+    set -gx SHELL /opt/homebrew/bin/fish
+end
+
+# Locale settings for proper character encoding
+set -gx LANG en_US.UTF-8
+set -gx LC_ALL en_US.UTF-8
+
+# Default pager with syntax highlighting
+set -gx PAGER bat
+
+# TTY setting for GPG operations
+set -gx GPG_TTY (tty)
+
+# Color configuration for grep output
+set -gx GREP_COLOR "1;37;45"
+
+# -------------------------- SSH --------------------------
+set -gx SSH_KEY_PATH "$HOME/.ssh"
+set -gx SSH_AUTH_SOCK "$HOME/.1password/agent.sock"
+
+# -------------------------- Password Store --------------------------
+set -gx PASSWORD_STORE_DIR "$XDG_DATA_HOME/password-store"
+set -gx NOCLOBBER 1
+
+# -------------------------- GPG --------------------------
+set -gx GNUPGHOME "$HOME/.gnupg"
+
+# -------------------------- Homebrew --------------------------
+set -gx HOMEBREW_NO_ENV_HINTS 1
+set -gx BREW_PREFIX /opt/homebrew
+
+set -gx OPENSSL_PATH /opt/homebrew/openssl@3
+set -gx LIBRARY_PATH /opt/homebrew/lib/
+set -gx HOMEBREW_NO_ANALYTICS 1
+set -gx HOMEBREW_CASK_OPTS --no-quarantine
+
+test -n "$BREW_PREFIX"; and fish_add_path -g $BREW_PREFIX/bin
+test -n "$BREW_PREFIX"; and fish_add_path -g $BREW_PREFIX/sbin
+test -n "$OPENSSL_PATH"; and fish_add_path -g $OPENSSL_PATH/bin
+
+# -------------------------- mise --------------------------
+set -gx MISE_CONFIG_HOME "$XDG_CONFIG_HOME/mise/config.toml"
+set -gx MISE_FISH_AUTO_ACTIVATE 0
+
+if type -q mise
+    { %- if profile == work % }
+    if test -n "$MISE_USE_SHIMS_ONLY" || test -d "$HOME/.gusto/init.fish"
+        source "$HOME/.gusto/init.fish"
+    end
+    { %- endif % }
+    if status --is-interactive
+        mise activate fish | source
+    else
+      mise active fish --shims | source
+    end
+end
+
+# -------------------------- Python --------------------------
+set -gx PIPX_BIN_DIR "$HOME/.local/bin"
+set -gx PYTHONIOENCODING utf-8
+set -gx PYTHONDONTWRITEBYTECODE 1
+set -gx PYTHONUNBUFFERED 1
+set -gx PIP_REQUIRE_VIRTUALENV true
+set -gx PIP_DEFAULT_TIMEOUT 30
+set -gx PIP_CACHE_DIR "$XDG_CACHE_HOME/pip"
+set -gx POETRY_VIRTUALENVS_PATH "$HOME/.virtualenvs"
+set -gx IPYTHONDIR "$XDG_CONFIG_HOME/jupyter"
+set -gx JUPYTER_CONFIG_DIR "$XDG_CONFIG_HOME/jupyter"
+
+test -n "$PIPX_BIN_DIR"; and fish_add_path -g $PIPX_BIN_DIR
+
+# -------------------------- Go --------------------------
+set -gx GOPATH "$XDG_DATA_HOME/go"
+set -gx GOMODCACHE "$XDG_CACHE_HOME/go/mod"
+set -gx GOBIN "$GOPATH/bin"
+set -gx GO111MODULE on
+set -gx GOPROXY https://proxy.golang.org,direct
+
+test -n "$GOBIN"; and fish_add_path -g $GOBIN
+
+# -------------------------- Rust --------------------------
+set -gx RUSTU_HOME "$XDG_DATA_HOME/rustup"
+set -gx CARGO_HOME "$XDG_DATA_HOME/cargo"
+set -gx CARGOBIN "$CARGO_HOME/bin"
+
+test -n "$CARGOBIN"; and fish_add_path -g $CARGOBIN
+
+# -------------------------- Ruby --------------------------
+set -gx GEM_HOME "$XDG_DATA_HOME/gem"
+set -gx GEM_SPEC_CACHE "$XDG_CACHE_HOME/gem"
+set -gx BUNDLE_USER_CACHE "$XDG_CACHE_HOME/bundle"
+set -gx BUNDLE_USER_CONFIG "$XDG_CONFIG_HOME/bundle"
+set -gx BUNDLE_USER_PLUGIN "$XDG_DATA_HOME/bundle"
+set -gx RUBY_CONFIGURE_OPTS "--with-openssl-dir=$OPENSSL_PATH --with-readline-dir=$BREW_PREFIX/readline --with-libyaml-dir=$BREW_PREFIX/libyaml"
+
+test -n "$GEM_HOME"; and fish_add_path -g $GEM_HOME/bin
+
+# -------------------------- Node --------------------------
+set -gx NODE_REPL_HISTORY "$APPLICATIONS_HISTORY_PATH/node_repl_history"
+set -gx NPM_CONFIG_USERCONFIG "$XDG_CONFIG_HOME/npm/.npmrc"
+set -gx NPM_CONFIG_CACHE "$XDG_CACHE_HOME/npm"
+set -gx BUN_INSTALL "$XDG_DATA_HOME/bun"
+set -gx DENO_DIR "$XDG_DATA_HOME/deno"
+set -gx DENO_INSTALL_ROOT "$XDG_DATA_HOME/deno/bin"
+set -gx PNPM_HOME "$XDG_DATA_HOME/pnpm"
+set -gx BABEL_CACHE_PATH "$XDG_CACHE_HOME/babel/babel.json"
+set -gx GATSBY_CONCURRENT_DOWNLOAD 25
+set -gx UV_CACHE_DIR "$XDG_CACHE_HOME/uv"
+set -gx RUFF_CACHE_DIR "$XDG_CACHE_HOME/ruff"
+
+set --local POETRY_DIR pypoetry
+set -gx POETRY_CONFIG_DIR "$XDG_CONFIG_HOME/$POETRY_DIR"
+set -gx POETRY_DATA_DIR "$XDG_DATA_HOME/$POETRY_DIR"
+set -gx POETRY_CACHE_DIR "$XDG_CACHE_HOME/$POETRY_DIR"
+
+# Global tools (IntelliJ, VSCode, etc) will look here to see global virtualenvs
+set -gx POETRY_VIRTUALENVS_PATH "$POETRY_CACHE_DIR/virtualenvs"
+
+fish_add_path -g $XDG_DATA_HOME/npm-global-modules/bin
+test -n "$BUN_INSTALL/bin"; and fish_add_path -g $BUN_INSTALL/bin
+
+# -------------------------- Java and JVM Languages --------------------------
+set -q GRADLE_USER_HOME; or set -gx GRADLE_USER_HOME "$XDG_DATA_HOME/gradle"
+set -gx LEIN_JVM_OPTS "-XX:+TieredCompilation -XX:TieredStopAtLevel=2"
+set -gx LEIN_HOME $XDG_DATA_HOME/lein
+
+# -------------------------- AWS --------------------------
+set -gx AWS_PAGER ""
+if status --is-interactive; and type --query aws_completer
+    complete --command aws --no-files --arguments '(begin; set --local --export COMP_SHELL fish; set --local --export COMP_LINE (commandline); aws_completer | sed \'s/ $//\'; end)'
+end
+
+set -gx AWS_CLI_HISTORY_FILE "$APPLICATIONS_HISTORY_PATH/aws_history"
+set -gx AWS_CONFIG_FILE "$HOME/.aws/config"
+set -gx AWS_CREDENTIAL_PROFILES_FILE "$HOME/.aws/credentials" # Version 1.x
+set -gx AWS_PROFILE assume-brain
+set -gx AWS_SHARED_CREDENTIALS_FILE "$HOME/.aws/credentials" # Version 2.x
+set -gx AWS_DEFAULT_REGION us-east-1
+
+# -------------------------- Docker --------------------------
+set -gx DOCKER_BUILDKIT 1
+set -gx COMPOSE_DOCKER_CLI_BUILD 1
+set -gx DOCKER_CONFIG $XDG_CONFIG_HOME/docker
+
+# -------------------------- Terraform --------------------------
+set -gx TF_DATA_DIR "$XDG_DATA_HOME/terraform"
+set -gx TF_CLI_CONFIG_FILE "$XDG_CONFIG_HOME/terraform/.terraformrc"
+
+# -------------------------- Kubernetes --------------------------
+set -gx KUBECONFIG "$XDG_CONFIG_HOME/kubernetes/config"
+set -gx KUBECONFIGDIR "$XDG_CONFIG_HOME/kubernetes"
+
+# -------------------------- Starship --------------------------
+set -gx STARSHIP_CONFIG "$XDG_CONFIG_HOME/starship.toml"
+set -gx STARSHIP_LOG error
+
+# -------------------------- History --------------------------
+set -gx HISTSIZE 100000
+set -gx SAVEHIST 100000
+
+# -------------------------- HTTPie --------------------------
+set -gx HTTPIE_CONFIG_DIR "$XDG_CONFIG_HOME/httpie"
+
+# -------------------------- Less --------------------------
+set -gx LESSHISTFILE "$APPLICATIONS_HISTORY_PATH/less_history"
+set -gx LESSKEY "$XDG_CONFIG_HOME/less/keys"
+
+# -------------------------- DBs --------------------------
+set -gx REDISCLI_HISTFILE "$APPLICATIONS_HISTORY_PATH/redis_history"
+set -gx SQLITE_HISTORY "$APPLICATIONS_HISTORY_PATH/sqlite_history"
+set -gx MYSQL_HISTFILE "$APPLICATIONS_HISTORY_PATH/mysql_history"
+
+# -------------------------- Claude --------------------------
+set -gx CLAUDE_CODE_USE_BEDROCK 0
+set -gx CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1
+set -gx CLAUDE_CODE_ENABLE_TELEMETRY 0
+
+# -------------------------- Ripgrep --------------------------
+set -gx RIPGREP_CONFIG_PATH "$XDG_CONFIG_HOME/rg/.ripgreprc"
+
+# -------------------------- fzf --------------------------
+set -gx FZF_DEFAULT_COMMAND fd
+set -xg FZF_DEFAULT_OPTS "--height=90% --layout=reverse --info=inline --border rounded --margin=1 --padding=1 \
+  --color=bg+:#363A4F,bg:#24273A,spinner:#F4DBD6,hl:#ED8796 \
+  --color=fg:#CAD3F5,header:#ED8796,info:#B7BDF8,pointer:#F4DBD6 \
+  --color=marker:#B7BDF8,fg+:#CAD3F5,prompt:#B7BDF8,hl+:#ED8796 \
+  --color=selected-bg:#494D64 \
+  --color=border:#6E738D,label:#CAD3F5 \
+  --bind 'ctrl-u:preview-half-page-up'
+  --bind 'ctrl-d:preview-half-page-down'
+  --bind 'ctrl-y:execute-silent(printf {} | cut -f 2- | wl-copy --trim-newline)'
+  --bind 'alt-j:down+down+down+down+down' --bind 'alt-k:up+up+up+up+up'"
+  set -xg fzf_preview_dir_cmd eza --long --header --icons --all --color=always --group-directories-first --hyperlink
+  set -xg fzf_fd_opts --hidden --color=always
+  set -xg _ZO_FZF_OPTS $FZF_DEFAULT_OPTS '--preview "{$fzf_preview_dir_cmd} {2}"'
+
+# -------------------------- Vivid --------------------------
+if type -q vivid
+  set -gx LS_COLORS (vivid generate catppuccin-macchiato)
+end

@@ -1,3 +1,4 @@
 [tool]
 name = "atuin"
 target = "~/.config/atuin"
+ignore = [".github/"]
