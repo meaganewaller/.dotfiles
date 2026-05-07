@@ -1,6 +1,6 @@
 # vim:ft=zsh
 # shellcheck shell=bash
-# shellcheck disable=SC1036,SC2034,SC2296,SC2154
+# shellcheck disable=SC1036,SC2034,SC2296,SC2154,SC1072,SC1056,SC1083,SC1009
 #
 #  ╭─────────────────────────────╮
 #  │  Z-Shell interactive config │
@@ -30,9 +30,11 @@
 #───────────────────────────────────────────────────────────────────────────────
 
 {# Rendered by mise run link from vars (from vars/os/*.toml). #}
-{% if zsh.enable_zprof %}
+# shellcheck disable=SC1054
+{%- if zsh.enable_zprof %}
 zmodload zsh/zprof
-{% endif %}
+{%- endif %}
+
 
 fpath=($HOME/.config/zsh/plugins $fpath)
 source {{ paths.homebrew_prefix }}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -84,69 +86,16 @@ setopt SHARE_HISTORY          # Share history between all sessions
 
 
 ########################################
-# Exports & Environment Variables
-########################################
-export GPG_TTY=$(tty)
-export EXPORTS_DIR="$HOME/{{ zsh.exports_relative }}"
-
-# Create exports directory if it doesn't exist
-[ ! -d "$EXPORTS_DIR" ] && mkdir -p "$EXPORTS_DIR"
-
-load_exports() {
-	if [ -d "$EXPORTS_DIR" ]; then
-		# Only source files that exist and are readable
-		for export_file in "$EXPORTS_DIR"/*; do
-			if [ -f "$export_file" ] && [ -r "$export_file" ]; then
-				source "$export_file"
-			fi
-		done
-	fi
-}
-
-edit_exports() {
-	local file=${1:-main}
-	local filepath="$EXPORTS_DIR/$file"
-
-	# Create the file if it doesn't exist
-	[ ! -f "$filepath" ] && touch "$filepath"
-
-	${EDITOR:-{{ editor.default }}} "$filepath"
-}
-
-reload_exports() {
-    load_exports
-    echo "Exports reloaded from $EXPORTS_DIR"
-}
-
-# Load exports on startup (only if directory exists and has files)
-if [ -d "$EXPORTS_DIR" ] && [ "$(ls -A "$EXPORTS_DIR" 2>/dev/null)" ]; then
-    load_exports
-fi
-
-########################################
 # Runtime: mise
 ########################################
-{% if profile == "work" %}
-# Work (Gusto): shims on PATH via ~/.gusto/init.* — skip activate unless overridden.
-# Override: MISE_USE_SHIMS_ONLY=1
-if command -v mise >/dev/null 2>&1; then
-  if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
-	source "$HOME/.gusto/init.sh"
-  else
-    eval "$(mise activate zsh)"
-  fi
-fi
-{% else %}
-if command -v mise >/dev/null 2>&1; then
-  eval "$(mise activate zsh)"
-fi
-{% endif %}
+
+# This now lives in $HOME/.config/shells/exports/tools, and gets loaded in the ~/.zshenv file
 
 
 ########################################
 # Aliases
 ########################################
-[[ -f ${HOME}/.bash_aliases ]] && source ${HOME}/.bash_aliases
+[[ -f ${HOME}/.config/shells/aliases.sh ]] && source ${HOME}/.config/shells/aliases.sh
 
 ########################################
 # Claude Bedrock prevention
@@ -334,52 +283,27 @@ DISTROPROMPT_SHOW_DIR="{{ zsh.distroprompt.show_dir }}"
 # Utility Functions
 ########################################
 
-# Find out what's running on a given port
-whatsonport() {
-  lsof -i tcp:$1
+load_functions() {
+   if [ -d "$HOME"/.config/shells/functions ]; then
+      for function_file in "$HOME"/.config/shells/functions/*; do
+         if [ -f "$function_file" ] && [ -r "$function_file" ]; then
+            # shellcheck source=/dev/null
+            source "$function_file"
+         fi
+      done
+   fi
 }
 
-# Convert a bunch of images to a single PDF
-# Requires imagemagick to be installed
-# Example: img2pdf 2025-01-01-* 2025-01-01-january-in-photos.pdf
-img2pdf() {
-  magick $1 -auto-orient $2
-}
+if [ -d "$HOME"/.config/shells/functions ] && [ "$(ls -A "$HOME"/.config/shells/functions 2>/dev/null)" ]; then
+   load_functions
+fi
 
 {% if os == "macos" %}
 function cursor {
 	(nohup "{{ zsh.cursor_gui_bin }}" "$@" > /dev/null 2>&1 &)
 }
-
+# shellcheck disable=SC1073
 {% endif %}
-function run_agent() {
-	local name="$1"
-	local task="$2"
-	echo "Starting agent: $name"
-	claude -w "$name" -n "$name" -p "$task. When done, create a PR with gh pr create." \
-		--allowedTools "Bash,Read,Edit,Write,Grep,Glob" \
-		--output-format json > "/tmp/agent-$name.json" 2>&1
-	echo "Agent $name finished."
-}
-
-# Network Diagnostics
-alias ruok='
-    echo "Pinging Google..."
-    ping -c 2 google.com;
-    echo -e "\nDNS Lookup for Google:"
-    dig +short google.com;
-    echo -e "\nHeaders from Google homepage:"
-    curl -I http://www.google.com 2>/dev/null | head -n 1;
-    echo -e "\nChecking Google reachability with wget..."
-    wget -q --spider www.google.com;
-    if [ $? -eq 0 ]; then
-        echo "OK"
-    else
-        echo "NOT OKAY"
-    fi
-    echo -e "\nDNS Lookup for Google using nslookup:"
-    nslookup google.com
-'
 
 ########################################
 # Autocompletion
@@ -393,7 +317,6 @@ setopt hist_reduce_blanks
 setopt list_types
 setopt print_eight_bit
 setopt share_history
-
 
 autoload -Uz select-word-style
 select-word-style default

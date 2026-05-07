@@ -2,17 +2,14 @@
 name = "zsh"
 target = "~/.config/zsh"
 
+
 [[link]]
 src = "zshrc.tmpl"
 dest = "~/.zshrc"
 
 [[link]]
-src = "zshenv"
+src = "zshenv.tmpl"
 dest = "~/.zshenv"
-
-[[link]]
-src = "zprofile"
-dest = "~/.zprofile"
 
 [[link]]
 src = "lib"

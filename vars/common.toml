@@ -25,7 +25,7 @@ github = "~/github"
 enable_zprof = false
 hist_size = 100000
 # Relative to $HOME — used for EXPORTS_DIR in .zshrc
-exports_relative = ".config/exports"
+exports_relative = ".config/shells/exports"
 # Under ~/.config/zsh/ — vendor plugin script (gitignored on machine if cloned separately)
 syntax_highlighting_relative = "plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 # fpath for zsh-completions (see lib/completion.zsh.tmpl)

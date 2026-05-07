@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC1072,SC1073,SC1054,SC1056,SC1083,SC1009
+
+# Claude Code Telemetry and Exit Speed Optimization
+export DISABLE_TELEMETRY=1
+export DISABLE_ERROR_REPORTING=1
+export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+export CLAUDE_CODE_USE_BEDROCK=0
+export CLAUDE_USE_BEDROCK=0
+export DISABLE_BEDROCK=1
+
+FNOX_AGE_KEY_FILE="$HOME/.config/fnox/age.txt"
+FNOX_AGE_KEY=$(cat "$FNOX_AGE_KEY_FILE" | grep "AGE-SECRET-KEY")
+export FNOX_AGE_KEY
+
+########################################
+# Runtime: mise (must be first)
+########################################
+{%- if profile == "work" %}
+# Work (Gusto): shims on PATH via ~/.gusto/init.* — skip activate.
+# Override: MISE_USE_SHIMS_ONLY=1
+if command -v mise >/dev/null 2>&1; then
+  if [[ -f "$HOME/.gusto/init.sh" ]] || [[ "${MISE_USE_SHIMS_ONLY:-0}" == "1" ]]; then
+	  # shellcheck source=/dev/null
+    . "$HOME/.gusto/init.sh"
+  else
+    eval "$(mise activate $SHELL)"
+  fi
+fi
+{%- else %}
+# Personal: use mise activate
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate $SHELL)"
+fi
+{%- endif %}

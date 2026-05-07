@@ -22,6 +22,8 @@ shopt -s histappend checkwinsize 2>/dev/null || true
 # mise (runtime authority)
 # MUST be first on PATH
 #######################################
+# shellcheck disable=SC1054
+# shellcheck disable=SC1083
 {%- if profile == "work" %}
 if command -v mise >/dev/null 2>&1; then
 	# Work (Gusto): shims on PATH — skip activate (same signal as zsh: ~/.gusto/init.sh).
@@ -31,10 +33,12 @@ if command -v mise >/dev/null 2>&1; then
 		source "$HOME/.gusto/init.sh"
 	fi
 fi
+# shellcheck disable=SC1009
 {%- elif profile == "personal" %}
 if command -v mise >/dev/null 2>&1; then
 	eval "$(mise activate bash)"
 fi
+# shellcheck disable=SC1072,SC1056,SC1009,SC1083,SC1073
 {%- endif %}
 
 
@@ -81,9 +85,14 @@ alias l='ls -CF'
 # Load exports FIRST
 #######################################
 
-if [ -f ~/.bash_exports ]; then
-  # shellcheck disable=SC1090,SC1091
-  . ~/.bash_exports
+# Load all files in ~/.config/shells/exports
+if [ -d ~/.config/shells/exports ]; then
+for file in ~/.config/shells/exports/*.sh; do
+  if [ -f "$file" ]; then
+      # shellcheck disable=SC1090,SC1091
+      . "$file"
+    fi
+  done
 fi
 
 #######################################
@@ -91,9 +100,23 @@ fi
 #######################################
 
 # shellcheck disable=SC1090,SC1091
-[ -f ~/.bash_aliases ] && . ~/.bash_aliases
+[ -f ~/.config/shells/aliases.sh ] && . ~/.config/shells/aliases.sh
 # shellcheck disable=SC1090,SC1091
-[ -f ~/.bash_secrets ] && . ~/.bash_secrets
+[ -f ~/.config/shells/secrets.sh ] && . ~/.config/shells/secrets.sh
+
+#######################################
+# Functions
+#######################################
+
+# Load all files in ~/.config/shells/functions
+if [ -d ~/.config/shells/functions ]; then
+  for file in ~/.config/shells/functions/*.sh; do
+    if [ -f "$file" ]; then
+      # shellcheck disable=SC1090,SC1091
+      . "$file"
+    fi
+  done
+fi
 
 #######################################
 # Bash completion
@@ -137,4 +160,5 @@ tmux source-file ~/.tmux.conf >/dev/null 2>&1 || true
 . "$HOME/.atuin/bin/env"
 
 [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+
 eval "$(atuin init bash)"

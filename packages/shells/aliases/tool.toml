@@ -1,0 +1,12 @@
+[tool]
+name = "aliases"
+target = "~/.config/shells"
+
+[[link]]
+src = "shared"
+dest = "~/.config/shells/aliases.d"
+
+[[link]]
+src = "macos/macos.sh"
+dest = "~/.config/shells/aliases.d/macos.sh"
+os = ["macos"]
