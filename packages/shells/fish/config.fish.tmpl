@@ -15,9 +15,6 @@
   end
 {%- endif %}
 
-if which fnox >/dev/null
-  fnox activate fish | source
-end
 
 if [ -n "$HOMEBREW_PREFIX" ]
   if test -d "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin"

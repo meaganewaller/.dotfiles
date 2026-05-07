@@ -38,3 +38,8 @@ export PATH MANPATH
 
 export DISABLE_TELEMETRY=1
 export RESEND_TELEMETRY_DISABLED=1
+
+# shellcheck disable=SC1009,SC1083,SC1072,SC1056,SC1009,SC1083,SC1073,SC1054
+{%- if profile == "work" %}
+export GUSTO_SSH_SELF_MANAGED=1
+{%- endif %}
