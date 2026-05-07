@@ -10,3 +10,6 @@ task_timings = true
 lockfile = true
 install_before = "7d"
 paranoid = true
+
+[tools]
+zoxide = "0.9.9"

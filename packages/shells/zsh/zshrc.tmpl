@@ -217,3 +217,21 @@ unset _ZSH_SYNTAX_HL
 
 PS1='%F{blue}%B%~%b%f %F{green}❯%f '
 precmd () { print -Pn "\e]2;%-3~\a"; }
+
+{%- if profile == "work" %}
+if [[ -f "$HOME/.gusto/init.sh" ]]; then
+	# shellcheck source=/dev/null
+	source "$HOME/.gusto/init.sh"
+fi
+{%- else %}
+# We need to check if the MISE_SHELL env is set and if the the directory $HOME/.cargo/bin exists
+if [[ -z "$MISE_SHELL" ]] && [[ -d "$HOME/.cargo/bin" ]]; then
+	fish_add_path --global --prepend "$HOME/.cargo/bin"
+fi
+if command -v mise >/dev/null 2>&1; then
+	set -gx MISE_NOT_FOUND_AUTO_INSTALL false
+	set -gx MISE_RUBY_VERBOSE_INSTALL true
+	set -gx MISE_NODE_COREPACK true
+	mise activate zsh --shims | source
+fi
+{%- endif %}

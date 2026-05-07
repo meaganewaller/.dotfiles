@@ -1,0 +1,37 @@
+{%- if profile == "work" %}
+  if test -f ~/.gusto/init.fish
+    source ~/.gusto/init.fish
+  end
+{%- else %}
+  if test -z "$MISE_SHELL" && test -d "$HOME/.cargo/bin"
+    fish_add_path --global --prepend "$HOME/.cargo/bin"
+  end
+
+  if command -q mise
+    set -gx MISE_NOT_FOUND_AUTO_INSTALL false
+    set -gx MISE_RUBY_VERBOSE_INSTALL true
+    set -gx MISE_NODE_COREPACK true
+    mise activate fish --shims | source
+  end
+{%- endif %}
+
+if which fnox >/dev/null
+  fnox activate fish | source
+end
+
+if [ -n "$HOMEBREW_PREFIX" ]
+  if test -d "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin"
+    fish_add_path --global --prepend --move "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin"
+  end
+end
+
+if status is-interactive
+  if command -q  fzf
+    set -g CHEAT_USE_FZF true
+  end
+end
+
+set -gx GIT_MERGE_AUTOEDIT no
+
+# force an explicit path, otherwise it defaults to ~/Library/Application Support/eza on macOS vs ~/.config/eza on linux
+set -gx EZA_CONFIG_DIR "$HOME/.config/eza"

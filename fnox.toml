@@ -14,9 +14,9 @@ vault = "Development"
 [providers.age]
 type = "age"
 recipients = [
-  "public",
   "age1huasz423xp6ar3qlf207wnsakfd66j5v6up8vxd7hzase9mp859q2hzajy",
-  "age123q7388vhjetgnqsyjzltsrmfj50ly3aja9aw6t3xx02lwp9l9jqwvj226"
+  "age123q7388vhjetgnqsyjzltsrmfj50ly3aja9aw6t3xx02lwp9l9jqwvj226",
+  "age1t8qf0tqmr2k9rdr0ay62w5rw8gy4qxqynezys6zy439c8mhf4yhq7sevwk"
 ]
 
 [secrets]

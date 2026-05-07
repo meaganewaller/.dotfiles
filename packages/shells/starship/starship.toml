@@ -1,102 +1,195 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-scan_timeout = 20
-add_newline = true
-command_timeout = 500
+palette = "tide_rainbow"
+command_timeout = 2000
 
-[docker_context]
-disabled = true
+format = """
+$hostname\
+${env_var.STARSHIP_CTX}\
+$directory\
+$git_branch$git_status\
+$git_commit\
 
-[python]
-detect_extensions = ['py']
-python_binary = ['python']
+$sudo\
+
+$fill\
+
+
+$python\
+$nodejs\
+$rust\
+$ruby\
+$golang\
+$docker_context\
+$cmd_duration\
+$jobs\
+$time\
+$status\
+$os\
+$container\
+$shell\
+$aws\
+$line_break\
+$character
+"""
+
+[hostname]
+ssh_only = true
+format = "[](fg:blue bg:none)[█](fg:#E4E4E4 bg:blue)[$ssh_symbol$hostname](bold bg:blue)[](fg:#blue bg:none) "
+disabled = false
+style = "fg:fg_light bg:red"
 
 [directory]
-truncate_to_repo = false
+format = "[](fg:blue bg:none)[  $path ]($style)[](fg:blue bg:none)"
+style = "fg:#E4E4E4 bg:blue bold"
+truncation_length = 3
+truncate_to_repo = true
+read_only = " "
 
+[fill]
+symbol = '·'
+# https://github.com/IlanCosman/tide/blob/main/functions/tide/configure/choices/all/prompt_connection_andor_frame_color.fish
+style = 'bold #585858'
+
+[cmd_duration]
+min_time = 1_000
+format = "[](fg:#C4A000 bg:none)[$duration  ]($style)[](fg:#C4A000 bg:none)"
+disabled = false
+style = "fg:bg_dark bg:#C4A000 bold"
+
+[git_branch]
+format = "[](fg:#C4A000 bg:none)[ $branch]($style)"
+style = "fg:bg_dark bg:#C4A000"
+symbol = " "
+
+[git_status]
+format = "[ $all_status$ahead_behind]($style)[](fg:#C4A000 bg:none)"
+style = "fg:bg_dark bg:#C4A000"
+conflicted = "="
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+up_to_date = " 󰄸 "
+untracked = "?${count}"
+stashed = "*${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = " ${count}"
+
+[git_state]
+rebase = "REBASING"
+merge = "MERGING"
+revert = "REVERTING"
+cherry_pick = "CHERRY-PICKING"
+bisect = "BISECTING"
+am = "AM"
+am_or_rebase = "AM/REBASE"
+style = "yellow"
+format = '\([$state( $progress_current/$progress_total)]($style)\) '
+
+## SECOND LINE/ROW: Prompt
+# Prompt: param 2 └─
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[line_break]
+disabled = false
+
+# VERSIONS SYMBOLS AND FORMATS
 [aws]
-disabled = true
-
-[kubernetes]
-disabled = true
-
-[package]
-disabled = true
+symbol = " "
+format = "[](fg:#FF9900 bg:none)[$symbol($profile )(\\($region\\))]($style)[](fg:#FF9900 bg:none)"
+style = "bold fg:#232F3E bg:#FF9900"
 
 [battery]
 disabled = true
 
-[cmake]
+[docker_context]
+symbol = " "
 disabled = true
+format = "[$symbol$context]($style) "
+style = "blue bold"
+only_with_files = true
+detect_files = ["docker-compose.yml", "docker-compose.yaml", "Dockerfile"]
+detect_folders = []
 
-[conda]
-disabled = true
+# https://starship.rs/config/#golang
+[golang]
+symbol = " "
+version_format = "${raw}"
+format = "[](fg:cyan bg:none)[$symbol$version]($style)[()](fg:cyan bg:none)"
+style = "bold fg:#E4E4E4 bg:cyan"
 
-[nix_shell]
-disabled = true
+# https://starship.rs/config/#python
+[python]
+symbol = " "
+#pyenv_version_name = true
+format = '[](fg:blue bg:none)[${symbol}python (${version} )(\($virtualenv\) )]($style)[](fg:blue bg:none)'
+style = "bold fg:#E4E4E4 bg:blue"
+pyenv_prefix = "venv "
+python_binary = ["./venv/bin/python", "python", "python3", "python2"]
+detect_extensions = ["py"]
+version_format = "${raw}"
 
-[crystal]
-disabled = true
+# https://starship.rs/config/#ruby
+[ruby]
+symbol = " "
+version_format = "${raw}"
+format = "[](fg:#B31209 bg:none)[$symbol$version]($style)[](fg:#B31209 bg:none)"
+style = "bg:#B31209 fg:#000000"
 
-[dart]
-disabled = true
-
-[dotnet]
-disabled = true
-
-[elixir]
-disabled = true
-
-[elm]
-disabled = true
-
-[erlang]
-disabled = true
-
-[gcloud]
-disabled = true
-
-[helm]
-disabled = true
-
-[julia]
-disabled = true
-
-[terraform]
-disabled = true
-
-[zig]
-disabled = true
+[rust]
+symbol = ""
+version_format = "${raw}"
+format = "[](fg:#F74C00 bg:none)[$symbol$version]($style)[](fg:#F74C00 bg:none)"
+style = "bold fg:#E4E4E4 bg:#F74C00"
 
 [swift]
-disabled = true
+symbol = "ﯣ"
+version_format = "${raw}"
+format = "[](fg:pink bg:none)[$symbol$version]($style)[](fg:pink bg:none)"
+style = "bold fg:#E4E4E4 bg:pink"
 
-[php]
-disabled = true
+# https://starship.rs/config/#node-js
+[nodejs]
+symbol = " "
+version_format = "${raw}"
+format = "[](fg:#44883E bg:none)[$symbol$version]($style)[](fg:#44883E bg:none)"
+style = "bold fg:#E4E4E4 bg:#44883E"
+detect_folders = ["node_modules"]
 
-[perl]
-disabled = true
+[env_var.STARSHIP_CTX]
+format = "[](fg:purple bg:none)[$env_value]($style)[](fg:purple bg:none)"
+style = "fg:#E4E4E4 bg:purple bold"
+default = "personal"
 
-[lua]
-disabled = true
+## RAINBOW PALETTE (Inspired by Tide's Rainbow Theme)
 
-[nim]
-disabled = true
+[palettes.tide_rainbow]
+# https://github.com/IlanCosman/tide/blob/main/functions/tide/configure/configs/rainbow.fish
+# Core rainbow colors following ROYGBIV spectrum + additional vibrant colors
+red = "#ff5555"
+orange = "#ffb86c"
+yellow = "#f1fa8c"     # Yellow - for directories, paths
+gold = "#D7AF00"       # _tide_color_gold
+blue = "#3465A4"
+light_blue = "#00AFFF" # _tide_color_light_blue
+dark_blue = "#0087AF"  # _tide_color_dark_blue
+green = "#5FD700"
+dark_green = "#5FAF00" # _tide_color_dark_green
+cyan = "#8be9fd"
+black = "#000000"
 
-[ocaml]
-disabled = true
+purple = "#bd93f9"
+pink = "#ff79c6"
 
-[purescript]
-disabled = true
+# Supporting colors for backgrounds and contrasts
+bg_dark = "#1e1f29"
+bg_medium = "#252525"
+fg_light = "#f8f8f2"
+fg_medium = "#E4E4E4"
+comment = "#6272a4"
 
-[singularity]
-disabled = true
-
-[hg_branch]
-disabled = true
-
-[openstack]
-disabled = true
-
-[vagrant]
-disabled = true
+## COLORS
