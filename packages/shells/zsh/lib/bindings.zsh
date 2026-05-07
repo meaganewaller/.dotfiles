@@ -136,3 +136,6 @@ bindkey -- "${keys[PageDown]}"        .end-of-buffer-or-history
 bindkey -- "${keys[Shift+Tab]}"       .reverse-menu-complete
 bindkey -- "${keys[Ctrl+Left]}"       .backward-word
 bindkey -- "${keys[Ctrl+Right]}"      .forward-word
+
+bindkey "\e[A" history-beginning-search-backward
+bindkey "\e[B" history-beginning-search-forward

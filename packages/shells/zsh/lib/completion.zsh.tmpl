@@ -19,9 +19,6 @@ bindkey -M menuselect '^xu' undo                           # Undo
 autoload -U compinit; compinit
 _comp_options+=(globdots) # With hidden files
 
-# Only work with the Zsh function
-compdef vman="man"
-
 setopt MENU_COMPLETE        # Show autocompletion menu with globs
 setopt AUTO_LIST            # Automatically list choices on ambiguous completion.
 setopt COMPLETE_IN_WORD     # Complete from both ends of a word.

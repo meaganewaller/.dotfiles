@@ -32,15 +32,3 @@ syntax_highlighting_relative = "plugins/zsh-syntax-highlighting/zsh-syntax-highl
 zsh_completions_src_relative = "plugins/zsh-completions/src"
 # Non-work profiles: export vars that steer Claude Code away from Bedrock.
 disable_claude_bedrock_exports = true
-
-[zsh.distroprompt]
-# show_dir: left | right | off
-show_dir = "right"
-left_color = "%B%F{212}"
-right_color = "%B%F{84}"
-error_color = "%B%F{203}"
-noerror_color = "%B%F{84}"
-symbol_dirty = " × "
-symbol_clean = "  "
-symbol_ahead = "  "
-symbol_behind = "  "
