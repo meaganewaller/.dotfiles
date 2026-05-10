@@ -1,0 +1,6 @@
+services:
+  - type: static site
+    name: weekly-reviews
+    env: static
+    buildCommand: bundle exec jekyll build
+    publishDirectory: _site

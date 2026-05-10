@@ -1,0 +1,367 @@
+---
+layout: default
+---
+
+{% comment %}
+  Load summary data from _data/dev_os/{summary_file}
+  The summary_file frontmatter should be like "2026-02-23-summary.json"
+{% endcomment %}
+{% assign summary_key = page.summary_file | replace: ".json", "" %}
+{% assign summary = site.data.dev_os[summary_key] %}
+
+<article class="review">
+  <!-- Header -->
+  <header class="mb-8">
+    <h1 class="text-2xl font-bold text-stone-800 mb-2">
+      {{ page.title }}
+    </h1>
+    <p class="text-sm text-stone-500">
+      <time datetime="{{ page.date | date: '%Y-%m-%d' }}">{{ page.date | date: "%B %-d, %Y" }}</time>
+      {% if summary.week %}
+      <span class="mx-2">|</span>
+      <span>{{ summary.week.start }} to {{ summary.week.end }}</span>
+      {% endif %}
+    </p>
+  </header>
+
+  {% if summary %}
+  <!-- Key Metrics Dashboard -->
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-stone-700 mb-4 flex items-center gap-2">
+      <span>Key Metrics</span>
+    </h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <!-- Total Events -->
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-blue-600">{{ summary.totals.events }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Events</div>
+      </div>
+      <!-- Sessions -->
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-green-600">{{ summary.totals.sessions }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Sessions</div>
+      </div>
+      <!-- Writes -->
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-purple-600">{{ summary.totals.writes }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Writes</div>
+      </div>
+      <!-- Files Modified -->
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-orange-600">{{ summary.totals.files_modified }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Files</div>
+      </div>
+      <!-- Tradeoffs Documented -->
+      <d  iv class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-pink-600">{{ summary.totals.decisions_documented }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Tradeoffs</div>
+      </div>
+      <!-- Large Changes -->
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-indigo-600">{{ summary.totals.large_changes }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Large Changes</div>
+      </div>
+      <!-- Reversals -->
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-red-600">{{ summary.totals.reversals }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Reversals</div>
+      </div>
+      <!-- Cue Fires -->
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="text-2xl font-bold text-teal-600">{{ summary.cue_engagement.total_fires | default: 0 }}</div>
+        <div class="text-xs text-stone-500 uppercase tracking-wide">Cue Fires</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Health Indicators -->
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-stone-700 mb-4">Health Indicators</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <!-- Failure Rate -->
+      {% assign failure_pct = summary.derived_metrics.failure_rate | times: 100 | round: 1 %}
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-stone-600">Failure Rate</span>
+          {% if failure_pct > 40 %}
+          <span class="text-lg font-bold text-red-600">{{ failure_pct }}%</span>
+          {% elsif failure_pct > 20 %}
+          <span class="text-lg font-bold text-yellow-600">{{ failure_pct }}%</span>
+          {% else %}
+          <span class="text-lg font-bold text-green-600">{{ failure_pct }}%</span>
+          {% endif %}
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          {% if failure_pct > 40 %}
+          <div class="bg-red-500 h-2 rounded-full" style="width: {{ failure_pct }}%"></div>
+          {% elsif failure_pct > 20 %}
+          <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ failure_pct }}%"></div>
+          {% else %}
+          <div class="bg-green-500 h-2 rounded-full" style="width: {{ failure_pct }}%"></div>
+          {% endif %}
+        </div>
+        <div class="text-xs text-stone-400 mt-1">{{ summary.totals.failures }} failures / {{ summary.totals.events }} events</div>
+      </div>
+
+      <!-- Test Run Pass Rate -->
+      {% assign test_run_pct = summary.derived_metrics.test_stability_rate | times: 100 | round: 1 %}
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-stone-600">Test Run Pass Rate</span>
+          {% if test_run_pct > 90 %}
+          <span class="text-lg font-bold text-green-600">{{ test_run_pct }}%</span>
+          {% elsif test_run_pct > 70 %}
+          <span class="text-lg font-bold text-yellow-600">{{ test_run_pct }}%</span>
+          {% else %}
+          <span class="text-lg font-bold text-red-600">{{ test_run_pct }}%</span>
+          {% endif %}
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          {% if test_run_pct > 90 %}
+          <div class="bg-green-500 h-2 rounded-full" style="width: {{ test_run_pct }}%"></div>
+          {% elsif test_run_pct > 70 %}
+          <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ test_run_pct }}%"></div>
+          {% else %}
+          <div class="bg-red-500 h-2 rounded-full" style="width: {{ test_run_pct }}%"></div>
+          {% endif %}
+        </div>
+        <div class="text-xs text-stone-400 mt-1">{{ summary.derived_metrics.test_runs_passed }} / {{ summary.totals.test_runs }} test runs passed</div>
+      </div>
+
+      <!-- Individual Test Pass Rate -->
+      {% if summary.derived_metrics.test_counts.total > 0 %}
+      {% assign individual_test_pct = summary.derived_metrics.test_counts.passed | times: 100.0 | divided_by: summary.derived_metrics.test_counts.total | round: 2 %}
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-stone-600">Individual Test Pass Rate</span>
+          {% if individual_test_pct > 99 %}
+          <span class="text-lg font-bold text-green-600">{{ individual_test_pct }}%</span>
+          {% elsif individual_test_pct > 95 %}
+          <span class="text-lg font-bold text-yellow-600">{{ individual_test_pct }}%</span>
+          {% else %}
+          <span class="text-lg font-bold text-red-600">{{ individual_test_pct }}%</span>
+          {% endif %}
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          {% if individual_test_pct > 99 %}
+          <div class="bg-green-500 h-2 rounded-full" style="width: {{ individual_test_pct }}%"></div>
+          {% elsif individual_test_pct > 95 %}
+          <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ individual_test_pct }}%"></div>
+          {% else %}
+          <div class="bg-red-500 h-2 rounded-full" style="width: {{ individual_test_pct }}%"></div>
+          {% endif %}
+        </div>
+        <div class="text-xs text-stone-400 mt-1">{{ summary.derived_metrics.test_counts.passed }} / {{ summary.derived_metrics.test_counts.total }} individual tests</div>
+      </div>
+      {% endif %}
+
+      <!-- Reversal Ratio -->
+      {% if summary.totals.large_changes > 0 %}
+      {% assign reversal_ratio = summary.totals.reversals | times: 1.0 | divided_by: summary.totals.large_changes | round: 1 %}
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-stone-600">Reversal Ratio</span>
+          {% if reversal_ratio < 1 %}
+          <span class="text-lg font-bold text-green-600">{{ reversal_ratio }}x</span>
+          {% elsif reversal_ratio < 2 %}
+          <span class="text-lg font-bold text-yellow-600">{{ reversal_ratio }}x</span>
+          {% else %}
+          <span class="text-lg font-bold text-red-600">{{ reversal_ratio }}x</span>
+          {% endif %}
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          {% assign reversal_bar = reversal_ratio | times: 25 %}
+          {% if reversal_bar > 100 %}{% assign reversal_bar = 100 %}{% endif %}
+          {% if reversal_ratio < 1 %}
+          <div class="bg-green-500 h-2 rounded-full" style="width: {{ reversal_bar }}%"></div>
+          {% elsif reversal_ratio < 2 %}
+          <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ reversal_bar }}%"></div>
+          {% else %}
+          <div class="bg-red-500 h-2 rounded-full" style="width: {{ reversal_bar }}%"></div>
+          {% endif %}
+        </div>
+        <div class="text-xs text-stone-400 mt-1">{{ summary.totals.reversals }} reversals / {{ summary.totals.large_changes }} large changes</div>
+      </div>
+      {% endif %}
+
+      <!-- Average Session Duration -->
+      {% if summary.session_duration.sessions_tracked > 0 %}
+      {% assign avg_duration = summary.session_duration.average_minutes | round: 0 %}
+      {% assign median_duration = summary.session_duration.median_minutes | round: 0 %}
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-stone-600">Avg Session Duration</span>
+          {% if avg_duration < 60 %}
+          <span class="text-lg font-bold text-green-600">{{ avg_duration }}m</span>
+          {% elsif avg_duration < 120 %}
+          <span class="text-lg font-bold text-yellow-600">{{ avg_duration }}m</span>
+          {% else %}
+          <span class="text-lg font-bold text-red-600">{{ avg_duration }}m</span>
+          {% endif %}
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          {% assign duration_bar = avg_duration | divided_by: 2.4 %}
+          {% if duration_bar > 100 %}{% assign duration_bar = 100 %}{% endif %}
+          {% if avg_duration < 60 %}
+          <div class="bg-green-500 h-2 rounded-full" style="width: {{ duration_bar }}%"></div>
+          {% elsif avg_duration < 120 %}
+          <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ duration_bar }}%"></div>
+          {% else %}
+          <div class="bg-red-500 h-2 rounded-full" style="width: {{ duration_bar }}%"></div>
+          {% endif %}
+        </div>
+        <div class="text-xs text-stone-400 mt-1">Median: {{ median_duration }}m · {{ summary.session_duration.sessions_tracked }} sessions tracked</div>
+      </div>
+
+      <!-- Longest Session -->
+      {% assign longest = summary.session_duration.longest_session | round: 0 %}
+      {% assign longest_hrs = longest | divided_by: 60 %}
+      {% assign longest_mins = longest | modulo: 60 %}
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-stone-600">Longest Session</span>
+          {% if longest < 120 %}
+          <span class="text-lg font-bold text-green-600">{{ longest_hrs }}h {{ longest_mins }}m</span>
+          {% elsif longest < 240 %}
+          <span class="text-lg font-bold text-yellow-600">{{ longest_hrs }}h {{ longest_mins }}m</span>
+          {% else %}
+          <span class="text-lg font-bold text-red-600">{{ longest_hrs }}h {{ longest_mins }}m</span>
+          {% endif %}
+        </div>
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          {% assign longest_bar = longest | divided_by: 4.8 %}
+          {% if longest_bar > 100 %}{% assign longest_bar = 100 %}{% endif %}
+          {% if longest < 120 %}
+          <div class="bg-green-500 h-2 rounded-full" style="width: {{ longest_bar }}%"></div>
+          {% elsif longest < 240 %}
+          <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ longest_bar }}%"></div>
+          {% else %}
+          <div class="bg-red-500 h-2 rounded-full" style="width: {{ longest_bar }}%"></div>
+          {% endif %}
+        </div>
+        <div class="text-xs text-stone-400 mt-1">{{ summary.context_compaction.total_compactions | default: 0 }} context compactions this week</div>
+      </div>
+      {% endif %}
+
+    </div>
+  </section>
+
+  <!-- Project Breakdown -->
+  {% if summary.projects.size > 0 %}
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-stone-700 mb-4">Projects</h2>
+    <div class="space-y-3">
+      {% for project in summary.projects %}
+      <div class="bg-white rounded-lg p-4 border border-stone-200">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-medium text-stone-700">{{ project.project }}</span>
+          <span class="text-sm text-stone-500">{{ project.sessions }} sessions</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 text-center text-xs">
+          <div>
+            <div class="font-semibold text-stone-700">{{ project.events }}</div>
+            <div class="text-stone-400">events</div>
+          </div>
+          <div>
+            <div class="font-semibold text-green-600">{{ project.writes }}</div>
+            <div class="text-stone-400">writes</div>
+          </div>
+          <div>
+            <div class="font-semibold text-red-600">{{ project.failures }}</div>
+            <div class="text-stone-400">failures</div>
+          </div>
+          <div>
+            <div class="font-semibold text-blue-600">{{ project.tradeoffs }}</div>
+            <div class="text-stone-400">tradeoffs</div>
+          </div>
+        </div>
+        <!-- Progress bar showing event distribution -->
+        {% assign pct = project.events | times: 100.0 | divided_by: summary.totals.events %}
+        <div class="mt-2 w-full bg-stone-200 rounded-full h-1">
+          <div class="bg-blue-500 h-1 rounded-full" style="width: {{ pct }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Friction Summary -->
+  {% if summary.top_friction_domains.size > 0 %}
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-stone-700 mb-4">Top Friction Domains</h2>
+    <div class="bg-white rounded-lg p-4 border border-stone-200">
+      {% assign max_friction = summary.top_friction_domains[0].count %}
+      {% for domain in summary.top_friction_domains %}
+      <div class="mb-3 last:mb-0">
+        <div class="flex justify-between text-sm mb-1">
+          <span class="text-stone-600 font-medium">{{ domain.domain }}</span>
+          <span class="text-stone-500">{{ domain.count }}</span>
+        </div>
+        {% assign width = domain.count | times: 100.0 | divided_by: max_friction %}
+        <div class="w-full bg-stone-200 rounded-full h-2">
+          <div class="bg-red-400 h-2 rounded-full" style="width: {{ width }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Principles Invoked -->
+  {% if summary.top_principles_invoked.size > 0 %}
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-stone-700 mb-4">Principles Invoked</h2>
+    <div class="flex flex-wrap gap-2">
+      {% for principle in summary.top_principles_invoked %}
+      <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        {{ principle.principle }}
+        <span class="bg-blue-200 px-1.5 py-0.5 rounded-full text-xs">{{ principle.count }}</span>
+      </span>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Skills Used -->
+  {% if summary.top_skills_used.size > 0 %}
+  <section class="mb-8">
+    <h2 class="text-lg font-semibold text-stone-700 mb-4">Skills Demonstrated</h2>
+    <div class="flex flex-wrap gap-2">
+      {% for skill in summary.top_skills_used %}
+      <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        {{ skill.skill }}
+        <span class="bg-green-200 px-1.5 py-0.5 rounded-full text-xs">{{ skill.count }}</span>
+      </span>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% endif %}
+
+  <!-- Markdown Content -->
+  <section class="prose prose-stone prose-sm max-w-none
+                  prose-headings:font-semibold prose-headings:text-stone-800
+                  prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-4 prose-h2:pb-2 prose-h2:border-b prose-h2:border-stone-200
+                  prose-h3:text-base prose-h3:mt-6
+                  prose-p:text-stone-600
+                  prose-li:text-stone-600
+                  prose-strong:text-stone-700
+                  prose-a:text-blue-600
+                  prose-code:text-xs prose-code:px-1 prose-code:py-0.5 prose-code:rounded
+                  prose-pre:text-xs prose-pre:overflow-x-auto
+                  prose-table:text-xs
+                  prose-img:rounded-lg prose-img:shadow-md">
+    {{ content }}
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pt-4 border-t border-stone-200">
+    <p class="text-xs text-stone-400">
+      {% if summary.week.generated_at %}
+      Generated at {{ summary.week.generated_at | date: "%Y-%m-%d %H:%M" }} UTC
+      {% endif %}
+    </p>
+  </footer>
+</article>

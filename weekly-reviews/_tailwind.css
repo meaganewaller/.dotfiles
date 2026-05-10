@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ... any other imports or css classes */
